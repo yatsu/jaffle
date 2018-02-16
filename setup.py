@@ -23,8 +23,7 @@ setup(
     description='Process and Jupyter kernel orchestration tool for software development',
     long_description=long_description,
     url='https://github.com/yatsu/turret',
-    author='Masaki Yatsu',
-    author_email='yatsu@yatsu.info',
+    author='Turret Development Team',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
