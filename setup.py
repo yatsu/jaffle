@@ -20,7 +20,7 @@ dev_requirements = [str(r.req) for r in
 setup(
     name='turret',
     version=__version__,
-    description='Process orchestration tool for software development',
+    description='Process and Jupyter kernel orchestration tool for software development',
     long_description=long_description,
     url='https://github.com/yatsu/turret',
     author='Masaki Yatsu',
