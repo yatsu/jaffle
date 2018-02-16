@@ -13,7 +13,6 @@ import hcl
 from jupyter_client.kernelspec import KernelSpecManager
 from notebook.services.kernels.kernelmanager import MappingKernelManager
 from notebook.services.contents.manager import ContentsManager
-from notebook.services.sessions.sessionmanager import SessionManager
 import os
 from pathlib import Path
 import select
@@ -23,6 +22,7 @@ import threading
 from tornado import gen, ioloop
 from traitlets.config.application import catch_config_error
 from .base import TurretBaseCommand
+from ..session import TurretSessionManager
 
 
 class TurretStartCommand(TurretBaseCommand):
@@ -58,7 +58,7 @@ class TurretStartCommand(TurretBaseCommand):
             parent=self,
             log=self.log
         )
-        self.session_manager = SessionManager(
+        self.session_manager = TurretSessionManager(
             parent=self,
             log=self.log,
             kernel_manager=self.kernel_manager,
@@ -127,9 +127,11 @@ class TurretStartCommand(TurretBaseCommand):
     def _start_sessions(self):
         for kernel_instance_name, data in self.conf.get('kernel', {}).items():
             self.log.info('Starting kernel: %s', kernel_instance_name)
+            startup = str(Path(__file__).parent.parent / 'startup.py')
             session_model = yield self.session_manager.create_session(
                 name=kernel_instance_name,
-                kernel_name=data.get('kernel_name')
+                kernel_name=data.get('kernel_name'),
+                env={'PYTHONSTARTUP': startup}
             )
             self.sessions[kernel_instance_name] = session_model
 
