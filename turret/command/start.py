@@ -10,6 +10,7 @@
 
 from notebook.transutils import _  # noqa: required to import notebook classes
 import hcl
+import json
 from jupyter_client.kernelspec import KernelSpecManager
 from notebook.services.kernels.kernelmanager import MappingKernelManager
 from notebook.services.contents.manager import ContentsManager
@@ -20,7 +21,10 @@ import signal
 import sys
 import threading
 from tornado import gen, ioloop
+from tornado.escape import to_unicode
 from traitlets.config.application import catch_config_error
+import zmq
+from zmq.eventloop import zmqstream
 from .base import TurretBaseCommand
 from ..session import TurretSessionManager
 
@@ -77,10 +81,26 @@ class TurretStartCommand(TurretBaseCommand):
         self.io_loop = ioloop.IOLoop.current()
         self.io_loop.add_callback(self._start_sessions)
 
+        ctx = zmq.Context.instance()
+        self.socket = ctx.socket(zmq.DEALER)
+        self.port = self.socket.bind_to_random_port('tcp://*', min_port=9000, max_port=9999)
+        self.log.info('Turret port: %s', self.port)
+
+        stream = zmqstream.ZMQStream(self.socket)
+        stream.on_recv(self.on_recv_message)
+
         try:
             self.io_loop.start()
         except KeyboardInterrupt:
             self.log.info('Interrupted...')
+
+    def on_recv_message(self, msg):
+        data = json.loads(to_unicode(msg[0]))
+        self.log.debug('Receive: %s', data)
+        if data['type'] == 'log':
+            self.log.getChild(data['app_name']).log(
+                data['level'], data['msg'], *data['args'], **data['kwargs']
+            )
 
     def init_signal(self):
         if not sys.platform.startswith('win') and sys.stdin and sys.stdin.isatty():
@@ -107,6 +127,8 @@ class TurretStartCommand(TurretBaseCommand):
 
     @gen.coroutine
     def shutdown(self):
+        self.socket.close()
+
         for session in self.session_manager.list_sessions():
             self.log.info('Deleting session: %s %s', session['name'], session['id'])
             yield self.session_manager.delete_session(session['id'])
@@ -148,10 +170,11 @@ class TurretStartCommand(TurretBaseCommand):
                 if 'class' in app_data:
                     mod, cls = app_data['class'].rsplit('.', 1)
                     client.execute(
-                        'from {mod} import {cls}; {app} = {cls}({app!r}, {conf}, {sessions}, '
-                        '**{opts})'.format(mod=mod, cls=cls, app=app_name, conf=self.conf,
-                                           sessions=self.sessions,
-                                           opts=app_data.get('options', {})),
+                        'from {mod} import {cls}; {app} = {cls}({app!r}, {conf}, {port}, '
+                        '{sessions}, **{opts})'.format(
+                            mod=mod, cls=cls, app=app_name, conf=self.conf, port=self.port,
+                            sessions=self.sessions, opts=app_data.get('options', {})
+                        ),
                         silent=True
                     )
                 msg = client.shell_channel.get_msg(block=True)
