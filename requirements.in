@@ -1,0 +1,8 @@
+filelock>=3.0.0,<4
+jupyter-client
+jupyter-console
+notebook>=5.0.0,<6
+pyhcl>=0.3.0
+tornado
+traitlets
+watchdog>=0.8.3
