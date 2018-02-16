@@ -58,6 +58,8 @@ class BaseTurretApp(object):
 
         self.log = TurretAppLogger(app_name, self.turret_socket)
 
+        self.log.info('Initializing {!r}'.format(self.app_name))
+
     def execute(command):
         # execute command on local or remote
         pass

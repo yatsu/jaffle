@@ -8,14 +8,15 @@ from ..base import BaseTurretApp
 
 class WatchdogHandler(PatternMatchingEventHandler):
 
-    def __init__(self, patterns=None, ignore_patterns=None,
-                 ignore_directories=False, case_sensitive=False, events=[]):
+    def __init__(self, log, patterns=None, ignore_patterns=None,
+                 ignore_directories=False, case_sensitive=False):
         super().__init__(patterns=patterns, ignore_patterns=ignore_patterns,
                          ignore_directories=ignore_directories, case_sensitive=case_sensitive)
-        self.events = events
+
+        self.log = log
 
     def on_any_event(self, event):
-        self.events.append(event)
+        self.log.info('event: %s', str(event))
 
 
 class WatchdogApp(BaseTurretApp):
@@ -25,16 +26,14 @@ class WatchdogApp(BaseTurretApp):
 
         self.handlers = handlers
 
-        self.events = []
-
         self.observer = Observer()
 
         for handler in self.handlers:
-            wh = WatchdogHandler(patterns=handler.get('patterns', []),
+            wh = WatchdogHandler(self.log,
+                                 patterns=handler.get('patterns', []),
                                  ignore_patterns=handler.get('ignore_patterns', []),
                                  ignore_directories=handler.get('ignore_directories', False),
-                                 case_sensitive=handler.get('case_sensitive', False),
-                                 events=self.events)
+                                 case_sensitive=handler.get('case_sensitive', False))
             self.observer.schedule(wh, str(Path.cwd()), recursive=True)
 
         self.observer.start()
