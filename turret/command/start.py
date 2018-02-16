@@ -151,7 +151,8 @@ class TurretStartCommand(TurretBaseCommand):
                         'from {mod} import {cls}; {app} = {cls}({app!r}, {conf}, {sessions}, '
                         '**{opts})'.format(mod=mod, cls=cls, app=app_name, conf=self.conf,
                                            sessions=self.sessions,
-                                           opts=app_data.get('options', {}))
+                                           opts=app_data.get('options', {})),
+                        silent=True
                     )
                 msg = client.shell_channel.get_msg(block=True)
                 if msg['content']['status'] != 'ok':

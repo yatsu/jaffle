@@ -46,3 +46,14 @@ turret attach test
         except KeyError:
             print('Kernel {!r} is not running'.format(kernel_id), file=sys.stderr)
             self.exit(1)
+
+    def init_shell(self):
+        super().init_shell()
+
+        _ask_exit_org = self.shell.ask_exit
+
+        def ask_exit():
+            print('Detaching {}'.format(self.kernel_id))
+            _ask_exit_org()
+
+        self.shell.ask_exit = ask_exit
