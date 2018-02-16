@@ -96,11 +96,13 @@ class TurretStartCommand(TurretBaseCommand):
 
     def on_recv_message(self, msg):
         data = json.loads(to_unicode(msg[0]))
-        self.log.debug('Receive: %s', data)
+        self.log.debug('Receive message: %s', data)
         if data['type'] == 'log':
-            self.log.getChild(data['app_name']).log(
-                data['level'], data['msg'], *data['args'], **data['kwargs']
-            )
+            payload = data['payload']
+            self.log.debug('XXX payload: %s', payload)
+            # self.log.getChild(data['app_name']).log(
+            #     payload['level'], payload['msg'], *payload['args'], **payload['kwargs']
+            # )
 
     def init_signal(self):
         if not sys.platform.startswith('win') and sys.stdin and sys.stdin.isatty():
@@ -179,9 +181,10 @@ class TurretStartCommand(TurretBaseCommand):
                     )
                 msg = client.shell_channel.get_msg(block=True)
                 if msg['content']['status'] != 'ok':
-                    client.stop_channels()
-                    self.kernel_manager.shutdown_kernel(kernel_id)
-                    self.log.error('Initializing kernel failed')
+                    self.log.error('Initializing kernel {!r} with app {!r} failed'.format(
+                        kernel_instance_name, app_name
+                    ))
+                    print('\n'.join(msg['content']['traceback']), file=sys.stderr)
             client.stop_channels()
 
         self.write_sessions_file(self.sessions)

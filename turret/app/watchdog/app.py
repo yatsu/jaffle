@@ -24,6 +24,8 @@ class WatchdogApp(BaseTurretApp):
     def __init__(self, app_name, turret_conf, turret_port, sessions, handlers=[]):
         super().__init__(app_name, turret_conf, turret_port, sessions)
 
+        self.log.info('initializing watchdog')
+
         self.handlers = handlers
 
         self.observer = Observer()
