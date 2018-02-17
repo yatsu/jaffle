@@ -5,7 +5,7 @@ import json
 import logging
 from pathlib import Path
 from traitlets.config.application import Application
-from traitlets import Bool, Unicode
+from traitlets import Bool, Unicode, default
 
 
 aliases = {
@@ -33,6 +33,17 @@ class TurretBaseCommand(Application):
 
     aliases = aliases
     flags = flags
+
+    @default('log')
+    def _log_default(self):
+        log = logging.getLogger('turret')
+        log.setLevel(self.log_level)
+        log.propagate = False
+        formatter = self._log_formatter_cls(fmt=self.log_format, datefmt=self.log_datefmt)
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        log.addHandler(handler)
+        return log
 
     def _log_level_default(self):
         return logging.INFO

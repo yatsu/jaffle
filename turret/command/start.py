@@ -12,6 +12,7 @@ from notebook.transutils import _  # noqa: required to import notebook classes
 import hcl
 import json
 from jupyter_client.kernelspec import KernelSpecManager
+import logging
 from notebook.services.kernels.kernelmanager import MappingKernelManager
 from notebook.services.contents.manager import ContentsManager
 import os
@@ -99,10 +100,9 @@ class TurretStartCommand(TurretBaseCommand):
         self.log.debug('Receive message: %s', data)
         if data['type'] == 'log':
             payload = data['payload']
-            self.log.debug('XXX payload: %s', payload)
-            # self.log.getChild(data['app_name']).log(
-            #     payload['level'], payload['msg'], *payload['args'], **payload['kwargs']
-            # )
+            level = getattr(logging, payload['levelname'].upper())
+            record = logging.getLogRecordFactory()(level=level, **payload)
+            logging.getLogger(data['app_name']).handle(record)
 
     def init_signal(self):
         if not sys.platform.startswith('win') and sys.stdin and sys.stdin.isatty():
@@ -169,6 +169,8 @@ class TurretStartCommand(TurretBaseCommand):
             client.start_channels()
             client.wait_for_ready()
             for app_name, app_data in apps.items():
+                logger = logging.getLogger(app_name)
+                logger.parent = self.log
                 if 'class' in app_data:
                     mod, cls = app_data['class'].rsplit('.', 1)
                     client.execute(

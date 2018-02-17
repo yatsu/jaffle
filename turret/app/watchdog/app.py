@@ -6,6 +6,10 @@ from watchdog.observers import Observer
 from ..base import BaseTurretApp
 
 
+def event_to_dict(event):
+    return {a: getattr(event, a) for a in ['event_type', 'src_path', 'is_directory']}
+
+
 class WatchdogHandler(PatternMatchingEventHandler):
 
     def __init__(self, log, patterns=None, ignore_patterns=None,
@@ -16,15 +20,13 @@ class WatchdogHandler(PatternMatchingEventHandler):
         self.log = log
 
     def on_any_event(self, event):
-        self.log.info('event: %s', str(event))
+        self.log.info('event: %s', event_to_dict(event))
 
 
 class WatchdogApp(BaseTurretApp):
 
     def __init__(self, app_name, turret_conf, turret_port, sessions, handlers=[]):
         super().__init__(app_name, turret_conf, turret_port, sessions)
-
-        self.log.info('initializing watchdog')
 
         self.handlers = handlers
 
