@@ -36,8 +36,6 @@ class BaseTurretApp(object):
         level = turret_conf['app'][app_name].get('logger', {}).get('level', 'warn')
         self.log.setLevel(getattr(logging, level.upper()))
         handler = TurretAppLogHandler(app_name, self.turret_socket)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
         self.log.addHandler(handler)
 
     def execute(command):

@@ -6,10 +6,13 @@ import logging
 from pathlib import Path
 from traitlets.config.application import Application
 from traitlets import Bool, Unicode, default
+from ..logging import LogFormatter
 
 
 aliases = {
-    'log-level': 'Application.log_level'
+    'log-level': 'Application.log_level',
+    'log-datefmt': 'Application.log_datefmt',
+    'log-format': 'Application.log_format'
 }
 
 flags = {
@@ -34,6 +37,8 @@ class TurretBaseCommand(Application):
     aliases = aliases
     flags = flags
 
+    _log_formatter_cls = LogFormatter
+
     @default('log')
     def _log_default(self):
         log = logging.getLogger('turret')
@@ -45,8 +50,17 @@ class TurretBaseCommand(Application):
         log.addHandler(handler)
         return log
 
+    @default('log_level')
     def _log_level_default(self):
         return logging.INFO
+
+    @default('log_datefmt')
+    def _default_log_datefmt(self):
+        return "%H:%M:%S"
+
+    @default('log_format')
+    def _log_format_default(self):
+        return '%(asctime)s.%(msecs).03d %(name)12s %(levelname)1.1s %(message)s'
 
     config_file = Unicode(config=True, help='Config file path.')
 
