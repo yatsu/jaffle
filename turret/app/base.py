@@ -16,20 +16,21 @@ class TurretAppLogHandler(logging.StreamHandler):
         self.socket.send_json({
             'app_name': self.app_name,
             'type': 'log',
-            'payload': record.__dict__
+            'payload': dict(record.__dict__, args_type=type(record.args).__name__)
         })
 
 
 class BaseTurretApp(object):
 
-    def __init__(self, app_name, turret_conf, turret_port, sessions):
+    def __init__(self, app_name, turret_conf, turret_port, sessions, namespace={}):
         self.app_name = app_name
         self.turret_port = turret_port
         self.turret_conf = turret_conf
         self.sessions = sessions
+        self.namespace = namespace
 
         ctx = zmq.Context.instance()
-        self.turret_socket = ctx.socket(zmq.DEALER)
+        self.turret_socket = ctx.socket(zmq.PUSH)
         self.turret_socket.connect('tcp://127.0.0.1:{0}'.format(self.turret_port))
 
         self.log = logging.getLogger(app_name)

@@ -11,9 +11,8 @@ app "watchdog" {
   options {
     handlers = [{
       patterns           = ["*.py"]
-      ignore_patterns    = ["*/tests/*"]
       ignore_directories = true
-      execute            = "pytest_runner.run({event})"
+      function           = "pytest_runner.run"
     }]
   }
 }
@@ -23,6 +22,6 @@ app "pytest_runner" {
   kernel = "py_kernel"
 
   logger {
-    level = "info"
+    level = "debug"
   }
 }

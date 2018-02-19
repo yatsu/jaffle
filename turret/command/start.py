@@ -83,7 +83,7 @@ class TurretStartCommand(TurretBaseCommand):
         self.io_loop.add_callback(self._start_sessions)
 
         ctx = zmq.Context.instance()
-        self.socket = ctx.socket(zmq.DEALER)
+        self.socket = ctx.socket(zmq.PULL)
         self.port = self.socket.bind_to_random_port('tcp://*', min_port=9000, max_port=9999)
         self.log.info('Turret port: %s', self.port)
 
@@ -101,7 +101,11 @@ class TurretStartCommand(TurretBaseCommand):
         if data['type'] == 'log':
             payload = data['payload']
             level = getattr(logging, payload['levelname'].upper())
-            record = logging.getLogRecordFactory()(level=level, **payload)
+            if payload['args_type'] == 'tuple':
+                args = tuple(payload['args'])
+            else:
+                args = payload['args']
+            record = logging.getLogRecordFactory()(**dict(payload, level=level, args=args))
             logging.getLogger(data['app_name']).handle(record)
 
     def init_signal(self):
@@ -175,7 +179,7 @@ class TurretStartCommand(TurretBaseCommand):
                     mod, cls = app_data['class'].rsplit('.', 1)
                     client.execute(
                         'from {mod} import {cls}; {app} = {cls}({app!r}, {conf}, {port}, '
-                        '{sessions}, **{opts})'.format(
+                        '{sessions}, namespace=globals(), **{opts})'.format(
                             mod=mod, cls=cls, app=app_name, conf=self.conf, port=self.port,
                             sessions=self.sessions, opts=app_data.get('options', {})
                         ),

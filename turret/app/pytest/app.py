@@ -4,4 +4,6 @@ from ..base import BaseTurretApp
 
 
 class PyTestRunnerApp(BaseTurretApp):
-    pass
+
+    def run(self, watchdog_event):
+        self.log.debug('event: %s', watchdog_event)
