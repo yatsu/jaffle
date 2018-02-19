@@ -20,7 +20,7 @@ class WatchdogHandler(PatternMatchingEventHandler):
         self.log = log
 
     def on_any_event(self, event):
-        self.log.info('event: %s', event_to_dict(event))
+        self.log.debug('event: %s', event_to_dict(event))
 
 
 class WatchdogApp(BaseTurretApp):

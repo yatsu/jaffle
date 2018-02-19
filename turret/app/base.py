@@ -33,7 +33,7 @@ class BaseTurretApp(object):
         self.turret_socket.connect('tcp://127.0.0.1:{0}'.format(self.turret_port))
 
         self.log = logging.getLogger(app_name)
-        level = turret_conf['app'][app_name].get('logger', {}).get('level', 'warn')
+        level = turret_conf['app'][app_name].get('logger', {}).get('level', 'info')
         self.log.setLevel(getattr(logging, level.upper()))
         handler = TurretAppLogHandler(app_name, self.turret_socket)
         self.log.addHandler(handler)

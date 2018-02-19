@@ -5,7 +5,7 @@ app "watchdog" {
   kernel = "py_kernel"
 
   logger {
-    level = "info"
+    level = "debug"
   }
 
   options {

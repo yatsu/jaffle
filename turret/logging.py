@@ -4,7 +4,23 @@ from enum import Enum
 import logging
 
 
-Color = Enum('Color', 'BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE', start=0)
+class Color(Enum):
+    BLACK = 30
+    RED = 31
+    GREEN = 32
+    YELLOW = 33
+    BLUE = 34
+    MAGENTA = 35
+    CYAN = 36
+    WHITE = 37
+    BRIGHT_BLACK = 90
+    BRIGHT_RED = 91
+    BRIGHT_GREEN = 92
+    BRIGHT_YELLOW = 93
+    BRIGHT_BLUE = 94
+    BRIGHT_MAGENTA = 95
+    BRIGHT_CYAN = 96
+    BRIGHT_WHITE = 97
 
 
 class LogFormatter(logging.Formatter):
@@ -29,6 +45,8 @@ class LogFormatter(logging.Formatter):
         logging.DEBUG: (Color.BLACK, Color.BLUE)
     }
 
+    _TIME_COLOR = (Color.WHITE, Color.BRIGHT_BLACK)
+
     def __init__(self, fmt=None, datefmt=None, style='%'):
         super().__init__(fmt, datefmt, style)
 
@@ -44,6 +62,9 @@ class LogFormatter(logging.Formatter):
             rec.message = 'Bad message (%r): %r' % (e, rec.__dict__)
 
         rec.asctime = self.formatTime(rec, self.datefmt)
+
+        rec.time_color = self._color_start(self._TIME_COLOR)
+        rec.time_color_end = self._color_end()
 
         name_color = self.name_colors.get(rec.name)
         if name_color is None:
@@ -70,7 +91,13 @@ class LogFormatter(logging.Formatter):
 
         return formatted.replace('\n', '\n    ')
 
+    def _color_start(self, color):
+        return self._COLOR_FMT % self._color(color)
+
+    def _color_end(self):
+        return self._COLOR_END
+
     def _color(self, color):
         return ';'.join(
-            [['3%d', '10%d'][i] % c.value for i, c in enumerate(color) if c is not None]
+            [str([0, 10][i] + c.value) for i, c in enumerate(color) if c is not None]
         )
