@@ -46,12 +46,11 @@ class TurretAppLogHandler(logging.StreamHandler):
 
 class BaseTurretApp(object):
 
-    def __init__(self, app_name, turret_conf, turret_port, sessions, namespace={}):
+    def __init__(self, app_name, turret_conf, turret_port, sessions):
         self.app_name = app_name
         self.turret_port = turret_port
         self.turret_conf = turret_conf
         self.sessions = sessions
-        self.namespace = namespace
         self.ipython = get_ipython()  # noqa
 
         ctx = zmq.Context.instance()

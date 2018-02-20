@@ -16,7 +16,7 @@ def event_to_dict(event):
 
 class WatchdogHandler(PatternMatchingEventHandler):
 
-    def __init__(self, log, execute, function, namespace, patterns=None, ignore_patterns=None,
+    def __init__(self, log, execute, function, patterns=None, ignore_patterns=None,
                  ignore_directories=False, case_sensitive=False):
         super().__init__(patterns=patterns, ignore_patterns=ignore_patterns,
                          ignore_directories=ignore_directories, case_sensitive=case_sensitive)
@@ -24,7 +24,6 @@ class WatchdogHandler(PatternMatchingEventHandler):
         self.log = log
         self.execute = execute
         self.function = function
-        self.namespace = namespace
 
     def on_any_event(self, event):
         self.log.debug('event: %s', event_to_dict(event))
@@ -37,15 +36,15 @@ class WatchdogHandler(PatternMatchingEventHandler):
 
 class WatchdogApp(BaseTurretApp):
 
-    def __init__(self, app_name, turret_conf, turret_port, sessions, namespace, handlers=[]):
-        super().__init__(app_name, turret_conf, turret_port, sessions, namespace)
+    def __init__(self, app_name, turret_conf, turret_port, sessions, handlers=[]):
+        super().__init__(app_name, turret_conf, turret_port, sessions)
 
         self.handlers = handlers
         self.observer = Observer()
 
         for handler in self.handlers:
             wh = WatchdogHandler(self.log, self.execute,
-                                 handler.get('function'), self.namespace,
+                                 handler.get('function'),
                                  patterns=handler.get('patterns', []),
                                  ignore_patterns=handler.get('ignore_patterns', []),
                                  ignore_directories=handler.get('ignore_directories', False),

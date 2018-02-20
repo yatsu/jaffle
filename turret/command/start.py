@@ -185,7 +185,7 @@ class TurretStartCommand(TurretBaseCommand):
                     mod, cls = app_data['class'].rsplit('.', 1)
                     client.execute(
                         'from {mod} import {cls}; {app} = {cls}({app!r}, {conf}, {port}, '
-                        '{sessions}, namespace=globals(), **{opts})'.format(
+                        '{sessions}, **{opts})'.format(
                             mod=mod, cls=cls, app=app_name, conf=self.conf, port=self.port,
                             sessions=self.sessions, opts=app_data.get('options', {})
                         ),

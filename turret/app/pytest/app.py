@@ -7,9 +7,9 @@ from ..base import BaseTurretApp, capture_method_output
 
 class PyTestRunnerApp(BaseTurretApp):
 
-    def __init__(self, app_name, turret_conf, turret_port, sessions, namespace,
+    def __init__(self, app_name, turret_conf, turret_port, sessions,
                  args=['-s', '-v'], plugins=[], auto_test=[], auto_test_map={}):
-        super().__init__(app_name, turret_conf, turret_port, sessions, namespace)
+        super().__init__(app_name, turret_conf, turret_port, sessions)
 
         self.args = args
         self.plugins = plugins
