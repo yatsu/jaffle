@@ -26,10 +26,12 @@ class WatchdogHandler(PatternMatchingEventHandler):
         self.function = function
 
     def on_any_event(self, event):
-        self.log.debug('event: %s', event_to_dict(event))
+        event_dict = event_to_dict(event)
+        self.log.info('%s: %s', event_dict['event_type'], event_dict['src_path'])
+        self.log.debug('event: %s', event_dict)
         if self.function:
             try:
-                self.execute(self.function, event=event_to_dict(event))
+                self.execute(self.function, event=event_dict)
             except Exception as e:
                 self.log.error('Event handling error: %s', str(e))
 

@@ -5,7 +5,7 @@ app "watchdog" {
   kernel = "py_kernel"
 
   logger {
-    level = "debug"
+    level = "info"
   }
 
   options {
@@ -22,7 +22,7 @@ app "pytest_runner" {
   kernel = "py_kernel"
 
   logger {
-    level = "debug"
+    level = "info"
   }
 
   options {
@@ -33,7 +33,7 @@ app "pytest_runner" {
     ]
 
     auto_test_map {
-      "turret_pytest_example/*.py" = "turret_pytest_example/tests/test_{}.py"
+      "turret_pytest_example/**/*.py" = "turret_pytest_example/tests/{}/test_{}.py"
     }
   }
 }
