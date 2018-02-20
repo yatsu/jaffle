@@ -12,7 +12,7 @@ app "watchdog" {
     handlers = [{
       patterns           = ["*.py"]
       ignore_directories = true
-      function           = "pytest_runner.run"
+      function           = "pytest_runner.handle_watchdog_event"
     }]
   }
 }
@@ -23,5 +23,17 @@ app "pytest_runner" {
 
   logger {
     level = "debug"
+  }
+
+  options {
+    args = ["-s", "-v"]
+
+    auto_test = [
+      "turret_pytest_example/tests/test_*.py",
+    ]
+
+    auto_test_map {
+      "turret_pytest_example/*.py" = "turret_pytest_example/tests/test_{}.py"
+    }
   }
 }

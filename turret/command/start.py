@@ -57,7 +57,8 @@ class TurretStartCommand(TurretBaseCommand):
             parent=self,
             log=self.log,
             connection_dir=self.runtime_dir,
-            kernel_spec_manager=self.kernel_spec_manager
+            kernel_spec_manager=self.kernel_spec_manager,
+            kernel_manager_class='turret.kernel_manager.TurretKernelManager'
         )
         self.contents_manager = ContentsManager(
             parent=self,
@@ -75,6 +76,7 @@ class TurretStartCommand(TurretBaseCommand):
         self.load_conf()
 
         self.sessions = {}
+        self.clients = {}
 
     def start(self):
         self.log.debug('Starting turret')
@@ -135,6 +137,9 @@ class TurretStartCommand(TurretBaseCommand):
     def shutdown(self):
         self.socket.close()
 
+        for client in self.clients.values():
+            client.stop_channels()
+
         for session in self.session_manager.list_sessions():
             self.log.info('Deleting session: %s %s', session['name'], session['id'])
             yield self.session_manager.delete_session(session['id'])
@@ -169,9 +174,10 @@ class TurretStartCommand(TurretBaseCommand):
             if len(apps) == 0:
                 continue
             kernel = self.kernel_manager.get_kernel(kernel_id)
-            client = kernel.client()
+            client = self.clients[kernel_instance_name] = kernel.client()
             client.start_channels()
             client.wait_for_ready()
+
             for app_name, app_data in apps.items():
                 logger = logging.getLogger(app_name)
                 logger.parent = self.log
@@ -191,7 +197,6 @@ class TurretStartCommand(TurretBaseCommand):
                         kernel_instance_name, app_name
                     ))
                     print('\n'.join(msg['content']['traceback']), file=sys.stderr)
-            client.stop_channels()
 
         self.write_sessions_file(self.sessions)
 

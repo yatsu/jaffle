@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from turret_pytest_example.example import hello
+from ..example import hello
 
 
 def test_example():

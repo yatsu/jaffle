@@ -7,7 +7,11 @@ from ..base import BaseTurretApp
 
 
 def event_to_dict(event):
-    return {a: getattr(event, a) for a in ['event_type', 'src_path', 'is_directory']}
+    return {
+        'event_type': event.event_type,
+        'src_path': str(Path(event.src_path).relative_to(Path.cwd())),
+        'is_directory': event.is_directory
+    }
 
 
 class WatchdogHandler(PatternMatchingEventHandler):
@@ -25,7 +29,7 @@ class WatchdogHandler(PatternMatchingEventHandler):
         self.log.debug('event: %s', event_to_dict(event))
         if self.function:
             try:
-                self._get_func(self.function, self.namespace)(1)
+                self._get_func(self.function, self.namespace)(event_to_dict(event))
             except Exception as e:
                 self.log.error('Event handling error: %s', str(e))
 
