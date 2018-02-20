@@ -2,7 +2,23 @@
 
 import fnmatch
 import pytest
+from _pytest import config
 from ..base import BaseTurretApp, capture_method_output
+
+
+create_terminal_writer_org = config.create_terminal_writer
+
+
+def create_terminal_writer(config, *args, **kwargs):
+    tw = create_terminal_writer_org(config, *args, **kwargs)
+    tw.fullwidth -= 32
+    return tw
+
+
+# Patch create_terminal_writer() to shorten the screen width to fit the
+# log message.
+# This should be configurable...
+setattr(config, 'create_terminal_writer', create_terminal_writer)
 
 
 class PyTestRunnerApp(BaseTurretApp):
