@@ -13,10 +13,15 @@ def capture_method_output(func):
         with capture_output() as cap:
             result = func(self, *args, **kwargs)
 
-        for line in cap.stdout.split('\n') + cap.stderr.split('\n'):
+        for line in cap.stdout.split('\n'):
             text = line.strip()
             if len(text) > 0:
                 self.log.info(text)
+
+        for line in cap.stderr.split('\n'):
+            text = line.strip()
+            if len(text) > 0:
+                self.log.warning(text)
 
         return result
 
