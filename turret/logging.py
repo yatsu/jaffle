@@ -51,7 +51,6 @@ class LogFormatter(logging.Formatter):
         super().__init__(fmt, datefmt, style)
 
         self.name_colors = {}
-        self.last_name = None
 
     def format(self, record):
         rec = logging.getLogRecordFactory()(level=record.levelno, **record.__dict__)
@@ -75,11 +74,6 @@ class LogFormatter(logging.Formatter):
 
         rec.level_color = self._COLOR_FMT % self._color(self._LEVEL_COLORS[rec.levelno])
         rec.level_color_end = self._COLOR_END
-
-        if rec.name == self.last_name:
-            rec.name = ''
-        else:
-            self.last_name = rec.name
 
         formatted = self._fmt % rec.__dict__
 

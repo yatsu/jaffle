@@ -38,5 +38,4 @@ class PyTestRunnerApp(BaseTurretApp):
 
         if any([fnmatch.fnmatchcase(event['src_path'], p) for p in self.auto_test]):
             self.log.debug('pytest.main %s', self.args + [event['src_path']])
-            result = pytest.main(self.args + [event['src_path']])
-            self.log.debug('result: %s', result)
+            pytest.main(self.args + [event['src_path']])

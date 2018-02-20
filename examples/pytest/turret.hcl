@@ -26,7 +26,7 @@ app "pytest_runner" {
   }
 
   options {
-    args = ["-s", "-v"]
+    args = ["-s", "-v", "--color=yes"]
 
     auto_test = [
       "turret_pytest_example/tests/test_*.py",
