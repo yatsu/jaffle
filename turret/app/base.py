@@ -1,7 +1,26 @@
 # -*- coding: utf-8 -*-
 
+from functools import wraps
+from IPython.utils.capture import capture_output
 import logging
 import zmq
+
+
+def capture_method_output(func):
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        with capture_output() as cap:
+            result = func(self, *args, **kwargs)
+
+        for line in cap.stdout.split('\n') + cap.stderr.split('\n'):
+            text = line.strip()
+            if len(text) > 0:
+                self.log.info(text)
+
+        return result
+
+    return wrapper
 
 
 class TurretAppLogHandler(logging.StreamHandler):
@@ -28,6 +47,7 @@ class BaseTurretApp(object):
         self.turret_conf = turret_conf
         self.sessions = sessions
         self.namespace = namespace
+        self.ipython = get_ipython()  # noqa
 
         ctx = zmq.Context.instance()
         self.turret_socket = ctx.socket(zmq.PUSH)
@@ -39,6 +59,5 @@ class BaseTurretApp(object):
         handler = TurretAppLogHandler(app_name, self.turret_socket)
         self.log.addHandler(handler)
 
-    def execute(command):
-        # execute command on local or remote
-        pass
+    def execute(self, func, *args, **kwargs):
+        self.ipython.run_cell(func.format(*args, **kwargs))

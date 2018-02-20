@@ -26,11 +26,7 @@ class TurretIOPubChannel(ZMQSocketChannel):
         self.call_handlers(msg)
 
     def call_handlers(self, msg):
-        content = msg['content']
-        if content.get('name') == 'stdout':
-            text = content.get('text').strip()
-            if len(text) > 0:
-                logger.info(text)
+        pass
 
 
 class TurretKernelClient(BlockingKernelClient):

@@ -12,7 +12,7 @@ app "watchdog" {
     handlers = [{
       patterns           = ["*.py"]
       ignore_directories = true
-      function           = "pytest_runner.handle_watchdog_event"
+      function           = "pytest_runner.handle_watchdog_event({event})"
     }]
   }
 }

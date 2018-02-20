@@ -2,7 +2,7 @@
 
 import fnmatch
 import pytest
-from ..base import BaseTurretApp
+from ..base import BaseTurretApp, capture_method_output
 
 
 class PyTestRunnerApp(BaseTurretApp):
@@ -16,6 +16,7 @@ class PyTestRunnerApp(BaseTurretApp):
         self.auto_test = auto_test
         self.auto_test_map = auto_test_map
 
+    @capture_method_output
     def handle_watchdog_event(self, event):
         self.log.debug('event: %s', event)
 
