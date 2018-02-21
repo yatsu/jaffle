@@ -35,15 +35,22 @@ class TornadoApp(BaseTurretApp):
     def stop(self):
         self.log.info('Stopping %s', type(self.app).__name__)
         loop = ioloop.IOLoop.current()
-        with patch.object(loop, 'stop'):
+        __add_callback = loop.add_callback
+
+        def _add_callback(callback):
+            def new_callback():
+                with patch.object(loop, 'stop'):
+                    callback()
+
+            __add_callback(new_callback)
+
+        with patch.object(loop, 'add_callback', _add_callback):
             self.app.stop()
 
-    @capture_method_output
     def restart(self):
         self.stop()
         ioloop.IOLoop.current().add_callback(self.start)
 
-    @capture_method_output
     def uncache(self):
         def match(mod):
             any([mod == m or mod.startswith('{}.'.format(m)) for m in self.uncache_modules])
@@ -51,3 +58,7 @@ class TornadoApp(BaseTurretApp):
         for mod in [mod for mod in sys.modules if match(mod)]:
             self.log.debug('uncache: %s', mod)
             del sys.modules[mod]
+
+    def handle_watchdog_event(self, event):
+        self.log.debug('event: %s', event)
+        self.restart()

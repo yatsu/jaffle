@@ -9,11 +9,19 @@ app "watchdog" {
   }
 
   options {
-    handlers = [{
-      patterns           = ["*.py"]
-      ignore_directories = true
-      function           = "pytest_runner.handle_watchdog_event({event})"
-    }]
+    handlers = [
+      {
+        patterns           = ["*.py"]
+        ignore_directories = true
+        function           = "pytest_runner.handle_watchdog_event({event})"
+      },
+      {
+        patterns           = ["*/turret_tornado_spa_example/*.py"]
+        ignore_patterns    = ["*/tests/*.py"]
+        ignore_directories = true
+        function           = "tornado_app.handle_watchdog_event({event})"
+      },
+    ]
   }
 }
 
@@ -43,7 +51,7 @@ app "tornado_app" {
   kernel = "py_kernel"
 
   logger {
-    level = "debug"
+    level = "info"
   }
 
   options {

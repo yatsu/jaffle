@@ -27,7 +27,7 @@ class WatchdogHandler(PatternMatchingEventHandler):
 
     def on_any_event(self, event):
         event_dict = event_to_dict(event)
-        self.log.info('%s: %s', event_dict['event_type'], event_dict['src_path'])
+        # self.log.info('%s: %s', event_dict['event_type'], event_dict['src_path'])
         self.log.debug('event: %s', event_dict)
         if self.function:
             try:
