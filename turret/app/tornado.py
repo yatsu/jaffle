@@ -53,7 +53,7 @@ class TornadoApp(BaseTurretApp):
 
     def uncache(self):
         def match(mod):
-            any([mod == m or mod.startswith('{}.'.format(m)) for m in self.uncache_modules])
+            return any([mod == m or mod.startswith('{}.'.format(m)) for m in self.uncache_modules])
 
         for mod in [mod for mod in sys.modules if match(mod)]:
             self.log.debug('uncache: %s', mod)
