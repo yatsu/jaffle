@@ -239,7 +239,7 @@ class TurretStartCommand(TurretBaseCommand):
         self.log.info('Interrupted')
         yes = 'y'
         no = 'n'
-        sys.stdout.write('Shutdown this notebook server (%s/[%s])? ' % (yes, no))
+        sys.stdout.write('Shutdown this turret (%s/[%s])? ' % (yes, no))
         sys.stdout.flush()
         r, w, x = select.select([sys.stdin], [], [], 5)
         if r:
