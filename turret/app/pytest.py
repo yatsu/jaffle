@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from _pytest import config
 import re
-from ..base import BaseTurretApp, capture_method_output
+from .base import BaseTurretApp, capture_method_output
 
 
 create_terminal_writer_org = config.create_terminal_writer

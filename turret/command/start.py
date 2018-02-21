@@ -181,16 +181,17 @@ class TurretStartCommand(TurretBaseCommand):
             for app_name, app_data in apps.items():
                 logger = logging.getLogger(app_name)
                 logger.parent = self.log
+
                 if 'class' in app_data:
                     mod, cls = app_data['class'].rsplit('.', 1)
-                    client.execute(
-                        'from {mod} import {cls}; {app} = {cls}({app!r}, {conf}, {port}, '
-                        '{sessions}, **{opts})'.format(
-                            mod=mod, cls=cls, app=app_name, conf=self.conf, port=self.port,
-                            sessions=self.sessions, opts=app_data.get('options', {})
-                        ),
-                        silent=True
-                    )
+                    code = ('from {mod} import {cls}; {app} = {cls}({app!r}, {conf}, {port}, '
+                            '{sessions}, **{opts})'.format(
+                                mod=mod, cls=cls, app=app_name, conf=self.conf, port=self.port,
+                                sessions=self.sessions, opts=app_data.get('options', {})))
+                    if 'start' in app_data:
+                        code += '; {}'.format(app_data['start'])
+                    client.execute(code, silent=True)
+
                 msg = client.shell_channel.get_msg(block=True)
                 if msg['content']['status'] != 'ok':
                     self.log.error('Initializing kernel {!r} with app {!r} failed'.format(

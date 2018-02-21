@@ -3,7 +3,7 @@
 from pathlib import Path
 from watchdog.events import PatternMatchingEventHandler
 from watchdog.observers import Observer
-from ..base import BaseTurretApp
+from .base import BaseTurretApp
 
 
 def event_to_dict(event):
