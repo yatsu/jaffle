@@ -24,6 +24,8 @@ class TornadoApp(BaseTurretApp):
         mod_name, cls_name = self.app_cls.rsplit('.', 1)
         cls = getattr(import_module(mod_name), cls_name)
         self.app = cls()
+        self.app.log = self.log
+
         self.log.info('Starting %s %s', type(self.app).__name__, ' '.join(self.argv))
         self.app.initialize(self.argv)
 
