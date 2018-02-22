@@ -3,6 +3,8 @@
 from functools import wraps
 from IPython.utils.capture import capture_output
 import logging
+import sys
+from unittest.mock import patch
 import zmq
 
 
@@ -24,6 +26,26 @@ def capture_method_output(func):
                 self.log.warning(text)
 
         return result
+
+    return wrapper
+
+
+def uncache_modules_once(func):
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        uncached = False
+        __uncache_modules = self.uncache_modules
+
+        def _uncache_modules(modules):
+            nonlocal uncached
+            if uncached:
+                return
+            __uncache_modules(modules)
+            uncached = True
+
+        with patch.object(self, 'uncache_modules', _uncache_modules):
+            return func(self, *args, **kwargs)
 
     return wrapper
 
@@ -65,3 +87,11 @@ class BaseTurretApp(object):
 
     def execute(self, func, *args, **kwargs):
         self.ipython.run_cell(func.format(*args, **kwargs))
+
+    def uncache_modules(self, modules):
+        def match(mod):
+            return any([mod == m or mod.startswith('{}.'.format(m)) for m in modules])
+
+        for mod in [mod for mod in sys.modules if match(mod)]:
+            self.log.debug('uncache: %s', mod)
+            del sys.modules[mod]

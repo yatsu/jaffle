@@ -61,7 +61,7 @@ app "tornado_app" {
       "--port=9999",
     ]
 
-    uncache_modules = ["turret_tornado_spa_example"]
+    uncache = ["turret_tornado_spa_example"]
   }
 
   start = "tornado_app.start()"

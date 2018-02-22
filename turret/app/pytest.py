@@ -5,7 +5,8 @@ from pathlib import Path
 import pytest
 from _pytest import config
 import re
-from .base import BaseTurretApp, capture_method_output
+from setuptools import find_packages
+from .base import BaseTurretApp, capture_method_output, uncache_modules_once
 
 
 create_terminal_writer_org = config.create_terminal_writer
@@ -26,20 +27,24 @@ setattr(config, 'create_terminal_writer', create_terminal_writer)
 class PyTestRunnerApp(BaseTurretApp):
 
     def __init__(self, app_name, turret_conf, turret_port, sessions,
-                 args=['-s', '-v'], plugins=[], auto_test=[], auto_test_map={}):
+                 args=['-s', '-v'], plugins=[], auto_test=[], auto_test_map={},
+                 uncache=[]):
         super().__init__(app_name, turret_conf, turret_port, sessions)
 
         self.args = args
         self.plugins = plugins
         self.auto_test = auto_test
         self.auto_test_map = auto_test_map
+        self.uncache = uncache or find_packages()
 
     @capture_method_output
+    @uncache_modules_once
     def handle_watchdog_event(self, event):
         self.log.debug('event: %s', event)
         src_path = event['src_path']
 
         if any([fnmatch.fnmatchcase(src_path, p) for p in self.auto_test]):
+            self.uncache_modules(self.uncache)
             self.test(src_path)
 
         for glob, target in self.auto_test_map.items():
@@ -53,6 +58,7 @@ class PyTestRunnerApp(BaseTurretApp):
             if match:
                 target_path = Path(target.format(*match.groups()).replace('//', '/'))
                 if target_path.exists():
+                    self.uncache_modules(self.uncache)
                     self.test(str(target_path))
 
     @capture_method_output

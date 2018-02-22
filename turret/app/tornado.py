@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from importlib import import_module
-import sys
+from setuptools import find_packages
 from tornado import ioloop
 from unittest.mock import patch
 from .base import BaseTurretApp, capture_method_output
@@ -10,16 +10,16 @@ from .base import BaseTurretApp, capture_method_output
 class TornadoApp(BaseTurretApp):
 
     def __init__(self, app_name, turret_conf, turret_port, sessions,
-                 app_cls, argv=[], uncache_modules=[]):
+                 app_cls, argv=[], uncache=[]):
         super().__init__(app_name, turret_conf, turret_port, sessions)
 
         self.app_cls = app_cls
         self.argv = argv
-        self.uncache_modules = uncache_modules
+        self.uncache = uncache or find_packages()
 
     @capture_method_output
     def start(self):
-        self.uncache()
+        self.uncache_modules(self.uncache)
 
         mod_name, cls_name = self.app_cls.rsplit('.', 1)
         cls = getattr(import_module(mod_name), cls_name)
@@ -52,14 +52,6 @@ class TornadoApp(BaseTurretApp):
     def restart(self):
         self.stop()
         ioloop.IOLoop.current().add_callback(self.start)
-
-    def uncache(self):
-        def match(mod):
-            return any([mod == m or mod.startswith('{}.'.format(m)) for m in self.uncache_modules])
-
-        for mod in [mod for mod in sys.modules if match(mod)]:
-            self.log.debug('uncache: %s', mod)
-            del sys.modules[mod]
 
     def handle_watchdog_event(self, event):
         self.log.debug('event: %s', event)
