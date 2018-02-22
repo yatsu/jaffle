@@ -27,6 +27,7 @@ from traitlets.config.application import catch_config_error
 import zmq
 from zmq.eventloop import zmqstream
 from .base import TurretBaseCommand
+from ..process import Process
 from ..session import TurretSessionManager
 
 
@@ -77,12 +78,14 @@ class TurretStartCommand(TurretBaseCommand):
 
         self.sessions = {}
         self.clients = {}
+        self.procs = {}
 
     def start(self):
         self.log.debug('Starting turret')
 
         self.io_loop = ioloop.IOLoop.current()
         self.io_loop.add_callback(self._start_sessions)
+        self.io_loop.add_callback(self._start_processes)
 
         ctx = zmq.Context.instance()
         self.socket = ctx.socket(zmq.PULL)
@@ -149,6 +152,9 @@ class TurretStartCommand(TurretBaseCommand):
             if conn_file.exists():
                 conn_file.unlink()
 
+        for proc in self.procs.values():
+            proc.stop()
+
         if self.sessions_file.exists():
             self.sessions_file.unlink()
         if self.sessions_lock_file.exists():
@@ -201,8 +207,16 @@ class TurretStartCommand(TurretBaseCommand):
 
         self.write_sessions_file(self.sessions)
 
+    @gen.coroutine
+    def _start_processes(self):
+        for proc_name, proc_data in self.conf.get('process', {}).items():
+            logger = logging.getLogger(proc_name)
+            logger.parent = self.log
+            proc = self.procs[proc_name] = Process(logger, proc_name, **proc_data)
+            yield proc.start()
+
     def _get_apps_for_kernel_instance(self, kernel_instance_name):
-        return {name: data for name, data in self.conf['app'].items()
+        return {name: data for name, data in self.conf.get('app', {}).items()
                 if data.get('kernel') == kernel_instance_name}
 
     def _handle_sigint(self, sig, frame):

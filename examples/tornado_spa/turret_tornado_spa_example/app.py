@@ -25,7 +25,7 @@ class ExampleApp(Application):
         self.init_webapp()
 
     def init_webapp(self):
-        self.log.info('Starting web app (port: %d ip: %s)', self.port, self.ip)
+        self.log.info('Starting ExampleWebApp (port: %d ip: %s)', self.port, self.ip)
         self.web_app = ExampleWebApp(log=self.log)
         self.http_server = httpserver.HTTPServer(self.web_app)
         self.http_server.listen(self.port, self.ip)

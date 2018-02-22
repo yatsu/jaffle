@@ -24,7 +24,6 @@ class ExampleWebApp(web.Application):
         self.log = log
 
         path = os.path.join(os.path.dirname(__file__), 'files')
-        self.log.info('path: %s', path)
 
         super().__init__([
             (r"/api", APIHandler, {'log': self.log}),

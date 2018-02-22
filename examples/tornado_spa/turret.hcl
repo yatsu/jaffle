@@ -21,6 +21,12 @@ app "watchdog" {
         ignore_directories = true
         function           = "tornado_app.handle_watchdog_event({event})"
       },
+      {
+        patterns           = ["*.js"]
+        ignore_patterns    = ["*/node_modules/*"]
+        ignore_directories = true
+        function           = "%turret_restart_process webdev_server"
+      },
     ]
   }
 }
@@ -65,4 +71,12 @@ app "tornado_app" {
   }
 
   start = "tornado_app.start()"
+}
+
+process "webdev_server" {
+  command = "yarn start"
+
+  env {
+    BROWSER = "none"
+  }
 }
