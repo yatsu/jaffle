@@ -7,6 +7,7 @@ import sys
 from tornado import gen
 from unittest.mock import patch
 import zmq
+from ..command.status import TurretStatus
 
 
 def capture_method_output(func):
@@ -69,11 +70,11 @@ class TurretAppLogHandler(logging.StreamHandler):
 
 class BaseTurretApp(object):
 
-    def __init__(self, app_name, turret_conf, turret_port, sessions):
+    def __init__(self, app_name, turret_conf, turret_port, turret_status):
         self.app_name = app_name
         self.turret_port = turret_port
         self.turret_conf = turret_conf
-        self.sessions = sessions
+        self.turret_status = TurretStatus.from_dict(turret_status)
         self.ipython = get_ipython()  # noqa
 
         ctx = zmq.Context.instance()

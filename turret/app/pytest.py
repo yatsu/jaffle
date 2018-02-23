@@ -25,10 +25,10 @@ setattr(config, 'create_terminal_writer', create_terminal_writer)
 
 class PyTestRunnerApp(BaseTurretApp):
 
-    def __init__(self, app_name, turret_conf, turret_port, sessions,
+    def __init__(self, app_name, turret_conf, turret_port, turret_status,
                  args=['-s', '-v'], plugins=[], auto_test=[], auto_test_map={},
                  uncache=[]):
-        super().__init__(app_name, turret_conf, turret_port, sessions)
+        super().__init__(app_name, turret_conf, turret_port, turret_status)
 
         self.args = args
         self.plugins = plugins

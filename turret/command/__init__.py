@@ -9,6 +9,7 @@ from jupyter_core.paths import SYSTEM_JUPYTER_PATH  # noqa
 from pathlib import Path  # noqa
 from .base import TurretBaseCommand  # noqa
 from .start import TurretStartCommand  # noqa
+from .console import TurretConsoleCommand  # noqa
 from .attach import TurretAttachCommand  # noqa
 
 
@@ -20,6 +21,7 @@ class TurretMainCommand(TurretBaseCommand):
 
     subcommands = dict(
         start=(TurretStartCommand, TurretStartCommand.description.splitlines()[0]),
+        console=(TurretConsoleCommand, TurretConsoleCommand.description.splitlines()[0]),
         attach=(TurretAttachCommand, TurretAttachCommand.description.splitlines()[0])
     )
 

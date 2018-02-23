@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import filelock
-import json
 import logging
 from pathlib import Path
 from traitlets.config.application import Application
@@ -79,30 +77,8 @@ class TurretBaseCommand(Application):
         return str(Path(self.data_dir) / 'runtime')
 
     @property
-    def sessions_file(self):
-        return Path(self.runtime_dir) / 'sessions.json'
+    def status_file_path(self):
+        return Path(self.runtime_dir) / 'turret.json'
 
-    @property
-    def sessions_lock_file(self):
-        return Path(self.runtime_dir) / 'sessions.json.lock'
-
-    @property
-    def sessions_file_lock(self):
-        return filelock.FileLock(self.sessions_lock_file)
-
-    def kernel_connection_file(self, kernel_id):
+    def kernel_connection_file_path(self, kernel_id):
         return Path(self.runtime_dir) / 'kernel-{}.json'.format(kernel_id)
-
-    def write_sessions_file(self, sessions):
-        with self.sessions_file_lock.acquire(timeout=5):
-            with self.sessions_file.open('w') as f:
-                json.dump(sessions, f, indent=2)
-
-    def remove_sessions_file(self):
-        with self.sessions_file_lock.acquire(timeout=5):
-            self.sessions_file.unlink()
-
-    def read_sessions_file(self):
-        with self.sessions_file_lock.acquire(timeout=5):
-            with self.sessions_file.open() as f:
-                return json.load(f)

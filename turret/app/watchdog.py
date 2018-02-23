@@ -49,8 +49,8 @@ class WatchdogHandler(PatternMatchingEventHandler):
 
 class WatchdogApp(BaseTurretApp):
 
-    def __init__(self, app_name, turret_conf, turret_port, sessions, handlers=[]):
-        super().__init__(app_name, turret_conf, turret_port, sessions)
+    def __init__(self, app_name, turret_conf, turret_port, turret_status, handlers=[]):
+        super().__init__(app_name, turret_conf, turret_port, turret_status)
 
         self.handlers = handlers
         self.observer = Observer()

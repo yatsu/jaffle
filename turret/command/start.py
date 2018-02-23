@@ -27,6 +27,7 @@ from traitlets.config.application import catch_config_error
 import zmq
 from zmq.eventloop import zmqstream
 from .base import TurretBaseCommand
+from .status import TurretStatus
 from ..process import Process
 from ..session import TurretSessionManager
 
@@ -76,7 +77,7 @@ class TurretStartCommand(TurretBaseCommand):
 
         self.load_conf()
 
-        self.sessions = {}
+        self.status = TurretStatus()
         self.clients = {}
         self.procs = {}
 
@@ -147,40 +148,38 @@ class TurretStartCommand(TurretBaseCommand):
             self.log.info('Deleting session: %s %s', session['name'], session['id'])
             yield self.session_manager.delete_session(session['id'])
 
-        for kernel_data in self.sessions.values():
-            conn_file = self.kernel_connection_file(kernel_data['kernel']['id'])
+        for sess_data in self.status.sessions.values():
+            conn_file = self.kernel_connection_file_path(sess_data.kernel.id)
             if conn_file.exists():
                 conn_file.unlink()
 
         for proc in self.procs.values():
             proc.stop()
 
-        if self.sessions_file.exists():
-            self.sessions_file.unlink()
-        if self.sessions_lock_file.exists():
-            self.sessions_lock_file.unlink()
+        self.status.destroy(self.status_file_path)
 
         self.io_loop.stop()
 
     @gen.coroutine
     def _start_sessions(self):
-        for kernel_instance_name, data in self.conf.get('kernel', {}).items():
-            self.log.info('Starting kernel: %s', kernel_instance_name)
+        for session_name, data in self.conf.get('kernel', {}).items():
+            self.log.info('Starting kernel: %s', session_name)
             startup = str(Path(__file__).parent.parent / 'startup.py')
             session_model = yield self.session_manager.create_session(
-                name=kernel_instance_name,
+                name=session_name,
                 kernel_name=data.get('kernel_name'),
                 env={'PYTHONSTARTUP': startup}
             )
-            self.sessions[kernel_instance_name] = session_model
+            # self.status.add_session(**dict(session_model, name=session_name))
+            self.status.add_session(session_model['id'], session_name, session_model['kernel'])
 
-        for kernel_instance_name, session_model in self.sessions.items():
-            kernel_id = session_model['kernel']['id']
-            apps = self._get_apps_for_kernel_instance(kernel_instance_name)
+        for session in self.status.sessions.values():
+            kernel_id = session.kernel.id
+            apps = self._get_apps_for_kernel_instance(session.name)
             if len(apps) == 0:
                 continue
             kernel = self.kernel_manager.get_kernel(kernel_id)
-            client = self.clients[kernel_instance_name] = kernel.client()
+            client = self.clients[session.name] = kernel.client()
             client.start_channels()
             client.wait_for_ready()
 
@@ -191,21 +190,22 @@ class TurretStartCommand(TurretBaseCommand):
                 if 'class' in app_data:
                     mod, cls = app_data['class'].rsplit('.', 1)
                     code = ('from {mod} import {cls}; {app} = {cls}({app!r}, {conf}, {port}, '
-                            '{sessions}, **{opts})'.format(
+                            '{status}, **{opts})'.format(
                                 mod=mod, cls=cls, app=app_name, conf=self.conf, port=self.port,
-                                sessions=self.sessions, opts=app_data.get('options', {})))
+                                status=self.status.to_dict(), opts=app_data.get('options', {})))
                     if 'start' in app_data:
                         code += '; {}'.format(app_data['start'])
                     client.execute(code, silent=True)
 
                 msg = client.shell_channel.get_msg(block=True)
                 if msg['content']['status'] != 'ok':
-                    self.log.error('Initializing kernel {!r} with app {!r} failed'.format(
-                        kernel_instance_name, app_name
-                    ))
+                    self.log.error('Initializing kernel {!r} with app {!r} failed'
+                                   .format(session.name, app_name))
                     print('\n'.join(msg['content']['traceback']), file=sys.stderr)
 
-        self.write_sessions_file(self.sessions)
+                self.status.add_app(name=app_name, session_name=session.name)
+
+        self.status.save(self.status_file_path)
 
     @gen.coroutine
     def _start_processes(self):
@@ -260,10 +260,6 @@ class TurretStartCommand(TurretBaseCommand):
             line = sys.stdin.readline()
             if line.lower().startswith(yes) and no not in line.lower():
                 self.log.critical('Shutdown confirmed')
-
-                if self.sessions_file.exists():
-                    self.sessions_file.unlink()
-
                 # schedule stop on the main thread,
                 # since this might be called from a signal handler
                 self.io_loop.add_callback_from_signal(self.shutdown)

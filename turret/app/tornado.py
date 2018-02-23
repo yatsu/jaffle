@@ -9,9 +9,9 @@ from .base import BaseTurretApp, capture_method_output
 
 class TornadoApp(BaseTurretApp):
 
-    def __init__(self, app_name, turret_conf, turret_port, sessions,
+    def __init__(self, app_name, turret_conf, turret_port, turret_status,
                  app_cls, argv=[], uncache=[]):
-        super().__init__(app_name, turret_conf, turret_port, sessions)
+        super().__init__(app_name, turret_conf, turret_port, turret_status)
 
         self.app_cls = app_cls
         self.argv = argv
