@@ -12,8 +12,7 @@ app "watchdog" {
     handlers = [{
       patterns           = ["*.py"]
       ignore_directories = true
-      function           = "pytest_runner.handle_watchdog_event({event})"
-      uncache            = ["turret_pytest_example"]
+      functions          = ["pytest_runner.handle_watchdog_event({event})"]
     }]
   }
 }

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from importlib import import_module
+from setuptools import find_packages
 from tornado import ioloop
 from unittest.mock import patch
 from .base import BaseTurretApp, capture_method_output
@@ -14,7 +15,7 @@ class TornadoApp(BaseTurretApp):
 
         self.app_cls = app_cls
         self.argv = argv
-        self.uncache = uncache
+        self.uncache = uncache or find_packages()
 
     @capture_method_output
     def start(self):

@@ -14,13 +14,18 @@ app "watchdog" {
         patterns           = ["*.py"]
         ignore_patterns    = ["*/tests/*.py"]
         ignore_directories = true
-        function           = "tornado_app.handle_watchdog_event({event})"
         uncache            = ["turret_tornado_spa_example"]
+
+        functions = [
+          "tornado_app.handle_watchdog_event({event})",
+          "pytest_runner.handle_watchdog_event({event})",
+        ]
       },
       {
-        patterns           = ["*.py"]
+        patterns           = ["*/tests/test_*.py"]
         ignore_directories = true
-        function           = "pytest_runner.handle_watchdog_event({event})"
+        uncache            = ["turret_tornado_spa_example.tests"]
+        functions          = ["pytest_runner.handle_watchdog_event({event})"]
       },
     ]
   }
@@ -41,6 +46,8 @@ app "tornado_app" {
       "--port=9999",
     ]
   }
+
+  uncache = []
 
   start = "tornado_app.start()"
 }
@@ -64,6 +71,8 @@ app "pytest_runner" {
       "turret_tornado_spa_example/**/*.py" = "turret_tornado_spa_example/tests/{}/test_{}.py"
     }
   }
+
+  uncache = []
 }
 
 process "webdev_server" {
