@@ -4,6 +4,7 @@ from functools import wraps
 from IPython.utils.capture import capture_output
 import logging
 import sys
+from tornado import gen
 from unittest.mock import patch
 import zmq
 
@@ -86,7 +87,10 @@ class BaseTurretApp(object):
         self.log.addHandler(handler)
 
     def execute(self, func, *args, **kwargs):
-        self.ipython.run_cell(func.format(*args, **kwargs))
+        future = gen.Future()
+        result = self.ipython.run_cell(func.format(*args, **kwargs))
+        future.set_result(result.result)
+        return future
 
     def uncache_modules(self, modules):
         def match(mod):

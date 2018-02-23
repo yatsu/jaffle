@@ -12,23 +12,37 @@ app "watchdog" {
     handlers = [
       {
         patterns           = ["*.py"]
-        ignore_directories = true
-        function           = "pytest_runner.handle_watchdog_event({event})"
-      },
-      {
-        patterns           = ["*/turret_tornado_spa_example/*.py"]
         ignore_patterns    = ["*/tests/*.py"]
         ignore_directories = true
         function           = "tornado_app.handle_watchdog_event({event})"
+        uncache            = ["turret_tornado_spa_example"]
       },
       {
-        patterns           = ["*.js"]
-        ignore_patterns    = ["*/node_modules/*"]
+        patterns           = ["*.py"]
         ignore_directories = true
-        function           = "%turret_restart_process webdev_server"
+        function           = "pytest_runner.handle_watchdog_event({event})"
       },
     ]
   }
+}
+
+app "tornado_app" {
+  class  = "turret.app.tornado.TornadoApp"
+  kernel = "py_kernel"
+
+  logger {
+    level = "info"
+  }
+
+  options {
+    app_cls = "turret_tornado_spa_example.app.ExampleApp"
+
+    argv = [
+      "--port=9999",
+    ]
+  }
+
+  start = "tornado_app.start()"
 }
 
 app "pytest_runner" {
@@ -50,27 +64,6 @@ app "pytest_runner" {
       "turret_tornado_spa_example/**/*.py" = "turret_tornado_spa_example/tests/{}/test_{}.py"
     }
   }
-}
-
-app "tornado_app" {
-  class  = "turret.app.tornado.TornadoApp"
-  kernel = "py_kernel"
-
-  logger {
-    level = "info"
-  }
-
-  options {
-    app_cls = "turret_tornado_spa_example.app.ExampleApp"
-
-    argv = [
-      "--port=9999",
-    ]
-
-    uncache = ["turret_tornado_spa_example"]
-  }
-
-  start = "tornado_app.start()"
 }
 
 process "webdev_server" {

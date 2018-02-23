@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from importlib import import_module
-from setuptools import find_packages
 from tornado import ioloop
 from unittest.mock import patch
 from .base import BaseTurretApp, capture_method_output
@@ -15,12 +14,10 @@ class TornadoApp(BaseTurretApp):
 
         self.app_cls = app_cls
         self.argv = argv
-        self.uncache = uncache or find_packages()
+        self.uncache = uncache
 
     @capture_method_output
     def start(self):
-        self.uncache_modules(self.uncache)
-
         mod_name, cls_name = self.app_cls.rsplit('.', 1)
         cls = getattr(import_module(mod_name), cls_name)
         self.app = cls()
@@ -50,6 +47,7 @@ class TornadoApp(BaseTurretApp):
             self.app.stop()
 
     def restart(self):
+        self.uncache_modules(self.uncache)
         self.stop()
         ioloop.IOLoop.current().add_callback(self.start)
 

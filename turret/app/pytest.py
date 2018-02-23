@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 from _pytest import config
 import re
-from setuptools import find_packages
 from .base import BaseTurretApp, capture_method_output, uncache_modules_once
 
 
@@ -34,7 +33,7 @@ class PyTestRunnerApp(BaseTurretApp):
         self.plugins = plugins
         self.auto_test = auto_test
         self.auto_test_map = auto_test_map
-        self.uncache = uncache or find_packages()
+        self.uncache = uncache
 
     @capture_method_output
     @uncache_modules_once

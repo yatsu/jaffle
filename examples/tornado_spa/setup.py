@@ -12,7 +12,7 @@ setup(
     author='Turret Development Team',
     packages=find_packages(),
     install_requires=['tornado'],
-    test_require=['pytest'],
+    test_require=['pytest', 'pytest-tornado'],
     include_package_data=True,
     entry_points={
         'console_scripts': [
