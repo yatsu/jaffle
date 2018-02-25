@@ -6,7 +6,7 @@ from .base import TurretBaseCommand
 from .status import TurretStatus
 
 
-class TurretConsoleCommand(ZMQTerminalIPythonApp, TurretBaseCommand):
+class TurretConsoleCommand(TurretBaseCommand, ZMQTerminalIPythonApp):
     """
     Console for a turret kernel.
     """
@@ -48,7 +48,7 @@ turret console py_kernel
             self.exit(1)
 
     def init_shell(self):
-        super().init_shell()
+        ZMQTerminalIPythonApp.init_shell(self)
 
         _ask_exit_org = self.shell.ask_exit
 

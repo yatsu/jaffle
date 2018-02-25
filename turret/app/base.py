@@ -70,6 +70,8 @@ class TurretAppLogHandler(logging.StreamHandler):
 
 class BaseTurretApp(object):
 
+    completer_class = None
+
     def __init__(self, app_name, turret_conf, turret_port, turret_status):
         self.app_name = app_name
         self.turret_port = turret_port
@@ -100,3 +102,7 @@ class BaseTurretApp(object):
         for mod in [mod for mod in sys.modules if match(mod)]:
             self.log.debug('uncache: %s', mod)
             del sys.modules[mod]
+
+    @classmethod
+    def command_to_code(self, app_name, command):
+        raise NotImplementedError('Must be implemented to support attaching')

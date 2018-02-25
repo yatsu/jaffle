@@ -7,10 +7,15 @@ from pathlib import Path
 
 class TurretStatus(object):
 
-    def __init__(self, sessions={}, apps={}, lock_timeout=5):
+    def __init__(self, sessions={}, apps={}, conf={}, lock_timeout=5):
         self.sessions = {}
         self.apps = {}
+        self.conf = conf
         self.lock_timeout = lock_timeout
+
+    def __repr__(self):
+        return '<%s {#sessions: %d #apps: %d}>' % (
+            self.__class__.__name__, len(self.sessions), len(self.apps))
 
     @classmethod
     def from_dict(cls, data):
@@ -18,7 +23,9 @@ class TurretStatus(object):
             sessions={n: TurretSession.from_dict(s)
                       for n, s in data.get('sessions', {}).items()},
             apps={n: TurretAppData.from_dict(a)
-                  for n, a in data.get('apps', {}).items()}
+                  for n, a in data.get('apps', {}).items()},
+            conf=data.get('conf'),
+            lock_timeout=data.get('lock_timeout', 5)
         )
 
     def add_session(self, id, name, kernel=None):
@@ -32,7 +39,8 @@ class TurretStatus(object):
     def to_dict(self):
         return {
             'sessions': {n: s.to_dict() for n, s in self.sessions.items()},
-            'apps': {n: a.to_dict() for n, a in self.apps.items()}
+            'apps': {n: a.to_dict() for n, a in self.apps.items()},
+            'conf': self.conf
         }
 
     @classmethod
@@ -48,6 +56,8 @@ class TurretStatus(object):
 
             for app_name, app_data in data.get('apps', []).items():
                 status.apps[app_name] = TurretAppData(**app_data)
+
+            status.conf = data['conf']
 
         return status
 
@@ -71,6 +81,10 @@ class TurretSession(object):
         if kernel:
             self.kernel = TurretKernelData.from_dict(kernel)
 
+    def __repr__(self):
+        return '<%s {id: %s name: %s kernel: %s}>' % (
+            self.__class__.__name__, self.id, self.name, self.kernel)
+
     @classmethod
     def from_dict(cls, data):
         return cls(id=data.get('id'), name=data.get('name'), kernel=data.get('kernel'))
@@ -89,6 +103,10 @@ class TurretKernelData(object):
         self.id = id
         self.name = name
 
+    def __repr__(self):
+        return '<%s {id: %s name: %s}>' % (
+            self.__class__.__name__, self.id, self.name)
+
     @classmethod
     def from_dict(cls, data):
         return cls(**{a: data.get(a) for a in ['id', 'name']})
@@ -105,6 +123,10 @@ class TurretAppData(object):
     def __init__(self, name, session_name=None):
         self.name = name
         self.session_name = session_name
+
+    def __repr__(self):
+        return '<%s {name: %s session_name: %s}>' % (
+            self.__class__.__name__, self.name, self.session_name)
 
     @classmethod
     def from_dict(cls, data):

@@ -77,7 +77,7 @@ class TurretStartCommand(TurretBaseCommand):
 
         self.load_conf()
 
-        self.status = TurretStatus()
+        self.status = TurretStatus(conf=self.conf)
         self.clients = {}
         self.procs = {}
 

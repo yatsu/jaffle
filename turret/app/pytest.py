@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
+from prompt_toolkit.completion import Completer, Completion
 import pytest
 from _pytest import config
 import re
@@ -23,7 +24,31 @@ def create_terminal_writer(config, *args, **kwargs):
 setattr(config, 'create_terminal_writer', create_terminal_writer)
 
 
+class TestCollector(object):
+
+    def __init__(self):
+        self.test_items = []
+
+    def pytest_collection_modifyitems(self, items):
+        for item in items:
+            self.test_items.append(item.nodeid)
+
+
+class PyTestCompleter(Completer):
+
+    def __init__(self):
+        test_collector = TestCollector()
+        pytest.main(['--collect-only'], plugins=[test_collector])
+        self.test_items = test_collector.test_items
+
+    def get_completions(self, document, complete_event):
+        for m in [i for i in self.test_items if i.startswith(document.text)]:
+            yield Completion(m, start_position=-document.cursor_position)
+
+
 class PyTestRunnerApp(BaseTurretApp):
+
+    completer_class = PyTestCompleter
 
     def __init__(self, app_name, turret_conf, turret_port, turret_status,
                  args=['-s', '-v'], plugins=[], auto_test=[], auto_test_map={},
@@ -72,3 +97,7 @@ class PyTestRunnerApp(BaseTurretApp):
         # because '?' and parenthesies are not allowed in the glob syntax
         return re.sub(r'/', r'\/', re.sub(r'(?<!\\)\*(?!\?\))', r'([^/]*?)',
                                           re.sub(r'(?<!\\)\*\*\/?', r'(.*?)', glob)))
+
+    @classmethod
+    def command_to_code(self, app_name, command):
+        return '{}.test({!r})'.format(app_name, command)
