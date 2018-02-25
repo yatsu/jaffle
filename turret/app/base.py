@@ -7,7 +7,7 @@ import sys
 from tornado import gen
 from unittest.mock import patch
 import zmq
-from ..command.status import TurretStatus
+from ..status import TurretStatus
 
 
 def capture_method_output(func):

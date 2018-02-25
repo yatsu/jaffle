@@ -4,8 +4,8 @@ from jupyter_client.consoleapp import JupyterConsoleApp
 import signal
 import sys
 from traitlets.config import catch_config_error
+from ...status import TurretStatus
 from ..base import TurretBaseCommand
-from ..status import TurretStatus
 from .shell import TurretAppShell
 
 

@@ -27,7 +27,7 @@ from traitlets.config.application import catch_config_error
 import zmq
 from zmq.eventloop import zmqstream
 from .base import TurretBaseCommand
-from .status import TurretStatus
+from ..status import TurretStatus
 from ..process import Process
 from ..session import TurretSessionManager
 

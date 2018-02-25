@@ -3,7 +3,7 @@
 from jupyter_console.app import ZMQTerminalIPythonApp
 import sys
 from .base import TurretBaseCommand
-from .status import TurretStatus
+from ..status import TurretStatus
 
 
 class TurretConsoleCommand(TurretBaseCommand, ZMQTerminalIPythonApp):
