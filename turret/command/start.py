@@ -23,6 +23,7 @@ import sys
 import threading
 from tornado import gen, ioloop
 from tornado.escape import to_unicode
+from traitlets import default
 from traitlets.config.application import catch_config_error
 import zmq
 from zmq.eventloop import zmqstream
@@ -37,6 +38,12 @@ class TurretStartCommand(TurretBaseCommand):
     Starts turret server.
     """
     description = __doc__
+
+    @default('log_format')
+    def _log_format_default(self):
+        return ('%(time_color)s%(asctime)s.%(msecs).03d%(time_color_end)s '
+                '%(name_color)s%(name)14s%(name_color_end)s '
+                '%(level_color)s %(levelname)1.1s %(level_color_end)s %(message)s')
 
     def parse_command_line(self, argv):
         super().parse_command_line(argv)

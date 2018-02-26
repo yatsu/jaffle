@@ -58,9 +58,7 @@ class TurretBaseCommand(Application):
 
     @default('log_format')
     def _log_format_default(self):
-        return ('%(time_color)s%(asctime)s.%(msecs).03d%(time_color_end)s '
-                '%(name_color)s%(name)14s%(name_color_end)s '
-                '%(level_color)s %(levelname)1.1s %(level_color_end)s %(message)s')
+        return '%(message)s'
 
     config_file = Unicode(config=True, help='Config file path.')
 
