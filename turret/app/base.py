@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from contextlib import redirect_stderr, redirect_stdout
 from functools import wraps
-from IPython.utils.capture import capture_output
+import io
 import logging
 import sys
 from tornado import gen
@@ -10,24 +11,40 @@ import zmq
 from ..status import TurretStatus
 
 
-def capture_method_output(func):
+class OutputCapturer(io.StringIO):
 
+    def __init__(self, log, log_level=logging.INFO, std=None):
+        super().__init__()
+        self.log = log
+        self.log_level = log_level
+        self.std = std
+
+    def write(self, buf):
+        if self.std:
+            self.std.write(buf)
+        for line in buf.rstrip().splitlines():
+            text = line.rstrip()
+            if len(text) > 0:
+                self.log.log(self.log_level, text)
+
+    def flush(self):
+        if self.std:
+            self.std.flush()
+
+
+def capture_method_output(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        with capture_output() as cap:
-            result = func(self, *args, **kwargs)
+        # Prevent nested capturing
+        if isinstance(sys.stdout, OutputCapturer):
+            return func(self, *args, **kwargs)
 
-        for line in cap.stdout.split('\n'):
-            text = line.strip()
-            if len(text) > 0:
-                self.log.info(text)
+        stdout = OutputCapturer(self.log, logging.INFO, sys.stdout)
+        stderr = OutputCapturer(self.log, logging.WARNING, sys.stderr)
 
-        for line in cap.stderr.split('\n'):
-            text = line.strip()
-            if len(text) > 0:
-                self.log.warning(text)
-
-        return result
+        with redirect_stdout(stdout):
+            with redirect_stderr(stderr):
+                return func(self, *args, **kwargs)
 
     return wrapper
 
