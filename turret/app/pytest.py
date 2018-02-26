@@ -6,7 +6,6 @@ from pathlib import Path
 from prompt_toolkit.completion import Completer, Completion
 import pytest
 from _pytest import config
-# from queue import Empty
 import re
 from setuptools import find_packages
 from .base import BaseTurretApp, capture_method_output, uncache_modules_once
@@ -42,21 +41,54 @@ class PyTestCompleter(Completer):
     def __init__(self, app_name, app_conf, client):
         self.app_name = app_name
         self.client = client
-        self.test_items = []
+        self.test_items = {}
         self.update_test_items()
 
     def get_completions(self, document, complete_event):
-        for m in [i for i in self.test_items if i.startswith(document.text)]:
-            yield Completion(m, start_position=-document.cursor_position)
+        if '::' in document.text_before_cursor:
+            path, pref = document.text_before_cursor.rsplit('::', 1)
+            ns = self._module(path)
+            if ns:
+                for func in ns:
+                    yield Completion(func, start_position=-len(pref))
+        elif document.text_before_cursor[-1] == ':':
+            if self._module(document.text_before_cursor[:-1]):  # check module existence
+                yield Completion(':', start_position=0)  # ':' -> '::'
+        else:  # module
+            comps = document.text_before_cursor.rsplit('/', 1)
+            ans = comps[:-1]
+            if len(ans) > 0:
+                ns = self._module('/'.join(ans))
+                if ns:
+                    for mod in ns:
+                        yield Completion(mod, start_position=-len(comps[-1]))
+            else:
+                for mod in self.test_items:
+                    yield Completion(mod, start_position=-document.cursor_position)
 
     def update_test_items(self):
+        self.test_items = {}
         # Is there a better way to communicate with the kernel?
         with capture_output() as cap:
             self.client.execute_interactive(
                 'import json; print(json.dumps({}.collect()), end="")'.format(self.app_name),
                 silent=True
             )
-        self.test_items = json.loads(cap.stdout.splitlines()[-1])
+        for nodeid in json.loads(cap.stdout.splitlines()[-1]):
+            path, func = nodeid.rsplit('::', 1)
+            ns = self._module(path, create=True)
+            ns[func] = True
+
+    def _module(self, path, create=False):
+        ns = self.test_items
+        for mod in path.split('/'):
+            if mod not in ns:
+                if create:
+                    ns[mod] = {}
+                else:
+                    return None
+            ns = ns[mod]
+        return ns
 
 
 class PyTestRunnerApp(BaseTurretApp):
