@@ -42,7 +42,7 @@ class TurretAppShell(ZMQTerminalInteractiveShell):
 
         comp_cls = self.app_class.completer_class
         if comp_cls:
-            self.completer = comp_cls()
+            self.completer = comp_cls(self.app_name, self.app_conf, self.client)
 
     def init_prompt_toolkit_cli(self):
         kbmanager = KeyBindingManager.for_prompt()

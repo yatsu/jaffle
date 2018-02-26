@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from IPython.utils.capture import capture_output
+import json
 from pathlib import Path
 from prompt_toolkit.completion import Completer, Completion
 import pytest
 from _pytest import config
+# from queue import Empty
 import re
 from setuptools import find_packages
 from .base import BaseTurretApp, capture_method_output, uncache_modules_once
@@ -36,14 +39,24 @@ class TestCollector(object):
 
 class PyTestCompleter(Completer):
 
-    def __init__(self):
-        test_collector = TestCollector()
-        pytest.main(['--collect-only'], plugins=[test_collector])
-        self.test_items = test_collector.test_items
+    def __init__(self, app_name, app_conf, client):
+        self.app_name = app_name
+        self.client = client
+        self.test_items = []
+        self.update_test_items()
 
     def get_completions(self, document, complete_event):
         for m in [i for i in self.test_items if i.startswith(document.text)]:
             yield Completion(m, start_position=-document.cursor_position)
+
+    def update_test_items(self):
+        # Is there a better way to communicate with the kernel?
+        with capture_output() as cap:
+            self.client.execute_interactive(
+                'import json; print(json.dumps({}.collect()), end="")'.format(self.app_name),
+                silent=True
+            )
+        self.test_items = json.loads(cap.stdout.splitlines()[-1])
 
 
 class PyTestRunnerApp(BaseTurretApp):
@@ -97,6 +110,12 @@ class PyTestRunnerApp(BaseTurretApp):
         # because '?' and parenthesies are not allowed in the glob syntax
         return re.sub(r'/', r'\/', re.sub(r'(?<!\\)\*(?!\?\))', r'([^/]*?)',
                                           re.sub(r'(?<!\\)\*\*\/?', r'(.*?)', glob)))
+
+    @capture_method_output
+    def collect(self):
+        test_collector = TestCollector()
+        pytest.main(['-qq', '--collect-only'], plugins=[test_collector])
+        return test_collector.test_items
 
     @classmethod
     def command_to_code(self, app_name, command):
