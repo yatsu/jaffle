@@ -26,6 +26,9 @@ class TurretAppShell(ZMQTerminalInteractiveShell):
     app_name = Unicode()
     app_conf = Dict()
 
+    _completer = None
+    _lexer = None
+
     client = Instance('jupyter_client.KernelClient', allow_none=True)
 
     def _client_changed(self, name, old, new):
@@ -42,13 +45,22 @@ class TurretAppShell(ZMQTerminalInteractiveShell):
 
         comp_cls = self.app_class.completer_class
         if comp_cls:
-            self.completer = comp_cls(self.app_name, self.app_conf, self.client)
+            self._completer = comp_cls(self.app_name, self.app_conf, self.client)
+
+    def init_lexer(self):
+        lexer_cls = self.app_class.lexer_class
+        if lexer_cls:
+            self._lexer = lexer_cls()
 
     def init_prompt_toolkit_cli(self):
+        self.init_lexer()
+
         kbmanager = KeyBindingManager.for_prompt()
         style_overrides = {
-            Token.Prompt: '#009900',
-            Token.OutPrompt: '#ff2200'
+            Token.Prompt: '#aaddaa',
+            Token.OutPrompt: '#ddaaaa',
+            Token.Name.Namespace: '#ddaadd',
+            Token.Name.Function: '#aadddd',
         }
         style_cls = get_style_by_name('default')
         style = PygmentsStyle.from_defaults(pygments_style_cls=style_cls,
@@ -56,7 +68,8 @@ class TurretAppShell(ZMQTerminalInteractiveShell):
         app = create_prompt_application(
             get_prompt_tokens=self.get_prompt_tokens,
             key_bindings_registry=kbmanager.registry,
-            completer=self.completer,
+            completer=self._completer,
+            lexer=self._lexer,
             style=style,
         )
 

@@ -89,6 +89,8 @@ class BaseTurretApp(object):
 
     completer_class = None
 
+    lexer_class = None
+
     def __init__(self, app_name, turret_conf, turret_port, turret_status):
         self.app_name = app_name
         self.turret_port = turret_port

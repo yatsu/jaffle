@@ -4,6 +4,8 @@ from IPython.utils.capture import capture_output
 import json
 from pathlib import Path
 from prompt_toolkit.completion import Completer, Completion
+from prompt_toolkit.layout.lexers import Lexer
+from pygments.token import Token
 import pytest
 from _pytest import config
 import re
@@ -91,9 +93,38 @@ class PyTestCompleter(Completer):
         return ns
 
 
+class PyTestLexer(Lexer):
+
+    def lex_document(self, cli, document):
+        lines = document.lines
+
+        def get_line(lineno):
+            try:
+                line = lines[lineno]
+                if '::' in line:
+                    path, func = line.rsplit('::', 1)
+                    return self._mod_tokens(path) + self._func_tokens(func)
+                else:
+                    return self._mod_tokens(line)
+
+            except IndexError:
+                return []
+
+        return get_line
+
+    def _mod_tokens(self, path):
+        return [n for m in path.split('/')
+                for n in [(Token.Name.Namespace, m), (Token.Name.Other, '/')]][:-1]
+
+    def _func_tokens(self, func):
+        return [(Token.Name.Other, '::'), (Token.Name.Function, func)]
+
+
 class PyTestRunnerApp(BaseTurretApp):
 
     completer_class = PyTestCompleter
+
+    lexer_class = PyTestLexer
 
     def __init__(self, app_name, turret_conf, turret_port, turret_status,
                  args=['-s', '-v'], plugins=[], auto_test=[], auto_test_map={},
