@@ -53,7 +53,7 @@ class PyTestCompleter(Completer):
             if ns:
                 for func in ns:
                     yield Completion(func, start_position=-len(pref))
-        elif document.text_before_cursor[-1] == ':':
+        elif document.text_before_cursor.rfind(':') == len(document.text_before_cursor) - 1:
             if self._module(document.text_before_cursor[:-1]):  # check module existence
                 yield Completion(':', start_position=0)  # ':' -> '::'
         else:  # module
