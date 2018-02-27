@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from jupyter_client.consoleapp import JupyterConsoleApp
 from jupyter_console.app import ZMQTerminalIPythonApp
+import signal
 import sys
 from .base import TurretBaseCommand
+from ..shell import TurretInteractiveShell
 from ..status import TurretStatus
 
 
@@ -48,7 +51,15 @@ turret console py_kernel
             self.exit(1)
 
     def init_shell(self):
-        ZMQTerminalIPythonApp.init_shell(self)
+        JupyterConsoleApp.initialize(self)
+
+        signal.signal(signal.SIGINT, self.handle_sigint)
+        self.shell = TurretInteractiveShell.instance(
+            parent=self,
+            manager=self.kernel_manager,
+            client=self.kernel_client,
+        )
+        self.shell.own_kernel = not self.existing
 
         _ask_exit_org = self.shell.ask_exit
 

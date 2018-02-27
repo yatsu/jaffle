@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from importlib import import_module
-from jupyter_console.ptshell import ZMQTerminalInteractiveShell
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_output
@@ -9,10 +8,11 @@ from prompt_toolkit.styles import PygmentsStyle
 from pygments.styles import get_style_by_name
 from pygments.token import Token
 from traitlets import Dict, Instance, Unicode, Type
+from ...shell import TurretInteractiveShell
 from ...app.base import BaseTurretApp
 
 
-class TurretAppShell(ZMQTerminalInteractiveShell):
+class TurretAppShell(TurretInteractiveShell):
     pt_cli = None
 
     _executing = False
