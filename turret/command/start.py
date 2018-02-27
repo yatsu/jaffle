@@ -8,13 +8,16 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from notebook.transutils import _  # noqa: required to import notebook classes
+try:
+    from notebook.transutils import _  # noqa: required to import notebook classes
+except ImportError:
+    pass
 import hcl
 import json
 from jupyter_client.kernelspec import KernelSpecManager
 import logging
-from notebook.services.kernels.kernelmanager import MappingKernelManager
 from notebook.services.contents.manager import ContentsManager
+from notebook.services.kernels.kernelmanager import MappingKernelManager
 import os
 from pathlib import Path
 import select
