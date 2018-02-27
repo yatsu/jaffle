@@ -1,5 +1,6 @@
 -r requirements.in
 
 flake8>=3.5.0
+pip
 pytest>=3.4.0
 pytest-cov
