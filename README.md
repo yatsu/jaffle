@@ -3,6 +3,8 @@
 Turret is a Python app and process orchestration tool for development
 environment leveraging Jupyter kernel and client technology.
 
+"Examples" section below shows what you can do with Turret.
+
 Although Turret is a generic framework, the project is now mainly focusing
 on providing auto-test, process management and unified logging for Python
 software development.
@@ -17,6 +19,13 @@ software development.
 ## Examples
 
 ### Auto-test
+
+[examples/pytest](https://github.com/yatsu/turret/tree/master/examples/pytest)
+is an example Python project which uses Turret to execute
+[pytest](https://docs.pytest.org/) automatically when a `.py` file is updated.
+
+Here is the configuration file of Turret:
+[turret.hcl](https://github.com/yatsu/turret/blob/master/examples/pytest/turret.hcl).
 
 ```hcl
 kernel "py_kernel" {}
@@ -52,14 +61,40 @@ app "pytest_runner" {
 }
 ```
 
+The file format of `turret.hcl` is
+[HCL](https://github.com/hashicorp/hc://github.com/hashicorp/hcl). If you
+prefer JSON, you can write it as JSON.
+
 `kernel "py_kernel" {}` creates a Jupyter kernel. "py_kernel" is a kernel
 instance name which is referred from apps.
 
-"app" creates an app. In this example, `watchdog` and `pytest_runner` will
-be launched in the same Jupyter kernel `py_kernel`. They are assigned
-a variable name `watchdog` and `pytest_runner` 
+"app" creates an app. In this example, `turret.app.watchdog.WatchdogApp` and
+`turret.app.pytest.PyTestRunnerApp` will be instantiated in the same Jupyter
+kernel `py_kernel`, and assigned to variable `watchdog` and `pytest_runner`
+respectively.
+
+`WatchdogApp` can have multiple `handlers` which execute `functions` on
+detecting filesystem update to a file that matches its `patterns`.
+
+`auto_test` option of `PyTestRunnerApp` includes test file patterns. When
+a file is updated which matches to these patterns, the file itself is executed
+by pytest.
+
+`auto_test_map` is a map from `.py` file patterns to test file patterns. When
+a file matches to the left-hand side, the right-hand side is executed by pytest
+replacing `{}`s with matched strings of `**` and `*`.
+
+The screen capture below shows how they work:
 
 ![pytest example](https://github.com/yatsu/turret/blob/master/assets/pytest_example.gif)
+
+- `turret start` starts Turret main process.
+- When `turret_pytest_example/example.py` is updated, pytest executes
+  `turret_pytest_example/tests/test_example.py`.
+- `turret attach pytest_runner` opens an interactive shell and attaches it into
+  `pytest_runner` app.
+- The pytest interactive shell accepts a test target and executes it in
+  a Jupyter kernel of the app.
 
 ## Prerequisite
 
