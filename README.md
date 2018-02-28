@@ -18,7 +18,7 @@ software development.
 
 ## Examples
 
-### Auto-test
+### Simple Python project with auto-test
 
 [examples/pytest](https://github.com/yatsu/turret/tree/master/examples/pytest)
 is an example Python project which uses Turret to execute
@@ -96,12 +96,105 @@ The screen capture below shows how they work:
 - The pytest interactive shell accepts a test target and executes it in
   a Jupyter kernel of the app.
 
+### Tornado single-page web app
+
+[examples/tornado_spa](https://github.com/yatsu/turret/tree/master/examples/tornado_spa)
+is a single-page app (SPA) project using [Tornado](http://www.tornadoweb.org/).
+The front-end is created by [Create React
+App](https://github.com/facebook/create-react-app) (CRA).
+
+In the development environment, `yarn start` launches
+[webpack-dev-server](https://github.com/webpack/webpack-dev-server) which
+serves static contents. The Tornado web app only serves the back-end web API.
+
+This example runs the Tornado web app in a Jupyter kernel and manages
+webpack-dev-server as a separated process. You can start them all by just
+typing `turret start` and stop them by `Ctrl-C` as if they were one process.
+All log messages are unified in the console.
+
+Here is the `turret.hcl`:
+
+```hcl
+kernel "py_kernel" {}
+
+app "watchdog" {
+  class  = "turret.app.watchdog.WatchdogApp"
+  kernel = "py_kernel"
+
+  options {
+    handlers = [
+      {
+        patterns           = ["*.py"]
+        ignore_patterns    = ["*/tests/*.py"]
+        ignore_directories = true
+        uncache            = ["turret_tornado_spa_example"]
+
+        functions = [
+          "tornado_app.handle_watchdog_event({event})",
+          "pytest_runner.handle_watchdog_event({event})",
+        ]
+      },
+      {
+        patterns           = ["*/tests/test_*.py"]
+        ignore_directories = true
+        uncache            = ["turret_tornado_spa_example.tests"]
+        functions          = ["pytest_runner.handle_watchdog_event({event})"]
+      },
+    ]
+  }
+}
+
+app "tornado_app" {
+  class  = "turret.app.tornado.TornadoApp"
+  kernel = "py_kernel"
+
+  options {
+    app_cls = "turret_tornado_spa_example.app.ExampleApp"
+
+    argv = [
+      "--port=9999",
+    ]
+  }
+
+  uncache = []
+
+  start = "tornado_app.start()"
+}
+
+app "pytest_runner" {
+  class  = "turret.app.pytest.PyTestRunnerApp"
+  kernel = "py_kernel"
+
+  options {
+    args = ["-s", "-v", "--color=yes"]
+
+    auto_test = [
+      "turret_tornado_spa_example/tests/test_*.py",
+    ]
+
+    auto_test_map {
+      "turret_tornado_spa_example/**/*.py" = "turret_tornado_spa_example/tests/{}/test_{}.py"
+    }
+  }
+
+  uncache = []
+}
+
+process "webdev_server" {
+  command = "yarn start"
+
+  env {
+    BROWSER = "none"
+  }
+}
+```
+
 ## Prerequisite
 
 - UNIX-like OS (tested on macOS)
     - Windows is not supported
 - Python >= 3.4
-- Jupyter Notebook (>= 5.0)
+- Jupyter Notebook >= 5.0
     - Turret does not use Jupyter Notebook but requires its related
       libraries
 
@@ -109,6 +202,8 @@ Turret also requires other libraries written in `requirements.in`. They
 are automatically installed by the installer.
 
 ## Installation
+
+Please install it manually as follows until the first release:
 
 ```sh
 $ git clone https://github.com/yatsu/turret
