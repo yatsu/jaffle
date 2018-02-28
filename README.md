@@ -59,6 +59,8 @@ instance name which is referred from apps.
 be launched in the same Jupyter kernel `py_kernel`. They are assigned
 a variable name `watchdog` and `pytest_runner` 
 
+![pytest example](https://github.com/yatsu/turret/blob/master/assets/pytest_example.gif)
+
 ## Prerequisite
 
 - UNIX-like OS (tested on macOS)
