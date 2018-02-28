@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from importlib import import_module
 from IPython.utils.capture import capture_output
 import json
 from pathlib import Path
+import pkg_resources
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.layout.lexers import Lexer
 from pygments.token import Token
@@ -165,6 +167,11 @@ class PyTestRunnerApp(BaseTurretApp):
 
     @capture_method_output
     def test(self, target):
+        # Suppress pytest warning for plugin: 'Module already imported'
+        for plugin in pkg_resources.iter_entry_points('pytest11'):
+            mod = import_module(plugin.module_name.split('.')[0])
+            mod.__doc__ = 'PYTEST_DONT_REWRITE'
+
         self.log.debug('pytest.main %s', self.args + [target])
         pytest.main(self.args + [target])
 
