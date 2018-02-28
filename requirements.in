@@ -7,9 +7,7 @@ notebook>=5.0.0,<6
 prompt-toolkit
 pygments
 pyhcl>=0.3.0
-pytest>=3.4.0
 setuptools
 tornado
 traitlets
-watchdog>=0.8.0
 pyzmq

@@ -20,7 +20,7 @@ dev_requirements = [str(r.req) for r in
 setup(
     name='turret',
     version=__version__,
-    description='Process and Jupyter kernel orchestration tool for software development',
+    description='Python app and process orchestration tool for development environment',
     long_description=long_description,
     url='https://github.com/yatsu/turret',
     author='Turret Development Team',
@@ -47,9 +47,11 @@ setup(
     packages=find_packages(),
     install_requires=requirements,
     extras_require={
-        'dev': dev_requirements
+        'dev': dev_requirements,
+        'watchdog': ['watchdog>=0.8.0'],
+        'pytest': ['pytest>=3.4.0']
     },
-    test_require=['pytest', 'pytest-cov'],
+    test_require=['pytest'],
     include_package_data=True,
     entry_points={
         'console_scripts': [
