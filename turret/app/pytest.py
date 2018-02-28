@@ -139,6 +139,11 @@ class PyTestRunnerApp(BaseTurretApp):
         self.auto_test_map = auto_test_map
         self.uncache = uncache or find_packages()
 
+        # Suppress pytest warning for plugin: 'Module already imported'
+        for plugin in pkg_resources.iter_entry_points('pytest11'):
+            mod = import_module(plugin.module_name.split('.')[0])
+            mod.__doc__ = 'PYTEST_DONT_REWRITE'
+
     @capture_method_output
     @uncache_modules_once
     def handle_watchdog_event(self, event):
@@ -167,11 +172,6 @@ class PyTestRunnerApp(BaseTurretApp):
 
     @capture_method_output
     def test(self, target):
-        # Suppress pytest warning for plugin: 'Module already imported'
-        for plugin in pkg_resources.iter_entry_points('pytest11'):
-            mod = import_module(plugin.module_name.split('.')[0])
-            mod.__doc__ = 'PYTEST_DONT_REWRITE'
-
         self.log.debug('pytest.main %s', self.args + [target])
         pytest.main(self.args + [target])
 
