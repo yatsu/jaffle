@@ -88,7 +88,7 @@ The screen capture below shows how they work:
 
 ![pytest example](https://github.com/yatsu/turret/blob/master/assets/pytest_example.gif)
 
-- `turret start` starts Turret main process.
+- `turret start` starts a Jupyter kernel and instantiates apps in it.
 - When `turret_pytest_example/example.py` is updated, pytest executes
   `turret_pytest_example/tests/test_example.py`.
 - `turret attach pytest_runner` opens an interactive shell and attaches it into
@@ -188,6 +188,17 @@ process "webdev_server" {
   }
 }
 ```
+
+![tornado_spa example](https://github.com/yatsu/turret/blob/master/assets/tornado_spa_example.gif)
+
+- `turret start` instantiates apps in the Jupyter kernel and launches
+  `webdev_server` by executing `yarn start`
+- When `turret_tornado_spa_example/webapp.py` is updated, pytest executes
+  `turret_tornado_spa_example/tests/test_webapp.py` and the Tornado app
+  restarts.
+- When `src/App.js` is updated, webpack-dev-server recompiles the front-end
+  code (This is done outside of Turret).
+- `Ctrl-C` terminates the Jupyter kernel and the webpack-dev-server process.
 
 ## Prerequisite
 
