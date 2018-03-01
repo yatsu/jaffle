@@ -1,13 +1,30 @@
 # Turret
 
 Turret is a Python app and process orchestration tool for development
-environment leveraging Jupyter kernel and client technology.
+environment leveraging [Jupyter](http://jupyter.org/) kernel and client
+technology.
 
 "Examples" section below shows what you can do with Turret.
 
 Although Turret is a generic framework, the project is now mainly focusing
 on providing auto-test, process management and unified logging for Python
 software development.
+
+## Motivation
+
+Recent applications consist of multiple processes. Containers and orchestration
+tools for them are great fit for production services, but in a development
+environment, process management in a single machine is still important because
+developers need to write code and test faster.
+[Foreman](https://github.com/ddollar/foreman) and [its
+ports](https://github.com/ddollar/foreman#ports) accomplish that.
+
+Turret takes this one step further. What if we can launch multiple apps and
+developing tools in one Jupyter kernel instance? They can share imported
+modules and communicate with each other easily. Also it makes possible to
+create a interactive client which connects to a running app using
+[jupyter-client](https://github.com/jupyter/jupyter_client) and
+[prompt_toolkit](https://github.com/jonathanslenders/python-prompt-toolkit).
 
 ## Warning
 
@@ -228,3 +245,26 @@ If you use Watchdog and pytest with Turret, install them:
 $ pip install watchdog
 $ pip install pytest
 ```
+
+## License
+
+BSD 3-Clause License
+
+## Related Work
+
+- [Watchdog](https://github.com/gorakhargosh/watchdog)
+    - Python API and shell utilities to monitor file system events. Turret
+      depends on it.
+- [pytest-testmon](https://github.com/tarpas/pytest-testmon)
+    - pytest plugin to select tests affected by recent changes. It looks code
+      coverage to determine which tests should be executed, whereas Turret uses
+      simple pattern mapping.
+- [pytest-watch](https://github.com/joeyespo/pytest-watch)
+    - Continuous pytest runner using Watchdog, which also supports
+      notification, before/after hoooks and using a custom runner script. It
+      executes pytest as a subprocess.
+- [Foreman](https://github.com/ddollar/foreman)
+    - Procfile-based process manager.
+- [coloredlogcat.py](http://jsharkey.org/logcat/) and [PID
+  Cat](https://github.com/JakeWharton/pidcat)
+    - Android logcat modifier. Turret's log formatter was inspired by them.
