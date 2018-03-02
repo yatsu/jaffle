@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from importlib import import_module
-from IPython.utils.capture import capture_output
-import json
 from pathlib import Path
 import pkg_resources
 from prompt_toolkit.completion import Completer, Completion
@@ -12,6 +10,7 @@ import pytest
 from _pytest import config
 import re
 from setuptools import find_packages
+import sys
 from .base import BaseTurretApp, capture_method_output, uncache_modules_once
 
 
@@ -72,13 +71,25 @@ class PyTestCompleter(Completer):
 
     def update_test_items(self):
         self.test_items = {}
-        # Is there a better way to communicate with the kernel?
-        with capture_output() as cap:
-            self.client.execute_interactive(
-                'import json; print(json.dumps({}.collect()), end="")'.format(self.app_name),
-                silent=True
-            )
-        for nodeid in json.loads(cap.stdout.splitlines()[-1]):
+        output = ''
+
+        def output_hook(msg):
+            nonlocal output
+            msg_type = msg['header']['msg_type']
+            content = msg['content']
+            if msg_type in ('display_data', 'execute_result'):
+                output = content['data'].get('text/plain', '')
+            elif msg_type == 'error':
+                print('\n'.join(content['traceback']), file=sys.stderr)
+                sys.exit(1)
+
+        self.client.execute_interactive(
+            r"','.join({}.collect())".format(self.app_name),
+            store_history=False,
+            output_hook=output_hook
+        )
+
+        for nodeid in output[1:-1].split(','):
             path, func = nodeid.rsplit('::', 1)
             ns = self._module(path, create=True)
             ns[func] = True
