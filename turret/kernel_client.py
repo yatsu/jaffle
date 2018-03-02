@@ -10,9 +10,13 @@ logger = logging.getLogger('turret')
 
 
 class TurretIOPubChannel(ZMQSocketChannel):
+    """
+    This is required to log errors in the Turret server.
+    """
 
     def __init__(self, socket, session, loop=None):
         super().__init__(socket, session, loop=loop)
+
         zmqstream.ZMQStream(self.socket).on_recv(self._handle_recv)
 
     def _handle_recv(self, msg):
@@ -26,7 +30,12 @@ class TurretIOPubChannel(ZMQSocketChannel):
         self.call_handlers(msg)
 
     def call_handlers(self, msg):
-        pass
+        if msg['msg_type'] == 'error':
+            traceback = msg['content']['traceback']
+            if '----' in traceback[0]:  # ignore the separator line
+                logger.error('\n'.join(traceback[1:]).strip())
+            else:
+                logger.error('\n'.join(traceback).strip())
 
 
 class TurretKernelClient(BlockingKernelClient):
