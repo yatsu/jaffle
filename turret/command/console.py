@@ -28,6 +28,14 @@ turret console py_kernel
     _runtime_dir_default = BaseTurretCommand._runtime_dir_default
 
     def parse_command_line(self, argv):
+        """
+        Parses comnand line.
+
+        Parameters
+        ----------
+        argv : list[str]
+            Command line strings.
+        """
         BaseTurretCommand.parse_command_line(self, argv)
 
         if not self.extra_args:
@@ -51,6 +59,9 @@ turret console py_kernel
             self.exit(1)
 
     def init_shell(self):
+        """
+        Initializes the interactive shell and set signal handlers.
+        """
         JupyterConsoleApp.initialize(self)
 
         signal.signal(signal.SIGINT, self.handle_sigint)

@@ -75,7 +75,7 @@ class TurretStatus(object):
         id : str
             Session ID (UUID).
         name : str
-            Turret session name.
+            Turret session name (= kernel instance name defined in turret.hcl).
         kernel : dict
             A dict of Kernel ID and name.
         """

@@ -27,7 +27,7 @@ flags = {
 
 class BaseTurretCommand(Application):
     """
-    Turret base command.
+    Base class for Turret commands.
     """
     name = 'turret'
     description = 'Turret'

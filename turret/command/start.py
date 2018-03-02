@@ -49,6 +49,14 @@ class TurretStartCommand(BaseTurretCommand):
                 '%(level_color)s %(levelname)1.1s %(level_color_end)s %(message)s')
 
     def parse_command_line(self, argv):
+        """
+        Parses comnand line.
+
+        Parameters
+        ----------
+        argv : list[str]
+            Command line strings.
+        """
         super().parse_command_line(argv)
 
         if self.extra_args:
@@ -58,6 +66,15 @@ class TurretStartCommand(BaseTurretCommand):
 
     @catch_config_error
     def initialize(self, argv=None):
+        """
+        Initializes TurretServer.
+        Setup Jupyter and Turret managers before starting the server.
+
+        Parameters
+        ----------
+        argv : list[str]
+            Command line strings.
+        """
         super().initialize(argv)
 
         self.init_dir()
@@ -92,6 +109,10 @@ class TurretStartCommand(BaseTurretCommand):
         self.procs = {}
 
     def start(self):
+        """
+        Starts Turret server and creates a ZeroMQ channel to receive messages
+        from Turret app.
+        """
         self.log.debug('Starting turret')
 
         self.io_loop = ioloop.IOLoop.current()
@@ -112,6 +133,14 @@ class TurretStartCommand(BaseTurretCommand):
             self.log.info('Interrupted...')
 
     def on_recv_message(self, msg):
+        """
+        Handles messages from Turret apps.
+
+        Parameters
+        ----------
+        msg : str
+            JSON encoded message.
+        """
         data = json.loads(to_unicode(msg[0]))
         self.log.debug('Receive message: %s', data)
         if data['type'] == 'log':
@@ -125,11 +154,17 @@ class TurretStartCommand(BaseTurretCommand):
             logging.getLogger(data['app_name']).handle(record)
 
     def init_signal(self):
+        """
+        Initializes signal handlers.
+        """
         if not sys.platform.startswith('win') and sys.stdin and sys.stdin.isatty():
             signal.signal(signal.SIGINT, self._handle_sigint)
         signal.signal(signal.SIGTERM, self._signal_stop)
 
     def init_dir(self):
+        """
+        Creates directories.
+        """
         self.log.debug('data_dir: %s', self.data_dir)
         self.log.debug('runtime_dir: %s', self.runtime_dir)
         os.environ['JUPYTER_DATA_DIR'] = self.data_dir
@@ -143,12 +178,18 @@ class TurretStartCommand(BaseTurretCommand):
             runtime_dir.mkdir()
 
     def load_conf(self):
+        """
+        Loads config from ``turret.hcl``.
+        """
         with self.conf_file.open() as f:
             self.conf = hcl.load(f)
         self.log.debug('conf: %s', self.conf)
 
     @gen.coroutine
     def shutdown(self):
+        """
+        Shuts down Turret server
+        """
         self.socket.close()
 
         for client in self.clients.values():
@@ -172,6 +213,9 @@ class TurretStartCommand(BaseTurretCommand):
 
     @gen.coroutine
     def _start_sessions(self):
+        """
+        Starts kernels and sessions, executes apps' code in it.
+        """
         for session_name, data in self.conf.get('kernel', {}).items():
             self.log.info('Starting kernel: %s', session_name)
             startup = str(Path(__file__).parent.parent / 'startup.py')
@@ -185,7 +229,7 @@ class TurretStartCommand(BaseTurretCommand):
 
         for session in self.status.sessions.values():
             kernel_id = session.kernel.id
-            apps = self._get_apps_for_kernel_instance(session.name)
+            apps = self._get_apps_for_session(session.name)
             if len(apps) == 0:
                 continue
             kernel = self.kernel_manager.get_kernel(kernel_id)
@@ -219,19 +263,42 @@ class TurretStartCommand(BaseTurretCommand):
 
     @gen.coroutine
     def _start_processes(self):
+        """
+        Starts external processes.
+        """
         for proc_name, proc_data in self.conf.get('process', {}).items():
             logger = logging.getLogger(proc_name)
             logger.parent = self.log
             proc = self.procs[proc_name] = Process(logger, proc_name, **proc_data)
             yield proc.start()
 
-    def _get_apps_for_kernel_instance(self, kernel_instance_name):
+    def _get_apps_for_session(self, session_name):
+        """
+        Gets app data for the given session.
+
+        Parameters
+        ----------
+        session_name : str
+            Turret session name (= kernel instance name defined in turret.hcl).
+
+        Returns
+        -------
+        apps : dict{str: dict}
+            App data.
+        """
         return {name: data for name, data in self.conf.get('app', {}).items()
-                if data.get('kernel') == kernel_instance_name}
+                if data.get('kernel') == session_name}
 
     def _handle_sigint(self, sig, frame):
         """
         SIGINT handler spawns confirmation dialog
+
+        Parameters
+        ----------
+        sig : int
+            Signal number.
+        frame: frame
+            Interrupted stack frame.
         """
         # register more forceful signal handler for ^C^C case
         signal.signal(signal.SIGINT, self._signal_stop)
@@ -242,6 +309,16 @@ class TurretStartCommand(BaseTurretCommand):
         thread.start()
 
     def _signal_stop(self, sig, frame):
+        """
+        SIGINT handler for force shutdown by double ``Ctrl-C``.
+
+        Parameters
+        ----------
+        sig : int
+            Signal number.
+        frame: frame
+            Interrupted stack frame.
+        """
         self.log.critical('Received signal %s, stopping', sig)
         self.io_loop.add_callback_from_signal(self.io_loop.stop)
 
