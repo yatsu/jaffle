@@ -10,8 +10,25 @@ from tornado.process import Subprocess
 
 
 class Process(object):
+    """
+    Process handles starting and stopping an external process.
+    """
 
     def __init__(self, log, proc_name, command, env={}):
+        """
+        Initializes Process.
+
+        Parameters
+        ----------
+        log : logging.Logger
+            Logger.
+        proc_name : str
+            Process name (internal identifier for Turret).
+        comand : str
+            Command-line string including command name and arguments.
+        env : dict{str: str}
+            Environment variables.
+        """
         self.log = log
         self.proc_name = proc_name
         self.command = command
@@ -20,6 +37,9 @@ class Process(object):
 
     @gen.coroutine
     def start(self):
+        """
+        Starts the process.
+        """
         self.log.info("Starting %s: '%s'", self.proc_name, self.command)
 
         env = os.environ.copy()
@@ -39,6 +59,9 @@ class Process(object):
             self.log.error(str(e))
 
     def stop(self):
+        """
+        Stops the process.
+        """
         try:
             self.log.warning('Terminating %s', self.proc_name)
             os.killpg(os.getpgid(self.proc.proc.pid), signal.SIGTERM)

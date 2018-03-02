@@ -6,6 +6,12 @@ from jupyter_console.ptshell import ZMQTerminalInteractiveShell
 
 
 class TurretInteractiveShell(ZMQTerminalInteractiveShell):
+    """
+    Base interactive shell class for Turret.
+
+    This class extends ``mainloop`` of ZMQTerminalInteractiveShell to prevent
+    unexpected kernel shutdown on ``Ctrl-D``.
+    """
 
     own_kernel = False
 
@@ -14,6 +20,8 @@ class TurretInteractiveShell(ZMQTerminalInteractiveShell):
         This method overwrites ZMQTerminalInteractiveShell.mainloop() to keep kernel alive
         on Ctrl-D exit.
         https://github.com/jupyter/jupyter_console/commit/120396382ee9e0e73b932c7bacb98df2c27b8313
+
+        This is not required on jupyter_console >= 5.2
         """
         if StrictVersion(jupyter_console.__version__) < StrictVersion('5.2.0'):
             # self.keepkernel = True

@@ -223,8 +223,6 @@ process "webdev_server" {
     - Windows is not supported
 - Python >= 3.4
 - Jupyter Notebook >= 5.0
-    - Turret does not use Jupyter Notebook but requires its related
-      libraries
 
 Turret also requires other libraries written in `requirements.in`. They
 are automatically installed by the installer.

@@ -73,11 +73,36 @@ class LogFormatter(logging.Formatter):
     _TIME_COLOR = (Color.WHITE, Color.BRIGHT_BLACK)
 
     def __init__(self, fmt=None, datefmt=None, style='%'):
+        """
+        Initialize the formatter with specified format strings.
+
+        Parameters
+        ----------
+        fmt : str
+            Format string.
+        datefmt : str
+            Date format.
+        style : str
+            Style parameter.
+        """
         super().__init__(fmt, datefmt, style)
 
         self.name_colors = {}
 
     def format(self, record):
+        """
+        Formats the log record as text.
+
+        Parameters
+        ----------
+        record : logging.LogRecord
+            Log record.
+
+        Returns
+        -------
+        formatted : str
+            Formatted text.
+        """
         rec = logging.getLogRecordFactory()(level=record.levelno, **record.__dict__)
 
         try:

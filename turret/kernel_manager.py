@@ -7,12 +7,38 @@ from traitlets import default
 
 
 class TurretKernelManager(IOLoopKernelManager):
+    """
+    Jupyter kernel manager for Turret server, which has a custom kernel client
+    for error logging.
+
+    If jupyter_client version is smaller than 5.1.0, it clones the session
+    to avoid duplicated digest error on getting the connection info.
+    """
 
     @default('client_class')
     def _client_class_default(self):
         return 'turret.kernel_client.TurretKernelClient'
 
     def get_connection_info(self, session=False):
+        """
+        Gets the connection info as a dict
+
+        If jupyter_client version is smaller than 5.1.0, this method clones the
+        session to avoid duplicated digest error.
+
+        Parameters
+        ----------
+        session : bool [default: False]
+            If True, return our session object will be included in the
+            connection info.
+            If False (default), the configuration parameters of our session
+            object will be included, rather than the session object itself.
+
+        Returns
+        -------
+        connect_info : dict
+            dictionary of connection information.
+        """
         info = super().get_connection_info(session=session)
 
         if StrictVersion(jupyter_client.__version__) < StrictVersion('5.1.0'):
@@ -24,6 +50,19 @@ class TurretKernelManager(IOLoopKernelManager):
         return info
 
     def _session_clone(self, session):
+        """
+        Clones the Jupyter client session.
+
+        Parameters
+        ----------
+        session : jupyter_client.session.Session
+            Jupyter client session.
+
+        Return
+        ------
+        new_session : jupyter_client.session.Session
+            Cloned Jupyter client session.
+        """
         # make a copy
         new_session = type(session)()
         for name in session.traits():
