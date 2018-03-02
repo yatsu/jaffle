@@ -5,11 +5,11 @@ import signal
 import sys
 from traitlets.config import catch_config_error
 from ...status import TurretStatus
-from ..base import TurretBaseCommand
+from ..base import BaseTurretCommand
 from .shell import TurretAppShell
 
 
-class TurretAttachCommand(TurretBaseCommand, JupyterConsoleApp):
+class TurretAttachCommand(BaseTurretCommand, JupyterConsoleApp):
     """
     Attach to a turret app.
     """
@@ -21,16 +21,16 @@ turret attach pytest_runner
 
     classes = [TurretAppShell] + JupyterConsoleApp.classes
 
-    aliases = TurretBaseCommand.aliases
-    flags = TurretBaseCommand.flags
+    aliases = BaseTurretCommand.aliases
+    flags = BaseTurretCommand.flags
     frontend_aliases = set()
     frontend_flags = set()
 
-    _data_dir_default = TurretBaseCommand._data_dir_default
-    _runtime_dir_default = TurretBaseCommand._runtime_dir_default
+    _data_dir_default = BaseTurretCommand._data_dir_default
+    _runtime_dir_default = BaseTurretCommand._runtime_dir_default
 
     def parse_command_line(self, argv):
-        TurretBaseCommand.parse_command_line(self, argv)
+        BaseTurretCommand.parse_command_line(self, argv)
 
         if not self.extra_args:
             print('No app specified.', file=sys.stderr)

@@ -30,13 +30,13 @@ from traitlets import default
 from traitlets.config.application import catch_config_error
 import zmq
 from zmq.eventloop import zmqstream
-from .base import TurretBaseCommand
+from .base import BaseTurretCommand
 from ..status import TurretStatus
 from ..process import Process
 from ..session import TurretSessionManager
 
 
-class TurretStartCommand(TurretBaseCommand):
+class TurretStartCommand(BaseTurretCommand):
     """
     Starts turret server.
     """

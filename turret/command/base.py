@@ -19,13 +19,13 @@ flags = {
         'set log level to logging.DEBUG (maximize logging output)'
     ),
     'y': (
-        {'TurretBaseCommand': {'answer_yes': True}},
+        {'BaseTurretCommand': {'answer_yes': True}},
         'Answer yes to any questions instead of prompting.'
     )
 }
 
 
-class TurretBaseCommand(Application):
+class BaseTurretCommand(Application):
     """
     Turret base command.
     """

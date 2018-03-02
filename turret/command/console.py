@@ -4,12 +4,12 @@ from jupyter_client.consoleapp import JupyterConsoleApp
 from jupyter_console.app import ZMQTerminalIPythonApp
 import signal
 import sys
-from .base import TurretBaseCommand
+from .base import BaseTurretCommand
 from ..shell import TurretInteractiveShell
 from ..status import TurretStatus
 
 
-class TurretConsoleCommand(TurretBaseCommand, ZMQTerminalIPythonApp):
+class TurretConsoleCommand(BaseTurretCommand, ZMQTerminalIPythonApp):
     """
     Console for a turret kernel.
     """
@@ -19,16 +19,16 @@ class TurretConsoleCommand(TurretBaseCommand, ZMQTerminalIPythonApp):
 turret console py_kernel
     '''
 
-    aliases = TurretBaseCommand.aliases
-    flags = TurretBaseCommand.flags
+    aliases = BaseTurretCommand.aliases
+    flags = BaseTurretCommand.flags
     frontend_aliases = set()
     frontend_flags = set()
 
-    _data_dir_default = TurretBaseCommand._data_dir_default
-    _runtime_dir_default = TurretBaseCommand._runtime_dir_default
+    _data_dir_default = BaseTurretCommand._data_dir_default
+    _runtime_dir_default = BaseTurretCommand._runtime_dir_default
 
     def parse_command_line(self, argv):
-        TurretBaseCommand.parse_command_line(self, argv)
+        BaseTurretCommand.parse_command_line(self, argv)
 
         if not self.extra_args:
             print('No kernel specified.', file=sys.stderr)
