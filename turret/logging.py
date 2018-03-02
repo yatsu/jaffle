@@ -5,6 +5,9 @@ import logging
 
 
 class Color(Enum):
+    """
+    ANSI colors.
+    """
     BLACK = 30
     RED = 31
     GREEN = 32
@@ -24,6 +27,28 @@ class Color(Enum):
 
 
 class LogFormatter(logging.Formatter):
+    """
+    Log formatter for Python logging module.
+
+    This formatter assigns a color to individual logger names.
+    Note that it may overlap because the number of defined colors is only 6.
+
+    The following additional variables are available n a format string to
+    colorize the output.
+
+    * ``time_color``
+    * ``time_color_end``
+    * ``name_color``
+    * ``name_color_end``
+    * ``level_color``
+    * ``level_color_end``
+
+    The typical log format string is:
+
+    >>> ('%(time_color)s%(asctime)s.%(msecs).03d%(time_color_end)s '
+    ...  '%(name_color)s%(name)14s%(name_color_end)s '
+    ...  '%(level_color)s %(levelname)1.1s %(level_color_end)s %(message)s')
+    """
 
     _COLOR_FMT = '\033[%sm'
     _COLOR_END = '\033[0m'
@@ -69,11 +94,11 @@ class LogFormatter(logging.Formatter):
         if name_color is None:
             name_color = self._NAME_COLORS[len(self.name_colors) % len(self._NAME_COLORS)]
             self.name_colors[rec.name] = name_color
-        rec.name_color = self._COLOR_FMT % self._color(name_color)
-        rec.name_color_end = self._COLOR_END
+        rec.name_color = self._color_start(name_color)
+        rec.name_color_end = self._color_end()
 
-        rec.level_color = self._COLOR_FMT % self._color(self._LEVEL_COLORS[rec.levelno])
-        rec.level_color_end = self._COLOR_END
+        rec.level_color = self._color_start(self._LEVEL_COLORS[rec.levelno])
+        rec.level_color_end = self._color_end()
 
         formatted = self._fmt % rec.__dict__
 
@@ -86,12 +111,35 @@ class LogFormatter(logging.Formatter):
         return formatted.replace('\n', '\n    ')
 
     def _color_start(self, color):
-        return self._COLOR_FMT % self._color(color)
+        """
+        Returns the beginning of a color sequence.
+
+        Parameters
+        ----------
+        color : Color
+            Color.
+
+        Returns
+        -------
+        seq : str
+            The beginning of a color sequence.
+        """
+        color = ';'.join([str([0, 10][i] + c.value)
+                          for i, c in enumerate(color) if c is not None])
+        return self._COLOR_FMT % color
 
     def _color_end(self):
-        return self._COLOR_END
+        """
+        Returns the end of a color sequence.
 
-    def _color(self, color):
-        return ';'.join(
-            [str([0, 10][i] + c.value) for i, c in enumerate(color) if c is not None]
-        )
+        Parameters
+        ----------
+        color : Color
+            Color.
+
+        Returns
+        -------
+        seq : str
+            The end of a color sequence.
+        """
+        return self._COLOR_END
