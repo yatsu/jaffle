@@ -11,7 +11,7 @@ from _pytest import config
 import re
 from setuptools import find_packages
 import sys
-from .base import BaseTurretApp, capture_method_output, uncache_modules_once
+from ..base import BaseTurretApp, capture_method_output, uncache_modules_once
 
 
 create_terminal_writer_org = config.create_terminal_writer

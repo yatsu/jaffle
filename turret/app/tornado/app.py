@@ -4,7 +4,7 @@ from importlib import import_module
 from setuptools import find_packages
 from tornado import ioloop
 from unittest.mock import patch
-from .base import BaseTurretApp, capture_method_output
+from ..base import BaseTurretApp, capture_method_output
 
 
 class TornadoApp(BaseTurretApp):
