@@ -40,7 +40,7 @@ app "tornado_app" {
   }
 
   options {
-    app_cls = "turret_tornado_spa_example.app.ExampleApp"
+    app_class = "turret_tornado_spa_example.app.ExampleApp"
 
     argv = [
       "--port=9999",
