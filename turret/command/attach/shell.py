@@ -13,6 +13,10 @@ from ...app.base import BaseTurretApp
 
 
 class TurretAppShell(TurretInteractiveShell):
+    """
+    Interactive shell for ``turret attach``.
+    """
+
     pt_cli = None
 
     _executing = False
@@ -36,10 +40,10 @@ class TurretAppShell(TurretInteractiveShell):
 
     session_id = Unicode()
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
     def init_completer(self):
+        """
+        Initializes the completer if it exists.
+        """
         mod_name, cls_name = self.app_conf['class'].rsplit('.', 1)
         self.app_class = getattr(import_module(mod_name), cls_name)
 
@@ -48,11 +52,17 @@ class TurretAppShell(TurretInteractiveShell):
             self._completer = comp_cls(self.app_name, self.app_conf, self.client)
 
     def init_lexer(self):
+        """
+        Initializes the lexer if it exists.
+        """
         lexer_cls = self.app_class.lexer_class
         if lexer_cls:
             self._lexer = lexer_cls()
 
     def init_prompt_toolkit_cli(self):
+        """
+        Initializes the Prompt Tookkit CLI.
+        """
         self.init_lexer()
 
         kbmanager = KeyBindingManager.for_prompt()
@@ -81,15 +91,46 @@ class TurretAppShell(TurretInteractiveShell):
         )
 
     def get_prompt_tokens(self, cli):
+        """
+        Gets the prompt tokens.
+
+        Parameters
+        ----------
+        cli : prompt_toolkit.interface.CommandLineInterface
+            Prompt Toolkit CLI.
+
+        Returns
+        -------
+        tokens : list[(pygments.token.Token, str)]
+        """
         return [
             (Token.Prompt, '>>> ')
         ]
 
     def get_out_prompt_tokens(self):
+        """
+        Gets the output tokens.
+
+        Returns
+        -------
+        tokens : list[(pygments.token.Token, str)]
+        """
         return [
             (Token.OutPrompt, '<<< ')
         ]
 
-    def run_cell(self, cell, store_history=True):
-        code = self.app_class.command_to_code(self.app_name, cell)
+    def run_cell(self, command, store_history=True):
+        """
+        Executes the command.
+
+        Parameters
+        ----------
+        command : str
+            The command to be executed.
+        store_history : bool
+            If True, the raw and translated cell will be stored in IPython's
+            history. For user code calling back into IPython's machinery, this
+            should be set to False.
+        """
+        code = self.app_class.command_to_code(self.app_name, command)
         super().run_cell(code)
