@@ -1,10 +1,28 @@
 # -*- coding: utf-8 -*-
 
-from contextlib import redirect_stderr, redirect_stdout
 from functools import wraps
 import io
 import logging
 import sys
+from contextlib import redirect_stdout
+
+try:
+    from contextlib import redirect_stderr
+except ImportError:
+    # Python < 3.5
+    class redirect_stderr:
+
+        def __init__(self, new_target):
+            self._new_target = new_target
+            self._old_targets = []
+
+        def __enter__(self):
+            self._old_targets.append(sys.stderr)
+            sys.stderr = self._new_target
+            return self._new_target
+
+        def __exit__(self, exctype, excinst, exctb):
+            sys.stderr = self._old_targets.pop()
 
 
 class OutputCapturer(io.StringIO):
