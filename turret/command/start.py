@@ -146,12 +146,7 @@ class TurretStartCommand(BaseTurretCommand):
         if data['type'] == 'log':
             payload = data['payload']
             level = getattr(logging, payload['levelname'].upper())
-            if payload['args_type'] == 'tuple':
-                args = tuple(payload['args'])
-            else:
-                args = payload['args']
-            record = logging.getLogRecordFactory()(**dict(payload, level=level, args=args))
-            logging.getLogger(data['app_name']).handle(record)
+            logging.getLogger(data['app_name']).log(level, payload.get('message', ''))
 
     def init_signal(self):
         """

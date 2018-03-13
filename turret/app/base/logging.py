@@ -36,5 +36,8 @@ class TurretAppLogHandler(logging.StreamHandler):
         self.socket.send_json({
             'app_name': self.app_name,
             'type': 'log',
-            'payload': dict(record.__dict__, args_type=type(record.args).__name__)
+            'payload': {
+                'levelname': record.levelname,
+                'message': self.format(record)
+            }
         })
