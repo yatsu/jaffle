@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
-from tornado import gen, ioloop
+from tornado import gen
 from watchdog.events import PatternMatchingEventHandler
 
 
@@ -31,8 +31,9 @@ class WatchdogHandler(PatternMatchingEventHandler):
     Watchdog event handler for Turret.
     """
 
-    def __init__(self, log, execute, functions=[], patterns=None, ignore_patterns=None,
-                 ignore_directories=False, case_sensitive=False, uncache_modules=None):
+    def __init__(self, log, execute, ioloop, functions=[], patterns=None,
+                 ignore_patterns=None, ignore_directories=False, case_sensitive=False,
+                 uncache_modules=None):
         """
         Initializes WatchdogHandler.
 
@@ -60,6 +61,7 @@ class WatchdogHandler(PatternMatchingEventHandler):
 
         self.log = log
         self.execute = execute
+        self.ioloop = ioloop
         self.functions = functions
         self.uncache_modules = uncache_modules
 
@@ -80,7 +82,6 @@ class WatchdogHandler(PatternMatchingEventHandler):
                 self.uncache_modules()
 
             event_dict = _event_to_dict(event)
-            # self.log.info('%s: %s', event_dict['event_type'], event_dict['src_path'])
             self.log.debug('event: %s', event_dict)
             for function in self.functions:
                 try:
@@ -88,4 +89,4 @@ class WatchdogHandler(PatternMatchingEventHandler):
                 except Exception as e:
                     self.log.error('Event handling error: %s', str(e))
 
-        ioloop.IOLoop.current().add_callback(handle_event)
+        self.ioloop.add_callback(handle_event)

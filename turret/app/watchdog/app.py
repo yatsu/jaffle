@@ -2,6 +2,7 @@
 
 from functools import partial
 from pathlib import Path
+from tornado import ioloop
 from watchdog.observers import Observer
 from ..base import BaseTurretApp
 from .handler import WatchdogHandler
@@ -36,7 +37,7 @@ class WatchdogApp(BaseTurretApp):
 
         for handler in self.handlers:
             wh = WatchdogHandler(
-                self.log, self.execute,
+                self.log, self.execute, ioloop.IOLoop.current(),
                 handler.get('functions', []),
                 patterns=handler.get('patterns', []),
                 ignore_patterns=handler.get('ignore_patterns', []),

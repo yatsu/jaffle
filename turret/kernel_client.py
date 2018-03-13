@@ -60,6 +60,9 @@ class TurretIOPubChannel(ZMQSocketChannel):
                 logger.error('\n'.join(traceback[1:]).strip())
             else:
                 logger.error('\n'.join(traceback).strip())
+        if msg['msg_type'] == 'stream':
+            if msg['content']['name'] == 'stderr':
+                logger.warning(msg['content']['text'])
 
 
 class TurretKernelClient(BlockingKernelClient):
