@@ -62,6 +62,7 @@ turret console py_kernel
         """
         Initializes the interactive shell and set signal handlers.
         """
+        # Initializes kernel client and ZeroMQ channels.
         JupyterConsoleApp.initialize(self)
 
         signal.signal(signal.SIGINT, self.handle_sigint)
