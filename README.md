@@ -234,7 +234,7 @@ Please install it manually as follows until the first release:
 ```sh
 $ git clone https://github.com/yatsu/turret
 $ cd turret
-$ python setup.py install
+$ pip install -e .
 ```
 
 If you use Watchdog and pytest with Turret, install them:
