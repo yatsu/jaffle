@@ -20,12 +20,19 @@ app "watchdog" {
           "tornado_app.handle_watchdog_event({event})",
           "pytest_runner.handle_watchdog_event({event})",
         ]
+
+        throttle = 0.5
       },
       {
         patterns           = ["*/tests/test_*.py"]
         ignore_directories = true
         uncache            = ["turret_tornado_spa_example.tests"]
-        functions          = ["pytest_runner.handle_watchdog_event({event})"]
+
+        functions = [
+          "pytest_runner.handle_watchdog_event({event})",
+        ]
+
+        throttle = 0.5
       },
     ]
   }

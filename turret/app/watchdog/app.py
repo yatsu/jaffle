@@ -38,12 +38,14 @@ class WatchdogApp(BaseTurretApp):
         for handler in self.handlers:
             wh = WatchdogHandler(
                 self.log, self.execute, ioloop.IOLoop.current(),
-                handler.get('functions', []),
                 patterns=handler.get('patterns', []),
                 ignore_patterns=handler.get('ignore_patterns', []),
                 ignore_directories=handler.get('ignore_directories', False),
                 case_sensitive=handler.get('case_sensitive', False),
-                uncache_modules=partial(self.uncache_modules, handler.get('uncache', []))
+                uncache_modules=partial(self.uncache_modules, handler.get('uncache', [])),
+                functions=handler.get('functions', []),
+                debounce=handler.get('debounce', 0.0),
+                throttle=handler.get('throttle', 0.0)
             )
             self.observer.schedule(wh, str(Path.cwd()), recursive=True)
 
