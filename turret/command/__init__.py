@@ -11,6 +11,7 @@ from .base import BaseTurretCommand  # noqa
 from .start import TurretStartCommand  # noqa
 from .console import TurretConsoleCommand  # noqa
 from .attach import TurretAttachCommand  # noqa
+from .tty import TurretTTYCommand  # noqa
 
 
 class TurretMainCommand(BaseTurretCommand):
@@ -22,7 +23,8 @@ class TurretMainCommand(BaseTurretCommand):
     subcommands = dict(
         start=(TurretStartCommand, TurretStartCommand.description.splitlines()[0]),
         console=(TurretConsoleCommand, TurretConsoleCommand.description.splitlines()[0]),
-        attach=(TurretAttachCommand, TurretAttachCommand.description.splitlines()[0])
+        attach=(TurretAttachCommand, TurretAttachCommand.description.splitlines()[0]),
+        tty=(TurretTTYCommand, TurretTTYCommand.description.splitlines()[0])
     )
 
 

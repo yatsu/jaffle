@@ -14,7 +14,7 @@ class Process(object):
     Process handles starting and stopping an external process.
     """
 
-    def __init__(self, log, proc_name, command, env={}):
+    def __init__(self, log, proc_name, command, tty=False, env={}):
         """
         Initializes Process.
 
@@ -26,12 +26,15 @@ class Process(object):
             Process name (internal identifier for Turret).
         comand : str
             Command-line string including command name and arguments.
+        tty : bool
+            Whether to require TTY emulation.
         env : dict{str: str}
             Environment variables.
         """
         self.log = log
         self.proc_name = proc_name
         self.command = command
+        self.tty = tty
         self.env = env
         self.proc = None
 
@@ -45,8 +48,13 @@ class Process(object):
         env = os.environ.copy()
         env.update(**self.env)
 
+        if self.tty:
+            command = 'turret tty {}'.format(self.command)
+        else:
+            command = self.command
+
         # os.setpgrp() is required to prevent SIGINT propagation
-        self.proc = Subprocess(shlex.split(self.command), env=env,
+        self.proc = Subprocess(shlex.split(command), env=env,
                                stdin=None, stdout=Subprocess.STREAM, stderr=Subprocess.STREAM,
                                preexec_fn=os.setpgrp)
         self.log.debug('proc: %s', self.proc)
@@ -54,7 +62,8 @@ class Process(object):
         try:
             while True:
                 line = yield self.proc.stdout.read_until(b'\n')
-                self.log.info(to_unicode(line).rstrip('\n'))
+                msg = to_unicode(line).strip('\r\n')
+                self.log.info(msg)
         except Exception as e:
             self.log.error(str(e))
 

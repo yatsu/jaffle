@@ -89,3 +89,8 @@ process "webdev_server" {
     BROWSER = "none"
   }
 }
+
+process "jest" {
+  command = "yarn test"
+  tty     = true
+}

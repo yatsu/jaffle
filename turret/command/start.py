@@ -261,11 +261,13 @@ class TurretStartCommand(BaseTurretCommand):
         """
         Starts external processes.
         """
+        processes = []
         for proc_name, proc_data in self.conf.get('process', {}).items():
             logger = logging.getLogger(proc_name)
             logger.parent = self.log
             proc = self.procs[proc_name] = Process(logger, proc_name, **proc_data)
-            yield proc.start()
+            processes.append(proc.start())
+        yield processes
 
     def _get_apps_for_session(self, session_name):
         """
