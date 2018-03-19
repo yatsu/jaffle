@@ -2,6 +2,8 @@
 
 from functools import partial
 from pathlib import Path
+import shlex
+import subprocess
 from tornado import ioloop
 from watchdog.observers import Observer
 from ..base import BaseTurretApp
@@ -50,3 +52,17 @@ class WatchdogApp(BaseTurretApp):
             self.observer.schedule(wh, str(Path.cwd()), recursive=True)
 
         self.observer.start()
+
+    def execute_command(self, command):
+        """
+        Executes a command.
+
+        Parameters
+        ----------
+        command : str
+            Command name and arguments separated by whitespaces.
+        """
+        self.log.info('Execute: %s', command)
+        output = subprocess.check_output(shlex.split(command), shell=True)
+        if len(output) > 0:
+            self.log.info(output)
