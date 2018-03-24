@@ -19,7 +19,6 @@ app "watchdog" {
         functions = [
           "notebook.handle_watchdog_event({event})",
           "pytest_runner.handle_watchdog_event({event})",
-          "nbext_install.handle_watchdog_event({event})",
         ]
 
         throttle = 0.5
@@ -31,6 +30,16 @@ app "watchdog" {
 
         functions = [
           "pytest_runner.handle_watchdog_event({event})",
+        ]
+
+        throttle = 0.5
+      },
+      {
+        patterns           = ["*.js"]
+        ignore_directories = true
+
+        functions = [
+          "nbext_install.handle_watchdog_event({event})",
         ]
 
         throttle = 0.5
