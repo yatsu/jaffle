@@ -55,7 +55,7 @@ setup(
     include_package_data=True,
     entry_points={
         'console_scripts': [
-            'turret=turret.command:main'
+            'turret = turret.command:main'
         ]
     }
 )

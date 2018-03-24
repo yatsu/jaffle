@@ -1,0 +1,10 @@
+{
+  "turret/tests/**/test_*.py": {
+    "type": "test",
+    "alternate": "turret/{dirname}/{basename}.py"
+  },
+  "turret/*.py": {
+    "type": "src",
+    "alternate": "turret/tests/{dirname}/test_{basename}.py"
+  }
+}

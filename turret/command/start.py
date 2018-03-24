@@ -26,7 +26,7 @@ import sys
 import threading
 from tornado import gen, ioloop
 from tornado.escape import to_unicode
-from traitlets import default
+from traitlets import default, Dict, Instance, Int
 from traitlets.config.application import catch_config_error
 import zmq
 from zmq.eventloop import zmqstream
@@ -47,6 +47,14 @@ class TurretStartCommand(BaseTurretCommand):
         return ('%(time_color)s%(asctime)s.%(msecs).03d%(time_color_end)s '
                 '%(name_color)s%(name)14s%(name_color_end)s '
                 '%(level_color)s %(levelname)1.1s %(level_color_end)s %(message)s')
+
+    conf_file = Instance(Path)
+    conf = Dict(default_value={})
+    clients = Dict(default_value={})
+    procs = Dict(default_value={})
+    socket = Instance('zmq.sugar.socket.Socket', allow_none=True)
+    port = Int(allow_none=True)
+    io_loop = Instance(ioloop.IOLoop, allow_none=True)
 
     def parse_command_line(self, argv):
         """
@@ -105,8 +113,38 @@ class TurretStartCommand(BaseTurretCommand):
         self.load_conf()
 
         self.status = TurretStatus(conf=self.conf)
-        self.clients = {}
-        self.procs = {}
+
+    def init_dir(self):
+        """
+        Creates directories.
+        """
+        self.log.debug('data_dir: %s', self.data_dir)
+        self.log.debug('runtime_dir: %s', self.runtime_dir)
+        os.environ['JUPYTER_DATA_DIR'] = self.data_dir
+
+        data_dir = Path(self.data_dir)
+        if not data_dir.exists():
+            data_dir.mkdir()
+
+        runtime_dir = Path(self.runtime_dir)
+        if not runtime_dir.exists():
+            runtime_dir.mkdir()
+
+    def init_signal(self):
+        """
+        Initializes signal handlers.
+        """
+        if not sys.platform.startswith('win') and sys.stdin and sys.stdin.isatty():
+            signal.signal(signal.SIGINT, self._handle_sigint)
+        signal.signal(signal.SIGTERM, self._signal_stop)
+
+    def load_conf(self):
+        """
+        Loads config from ``turret.hcl``.
+        """
+        with self.conf_file.open() as f:
+            self.conf = hcl.load(f)
+        self.log.debug('conf: %s', self.conf)
 
     def start(self):
         """
@@ -125,65 +163,22 @@ class TurretStartCommand(BaseTurretCommand):
         self.log.info('Turret port: %s', self.port)
 
         stream = zmqstream.ZMQStream(self.socket)
-        stream.on_recv(self.on_recv_message)
+        stream.on_recv(self._on_recv_msg)
 
         try:
             self.io_loop.start()
         except KeyboardInterrupt:
             self.log.info('Interrupted...')
 
-    def on_recv_message(self, msg):
-        """
-        Handles messages from Turret apps.
-
-        Parameters
-        ----------
-        msg : str
-            JSON encoded message.
-        """
-        data = json.loads(to_unicode(msg[0]))
-        self.log.debug('Receive message: %s', data)
-        if data['type'] == 'log':
-            payload = data['payload']
-            level = getattr(logging, payload['levelname'].upper())
-            logging.getLogger(data['app_name']).log(level, payload.get('message', ''))
-
-    def init_signal(self):
-        """
-        Initializes signal handlers.
-        """
-        if not sys.platform.startswith('win') and sys.stdin and sys.stdin.isatty():
-            signal.signal(signal.SIGINT, self._handle_sigint)
-        signal.signal(signal.SIGTERM, self._signal_stop)
-
-    def init_dir(self):
-        """
-        Creates directories.
-        """
-        self.log.debug('data_dir: %s', self.data_dir)
-        self.log.debug('runtime_dir: %s', self.runtime_dir)
-        os.environ['JUPYTER_DATA_DIR'] = self.data_dir
-
-        data_dir = Path(self.data_dir)
-        if not data_dir.exists():
-            data_dir.mkdir()
-
-        runtime_dir = Path(self.runtime_dir)
-        if not runtime_dir.exists():
-            runtime_dir.mkdir()
-
-    def load_conf(self):
-        """
-        Loads config from ``turret.hcl``.
-        """
-        with self.conf_file.open() as f:
-            self.conf = hcl.load(f)
-        self.log.debug('conf: %s', self.conf)
-
     @gen.coroutine
     def shutdown(self):
         """
         Shuts down Turret server
+
+        Returns
+        -------
+        future : tornado.gen.Future
+            Future of shutting down ``turret start``.
         """
         self.socket.close()
 
@@ -210,6 +205,11 @@ class TurretStartCommand(BaseTurretCommand):
     def _start_sessions(self):
         """
         Starts kernels and sessions, executes apps' code in it.
+
+        Returns
+        -------
+        future : tornado.gen.Future
+            Future of starting all sessions.
         """
         for session_name, data in self.conf.get('kernel', {}).items():
             self.log.info('Starting kernel: %s', session_name)
@@ -259,10 +259,31 @@ class TurretStartCommand(BaseTurretCommand):
 
         self.status.save(self.status_file_path)
 
+    def _on_recv_msg(self, msg):
+        """
+        Handles a ZeroMQ message from Turret apps.
+
+        Parameters
+        ----------
+        msg : str
+            JSON encoded message.
+        """
+        data = json.loads(to_unicode(msg[0]))
+        self.log.debug('Receive message: %s', data)
+        if data['type'] == 'log':
+            payload = data['payload']
+            level = getattr(logging, payload['levelname'].upper())
+            logging.getLogger(data['app_name']).log(level, payload.get('message', ''))
+
     @gen.coroutine
     def _start_processes(self):
         """
         Starts external processes.
+
+        Returns
+        -------
+        future : tornado.gen.Future
+            Future of starting all external processes.
         """
         processes = []
         for proc_name, proc_data in self.conf.get('process', {}).items():
