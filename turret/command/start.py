@@ -50,11 +50,17 @@ class TurretStartCommand(BaseTurretCommand):
 
     conf_file = Instance(Path)
     conf = Dict(default_value={})
+    status = Instance(TurretStatus, allow_none=True)
     clients = Dict(default_value={})
     procs = Dict(default_value={})
-    socket = Instance('zmq.sugar.socket.Socket', allow_none=True)
+    socket = Instance('zmq.Socket', allow_none=True)
     port = Int(allow_none=True)
     io_loop = Instance(ioloop.IOLoop, allow_none=True)
+
+    kernel_spec_manager = Instance(KernelSpecManager, allow_none=True)
+    kernel_manager = Instance(MappingKernelManager, allow_none=True)
+    contents_manager = Instance(ContentsManager, allow_none=True)
+    session_manager = Instance(TurretSessionManager, allow_none=True)
 
     def parse_command_line(self, argv):
         """
@@ -159,7 +165,7 @@ class TurretStartCommand(BaseTurretCommand):
 
         ctx = zmq.Context.instance()
         self.socket = ctx.socket(zmq.PULL)
-        self.port = self.socket.bind_to_random_port('tcp://*', min_port=9000, max_port=9999)
+        self.port = self.socket.bind_to_random_port('tcp://*', min_port=9000, max_port=9099)
         self.log.info('Turret port: %s', self.port)
 
         stream = zmqstream.ZMQStream(self.socket)
@@ -185,12 +191,13 @@ class TurretStartCommand(BaseTurretCommand):
         for client in self.clients.values():
             client.stop_channels()
 
-        for session in self.session_manager.list_sessions():
-            self.log.info('Deleting session: %s %s', session['name'], session['id'])
-            yield self.session_manager.delete_session(session['id'])
+        for jupyter_sess in self.session_manager.list_sessions():
+            self.log.info('Deleting jupyter_sess: %s %s',
+                          jupyter_sess['name'], jupyter_sess['id'])
+            yield self.session_manager.delete_session(jupyter_sess['id'])
 
-        for sess_data in self.status.sessions.values():
-            conn_file = self.kernel_connection_file_path(sess_data.kernel.id)
+        for turret_sess in self.status.sessions.values():
+            conn_file = self.kernel_connection_file_path(turret_sess.kernel.id)
             if conn_file.exists():
                 conn_file.unlink()
 

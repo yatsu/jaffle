@@ -51,7 +51,7 @@ setup(
         'watchdog': ['watchdog>=0.8.0'],
         'pytest': ['pytest>=3.4.0']
     },
-    test_require=['pytest'],
+    test_require=['pytest', 'pytest-tornado'],
     include_package_data=True,
     entry_points={
         'console_scripts': [
