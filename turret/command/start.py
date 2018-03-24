@@ -219,7 +219,6 @@ class TurretStartCommand(BaseTurretCommand):
                 kernel_name=data.get('kernel_name'),
                 env={'PYTHONSTARTUP': startup}
             )
-            # self.status.add_session(**dict(session_model, name=session_name))
             self.status.add_session(session_model['id'], session_name, session_model['kernel'])
 
         for session in self.status.sessions.values():
@@ -235,13 +234,17 @@ class TurretStartCommand(BaseTurretCommand):
             for app_name, app_data in apps.items():
                 logger = logging.getLogger(app_name)
                 logger.parent = self.log
+                logger.setLevel(logging.DEBUG)
 
                 if 'class' in app_data:
                     mod, cls = app_data['class'].rsplit('.', 1)
+                    opts = app_data.get('options', {})
+                    self.log.info('Initializing %s.%s', mod, cls)
+                    self.log.debug('options for %s: %s', cls, opts)
                     code = ('from {mod} import {cls}; {app} = {cls}({app!r}, {conf}, {port}, '
                             '{status}, **{opts})'.format(
                                 mod=mod, cls=cls, app=app_name, conf=self.conf, port=self.port,
-                                status=self.status.to_dict(), opts=app_data.get('options', {})))
+                                status=self.status.to_dict(), opts=opts))
                     if 'start' in app_data:
                         code += '; {}'.format(app_data['start'])
                     client.execute(code, silent=True)
