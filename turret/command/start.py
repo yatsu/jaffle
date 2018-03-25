@@ -176,6 +176,7 @@ class TurretStartCommand(BaseTurretCommand):
 
         except KeyboardInterrupt:
             self.log.info('Interrupted...')
+
         except Exception as e:
             if self.log_evel == logging.DEBUG:
                 self.log.exception(e)
@@ -228,9 +229,9 @@ class TurretStartCommand(BaseTurretCommand):
         try:
             kernels = self.conf.get('kernel', {})
             if len(kernels) > 1:
-                # raise ValueError('Turret currently supports only one kernel')
                 raise TurretConfError('Turret currently supports only one kernel')
 
+            # session_name == kernel instance name
             for session_name, data in kernels.items():
                 self.log.info('Starting kernel: %s', session_name)
                 startup = str(Path(__file__).parent.parent / 'startup.py')
@@ -255,6 +256,9 @@ class TurretStartCommand(BaseTurretCommand):
                     logger = logging.getLogger(app_name)
                     logger.parent = self.log
                     logger.setLevel(logging.DEBUG)
+                    # app's log level in the turret server process is always DEBUG,
+                    # whereas it varies in the kernel instance depending on the
+                    # configuration
 
                     if 'class' in app_data:
                         mod, cls = app_data['class'].rsplit('.', 1)

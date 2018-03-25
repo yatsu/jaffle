@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from notebook.services.kernels.kernelmanager import MappingKernelManager
 from pathlib import Path
 import pytest
 import signal
@@ -192,7 +193,7 @@ def test_shutdown(command):
 
 
 @pytest.mark.gen_test
-def test_multiple_kernels(command):
+def test_multiple_kernel_error(command):
     command.conf = {'kernel': {'foo': {}, 'bar': {}}}
     with pytest.raises(SystemExit) as ex:
         yield command._start_sessions()
@@ -202,3 +203,109 @@ def test_multiple_kernels(command):
 
     assert (str(command.log.error.call_args[0][0]) ==
             'Turret currently supports only one kernel')
+
+
+@pytest.mark.gen_test
+def test_start_sessions(command):
+    created_sessions = []
+
+    def create_session(**kwargs):
+        created_sessions.append(kwargs)
+        future = gen.Future()
+        future.set_result({'id': 'sess-id', 'kernel': 'sess_kernel'})
+        return future
+
+    command.conf = {
+        'kernel': {
+            'my_kernel_instance': {
+                'kernel_name': 'my_kernel'
+            }
+        }
+    }
+    command.session_manager = Mock(TurretSessionManager, create_session=create_session)
+    session = Mock(TurretSession, kernel=Mock(id='kernel-1'))
+    session.name = 'sess_name'  # `name` must be set after Mock()
+    apps = {
+        'app1': {
+            'class': 'foo.Foo',
+            'options': {'opt1': True},
+            'start': 'app1.start()'
+        },
+        'app2': {
+            'class': 'bar.Bar'
+        }
+    }
+    command.status = Mock(
+        TurretStatus,
+        sessions={'my_kernel_instance': session},
+        to_dict=Mock(return_value={
+            'sessions': {},
+            'apps': apps,
+            'cond': {}
+        })
+    )
+    command._get_apps_for_session = Mock(return_value=apps)
+    client = Mock(
+        shell_channel=Mock(get_msg=Mock(return_value={
+            'content': {
+                'status': 'ok'
+            }
+        }))
+    )
+    command.kernel_manager = Mock(
+        MappingKernelManager,
+        get_kernel=Mock(return_value=Mock(client=Mock(return_value=client)))
+    )
+
+    logger = Mock()
+    with patch('turret.command.start.logging.getLogger', return_value=logger) as get_logger:
+        yield command._start_sessions()
+
+    assert created_sessions == [{
+        'name': 'my_kernel_instance',
+        'kernel_name': 'my_kernel',
+        'env': {
+            'PYTHONSTARTUP': str((Path(__file__).parent.parent.parent / 'startup.py'))
+        }
+    }]
+
+    command.status.add_session.assert_called_once_with(
+        'sess-id', 'my_kernel_instance', 'sess_kernel'
+    )
+
+    command._get_apps_for_session.assert_called_once_with('sess_name')
+
+    command.kernel_manager.get_kernel.assert_called_once_with('kernel-1')
+
+    client.start_channels.assert_called_once_with()
+    client.wait_for_ready.assert_called_once_with()
+
+    get_logger.assert_has_calls([call('app1'), call('app2')])
+    assert logger.parent is command.log
+    logger.setLevel.assert_has_calls([call(logging.DEBUG), call(logging.DEBUG)])
+
+    client.execute.assert_has_calls([
+        call("from foo import Foo; app1 = Foo('app1', {'kernel': "
+             "{'my_kernel_instance': {'kernel_name': 'my_kernel'}}}, 0, "
+             "{'sessions': {}, 'apps': "
+             "{'app1': {'class': 'foo.Foo', 'options': {'opt1': True}, 'start': 'app1.start()'}, "
+             "'app2': {'class': 'bar.Bar'}}, 'cond': {}}, "
+             "**{'opt1': True}); app1.start()", silent=True),
+        call("from bar import Bar; app2 = Bar('app2', {'kernel': "
+             "{'my_kernel_instance': {'kernel_name': 'my_kernel'}}}, 0, "
+             "{'sessions': {}, 'apps': "
+             "{'app1': {'class': 'foo.Foo', 'options': {'opt1': True}, 'start': 'app1.start()'}, "
+             "'app2': {'class': 'bar.Bar'}}, 'cond': {}}, "
+             "**{})", silent=True)
+    ])
+
+    client.shell_channel.get_msg.assert_has_calls([
+        call(block=True), call(block=True)
+    ])
+
+    command.status.add_app.assert_has_calls([
+        call(name='app1', session_name='sess_name'),
+        call(name='app2', session_name='sess_name')
+    ])
+
+    command.status.save.assert_called_once_with(command.status_file_path)
