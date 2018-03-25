@@ -8,6 +8,6 @@ prompt-toolkit
 pygments
 pyhcl>=0.3.0
 setuptools
-tornado
+tornado>=4.5.3,<5
 traitlets
 pyzmq

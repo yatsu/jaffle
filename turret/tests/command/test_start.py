@@ -176,8 +176,7 @@ def test_shutdown(command):
     assert deleted_sessions == ['session-1', 'session-2']
 
     command.kernel_connection_file_path.assert_has_calls([
-        call('kernel-1'),
-        call('kernel-2')
+        call(sess.kernel.id) for sess in command.status.sessions.values()
     ])
     command.kernel_connection_file_path.return_value.assert_has_calls([
         call.exists(), call.unlink(),
@@ -280,32 +279,32 @@ def test_start_sessions(command):
     client.start_channels.assert_called_once_with()
     client.wait_for_ready.assert_called_once_with()
 
-    get_logger.assert_has_calls([call('app1'), call('app2')])
+    get_logger.assert_has_calls([call(name) for name in apps.keys()])
     assert logger.parent is command.log
     logger.setLevel.assert_has_calls([call(logging.DEBUG), call(logging.DEBUG)])
 
-    client.execute.assert_has_calls([
-        call("from foo import Foo; app1 = Foo('app1', {'kernel': "
-             "{'my_kernel_instance': {'kernel_name': 'my_kernel'}}}, 0, "
-             "{'sessions': {}, 'apps': "
-             "{'app1': {'class': 'foo.Foo', 'options': {'opt1': True}, 'start': 'app1.start()'}, "
-             "'app2': {'class': 'bar.Bar'}}, 'cond': {}}, "
-             "**{'opt1': True}); app1.start()", silent=True),
-        call("from bar import Bar; app2 = Bar('app2', {'kernel': "
-             "{'my_kernel_instance': {'kernel_name': 'my_kernel'}}}, 0, "
-             "{'sessions': {}, 'apps': "
-             "{'app1': {'class': 'foo.Foo', 'options': {'opt1': True}, 'start': 'app1.start()'}, "
-             "'app2': {'class': 'bar.Bar'}}, 'cond': {}}, "
-             "**{})", silent=True)
-    ])
+    assert len(client.execute.call_args_list) == 2
+
+    exec1 = client.execute.call_args_list[0]
+    "from foo import Foo;" in exec1[0]
+    "app1 = Foo('app1', " in exec1[0]
+    "**{'opt1': True}" in exec1[0]
+    "app1.start()" in exec1[0]
+    assert exec1[1] == {'silent': True}
+
+    exec2 = client.execute.call_args_list[1]
+    "from bar import Bar;" in exec2[0]
+    "app2 = Bar('app2', " in exec2[0]
+    "**{}" in exec2[0]
+    assert exec2[1] == {'silent': True}
 
     client.shell_channel.get_msg.assert_has_calls([
         call(block=True), call(block=True)
     ])
 
     command.status.add_app.assert_has_calls([
-        call(name='app1', session_name='sess_name'),
-        call(name='app2', session_name='sess_name')
+        call(name=name, session_name='sess_name')
+        for name in apps.keys()
     ])
 
     command.status.save.assert_called_once_with(command.status_file_path)
