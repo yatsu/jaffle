@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from IPython.core import ultratb
 import logging
 from pathlib import Path
-from traitlets.config.application import Application
+import sys
+from traitlets.config.application import Application, catch_config_error
 from traitlets import Bool, Unicode, default
 from ..logging import LogFormatter
 
@@ -80,3 +82,21 @@ class BaseTurretCommand(Application):
 
     def kernel_connection_file_path(self, kernel_id):
         return Path(self.runtime_dir) / 'kernel-{}.json'.format(kernel_id)
+
+    @catch_config_error
+    def initialize(self, argv=None):
+        """
+        Initializes BaseTurretCommand.
+
+        Parameters
+        ----------
+        argv : list[str]
+            Command line strings.
+        """
+        super().initialize(argv)
+
+        sys.excepthook = ultratb.ColorTB()
+
+
+class TurretConfError(Exception):
+    pass

@@ -131,7 +131,7 @@ class LogFormatter(logging.Formatter):
             if not rec.exc_text:
                 rec.exc_text = self.formatException(rec.exc_info)
         if rec.exc_text:
-            formatted = '\n'.join([formatted.rstrip()] + rec.exc_textx.split('\n'))
+            formatted = '\n'.join([formatted.rstrip()] + rec.exc_text.split('\n'))
 
         return formatted.replace('\n', '\n    ')
 

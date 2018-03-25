@@ -30,7 +30,7 @@ from traitlets import default, Dict, Instance, Int
 from traitlets.config.application import catch_config_error
 import zmq
 from zmq.eventloop import zmqstream
-from .base import BaseTurretCommand
+from .base import BaseTurretCommand, TurretConfError
 from ..status import TurretStatus
 from ..process import Process
 from ..session import TurretSessionManager
@@ -159,22 +159,29 @@ class TurretStartCommand(BaseTurretCommand):
         """
         self.log.debug('Starting turret')
 
-        self.io_loop = ioloop.IOLoop.current()
-        self.io_loop.add_callback(self._start_sessions)
-        self.io_loop.add_callback(self._start_processes)
-
-        ctx = zmq.Context.instance()
-        self.socket = ctx.socket(zmq.PULL)
-        self.port = self.socket.bind_to_random_port('tcp://*', min_port=9000, max_port=9099)
-        self.log.info('Turret port: %s', self.port)
-
-        stream = zmqstream.ZMQStream(self.socket)
-        stream.on_recv(self._on_recv_msg)
-
         try:
+            self.io_loop = ioloop.IOLoop.current()
+            self.io_loop.add_callback(self._start_sessions)
+            self.io_loop.add_callback(self._start_processes)
+
+            ctx = zmq.Context.instance()
+            self.socket = ctx.socket(zmq.PULL)
+            self.port = self.socket.bind_to_random_port('tcp://*', min_port=9000, max_port=9099)
+            self.log.info('Turret port: %s', self.port)
+
+            stream = zmqstream.ZMQStream(self.socket)
+            stream.on_recv(self._on_recv_msg)
+
             self.io_loop.start()
+
         except KeyboardInterrupt:
             self.log.info('Interrupted...')
+        except Exception as e:
+            if self.log_evel == logging.DEBUG:
+                self.log.exception(e)
+            else:
+                self.log.error(e)
+            sys.exit(1)
 
     @gen.coroutine
     def shutdown(self):
@@ -218,53 +225,66 @@ class TurretStartCommand(BaseTurretCommand):
         future : tornado.gen.Future
             Future of starting all sessions.
         """
-        for session_name, data in self.conf.get('kernel', {}).items():
-            self.log.info('Starting kernel: %s', session_name)
-            startup = str(Path(__file__).parent.parent / 'startup.py')
-            session_model = yield self.session_manager.create_session(
-                name=session_name,
-                kernel_name=data.get('kernel_name'),
-                env={'PYTHONSTARTUP': startup}
-            )
-            self.status.add_session(session_model['id'], session_name, session_model['kernel'])
+        try:
+            kernels = self.conf.get('kernel', {})
+            if len(kernels) > 1:
+                # raise ValueError('Turret currently supports only one kernel')
+                raise TurretConfError('Turret currently supports only one kernel')
 
-        for session in self.status.sessions.values():
-            kernel_id = session.kernel.id
-            apps = self._get_apps_for_session(session.name)
-            if len(apps) == 0:
-                continue
-            kernel = self.kernel_manager.get_kernel(kernel_id)
-            client = self.clients[session.name] = kernel.client()
-            client.start_channels()
-            client.wait_for_ready()
+            for session_name, data in kernels.items():
+                self.log.info('Starting kernel: %s', session_name)
+                startup = str(Path(__file__).parent.parent / 'startup.py')
+                session_model = yield self.session_manager.create_session(
+                    name=session_name,
+                    kernel_name=data.get('kernel_name'),
+                    env={'PYTHONSTARTUP': startup}
+                )
+                self.status.add_session(session_model['id'], session_name, session_model['kernel'])
 
-            for app_name, app_data in apps.items():
-                logger = logging.getLogger(app_name)
-                logger.parent = self.log
-                logger.setLevel(logging.DEBUG)
+            for session in self.status.sessions.values():
+                kernel_id = session.kernel.id
+                apps = self._get_apps_for_session(session.name)
+                if len(apps) == 0:
+                    continue
+                kernel = self.kernel_manager.get_kernel(kernel_id)
+                client = self.clients[session.name] = kernel.client()
+                client.start_channels()
+                client.wait_for_ready()
 
-                if 'class' in app_data:
-                    mod, cls = app_data['class'].rsplit('.', 1)
-                    opts = app_data.get('options', {})
-                    self.log.info('Initializing %s.%s', mod, cls)
-                    self.log.debug('options for %s: %s', cls, opts)
-                    code = ('from {mod} import {cls}; {app} = {cls}({app!r}, {conf}, {port}, '
-                            '{status}, **{opts})'.format(
-                                mod=mod, cls=cls, app=app_name, conf=self.conf, port=self.port,
-                                status=self.status.to_dict(), opts=opts))
-                    if 'start' in app_data:
-                        code += '; {}'.format(app_data['start'])
-                    client.execute(code, silent=True)
+                for app_name, app_data in apps.items():
+                    logger = logging.getLogger(app_name)
+                    logger.parent = self.log
+                    logger.setLevel(logging.DEBUG)
 
-                msg = client.shell_channel.get_msg(block=True)
-                if msg['content']['status'] != 'ok':
-                    self.log.error('Initializing kernel {!r} with app {!r} failed'
-                                   .format(session.name, app_name))
-                    print('\n'.join(msg['content']['traceback']), file=sys.stderr)
+                    if 'class' in app_data:
+                        mod, cls = app_data['class'].rsplit('.', 1)
+                        opts = app_data.get('options', {})
+                        self.log.info('Initializing %s.%s', mod, cls)
+                        self.log.debug('options for %s: %s', cls, opts)
+                        code = ('from {mod} import {cls}; {app} = {cls}({app!r}, {conf}, {port}, '
+                                '{status}, **{opts})'.format(
+                                    mod=mod, cls=cls, app=app_name, conf=self.conf, port=self.port,
+                                    status=self.status.to_dict(), opts=opts))
+                        if 'start' in app_data:
+                            code += '; {}'.format(app_data['start'])
+                        client.execute(code, silent=True)
 
-                self.status.add_app(name=app_name, session_name=session.name)
+                    msg = client.shell_channel.get_msg(block=True)
+                    if msg['content']['status'] != 'ok':
+                        self.log.error('Initializing kernel {!r} with app {!r} failed'
+                                       .format(session.name, app_name))
+                        print('\n'.join(msg['content']['traceback']), file=sys.stderr)
 
-        self.status.save(self.status_file_path)
+                    self.status.add_app(name=app_name, session_name=session.name)
+
+            self.status.save(self.status_file_path)
+
+        except Exception as e:
+            if self.log_level == logging.DEBUG:
+                self.log.exception(e)
+            else:
+                self.log.error(e)
+            sys.exit(1)
 
     def _on_recv_msg(self, msg):
         """

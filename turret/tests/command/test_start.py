@@ -189,3 +189,16 @@ def test_shutdown(command):
     command.status.destroy.assert_called_once_with(command.status_file_path)
 
     command.io_loop.stop.assert_called_once_with()
+
+
+@pytest.mark.gen_test
+def test_multiple_kernels(command):
+    command.conf = {'kernel': {'foo': {}, 'bar': {}}}
+    with pytest.raises(SystemExit) as ex:
+        yield command._start_sessions()
+
+    assert ex.type == SystemExit
+    assert ex.value.code == 1
+
+    assert (str(command.log.error.call_args[0][0]) ==
+            'Turret currently supports only one kernel')
