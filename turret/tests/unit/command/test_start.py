@@ -264,7 +264,7 @@ def test_start_sessions(command):
         'name': 'my_kernel_instance',
         'kernel_name': 'my_kernel',
         'env': {
-            'PYTHONSTARTUP': str((Path(__file__).parent.parent.parent / 'startup.py'))
+            'PYTHONSTARTUP': str((Path(__file__).parent.parent.parent.parent / 'startup.py'))
         }
     }]
 

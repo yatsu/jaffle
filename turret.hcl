@@ -41,7 +41,7 @@ app "pytest_runner" {
     ]
 
     auto_test_map {
-      "turret/**/*.py" = "turret/tests/{}/test_{}.py"
+      "turret/**/*.py" = "turret/tests/unit/{}/test_{}.py"
     }
   }
 }
