@@ -72,7 +72,7 @@ class LogFormatter(logging.Formatter):
 
     _TIME_COLOR = (Color.WHITE, Color.BRIGHT_BLACK)
 
-    def __init__(self, fmt=None, datefmt=None, style='%'):
+    def __init__(self, fmt=None, datefmt=None, style='%', enable_color=True):
         """
         Initialize the formatter with specified format strings.
 
@@ -84,9 +84,12 @@ class LogFormatter(logging.Formatter):
             Date format.
         style : str
             Style parameter.
+        enable_color : bool
+            Whether to enable color output.
         """
         super().__init__(fmt, datefmt, style)
 
+        self.enable_color = enable_color
         self.name_colors = {}
 
     def format(self, record):
@@ -149,6 +152,9 @@ class LogFormatter(logging.Formatter):
         seq : str
             The beginning of a color sequence.
         """
+        if not self.enable_color:
+            return ''
+
         color = ';'.join([str([0, 10][i] + c.value)
                           for i, c in enumerate(color) if c is not None])
         return self._COLOR_FMT % color
@@ -167,4 +173,7 @@ class LogFormatter(logging.Formatter):
         seq : str
             The end of a color sequence.
         """
+        if not self.enable_color:
+            return ''
+
         return self._COLOR_END

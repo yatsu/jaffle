@@ -12,7 +12,8 @@ from ..logging import LogFormatter
 aliases = {
     'log-level': 'Application.log_level',
     'log-datefmt': 'Application.log_datefmt',
-    'log-format': 'Application.log_format'
+    'log-format': 'Application.log_format',
+    'color': 'BaseTurretCommand.color'
 }
 
 flags = {
@@ -23,6 +24,10 @@ flags = {
     'y': (
         {'BaseTurretCommand': {'answer_yes': True}},
         'Answer yes to any questions instead of prompting.'
+    ),
+    'disable-color': (
+        {'BaseTurretCommand': {'color': False}},
+        'Disable color output.'
     )
 }
 
@@ -44,7 +49,11 @@ class BaseTurretCommand(Application):
         log = logging.getLogger('turret')
         log.setLevel(self.log_level)
         log.propagate = False
-        formatter = self._log_formatter_cls(fmt=self.log_format, datefmt=self.log_datefmt)
+        formatter = self._log_formatter_cls(
+            fmt=self.log_format,
+            datefmt=self.log_datefmt,
+            enable_color=self.color
+        )
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         log.addHandler(handler)
@@ -61,6 +70,11 @@ class BaseTurretCommand(Application):
     @default('log_format')
     def _log_format_default(self):
         return '%(message)s'
+
+    color = Bool(True, config=True, help='Enable color output.')
+
+    def _color_changed(self):
+        self.log.handlers[0].formatter.enable_color = self.color
 
     config_file = Unicode(config=True, help='Config file path.')
 
