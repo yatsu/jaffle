@@ -1,4 +1,6 @@
-kernel "py_kernel" {}
+kernel "py_kernel" {
+  pass_env = ["PATH"]
+}
 
 app "watchdog" {
   class  = "turret.app.watchdog.WatchdogApp"

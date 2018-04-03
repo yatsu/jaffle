@@ -219,7 +219,7 @@ def test_start_sessions(command):
 
     command.conf = {
         'kernel': {
-            'my_kernel_instance': {
+            'sess_name': {
                 'kernel_name': 'my_kernel'
             }
         }
@@ -239,7 +239,7 @@ def test_start_sessions(command):
     }
     command.status = Mock(
         TurretStatus,
-        sessions={'my_kernel_instance': session},
+        sessions={'sess_name': session},
         to_dict=Mock(return_value={
             'sessions': {},
             'apps': apps,
@@ -264,7 +264,7 @@ def test_start_sessions(command):
         yield command._start_sessions()
 
     assert created_sessions == [{
-        'name': 'my_kernel_instance',
+        'name': 'sess_name',
         'kernel_name': 'my_kernel',
         'env': {
             'PYTHONSTARTUP': str((Path(__file__).parent.parent.parent.parent / 'startup.py'))
@@ -272,7 +272,7 @@ def test_start_sessions(command):
     }]
 
     command.status.add_session.assert_called_once_with(
-        'sess-id', 'my_kernel_instance', 'sess_kernel'
+        'sess-id', 'sess_name', 'sess_kernel'
     )
 
     command._get_apps_for_session.assert_called_once_with('sess_name')

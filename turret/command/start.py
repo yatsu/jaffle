@@ -152,7 +152,9 @@ class TurretStartCommand(BaseTurretCommand):
         """
         Initializes signal handlers.
         """
-        if not sys.platform.startswith('win') and sys.stdin and sys.stdin.isatty():
+        if self.answer_yes:
+            signal.signal(signal.SIGINT, self._signal_stop)
+        else:
             signal.signal(signal.SIGINT, self._handle_sigint)
         signal.signal(signal.SIGTERM, self._signal_stop)
 
@@ -263,6 +265,16 @@ class TurretStartCommand(BaseTurretCommand):
                 client = self.clients[session.name] = kernel.client()
                 client.start_channels()
                 client.wait_for_ready()
+
+                env = {e: os.getenv(e, '') for e in kernels[session.name].get('pass_env', [])}
+                if len(env) > 0:
+                    client.execute(
+                        'import os\n' +
+                        '\n'.join(['os.environ[{!r}] = {!r}'.format(k, v)
+                                   for k, v in env.items()]),
+                        silent=True
+                    )
+                    client.shell_channel.get_msg(block=True)
 
                 for app_name, app_data in apps.items():
                     logger = logging.getLogger(app_name)
@@ -384,7 +396,7 @@ class TurretStartCommand(BaseTurretCommand):
             Interrupted stack frame.
         """
         self.log.critical('Received signal %s, stopping', sig)
-        self.io_loop.add_callback_from_signal(self.io_loop.stop)
+        self.io_loop.add_callback_from_signal(self.shutdown)
 
     def _restore_sigint_handler(self):
         """
