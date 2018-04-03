@@ -20,6 +20,7 @@ from notebook.services.contents.manager import ContentsManager
 from notebook.services.kernels.kernelmanager import MappingKernelManager
 import os
 from pathlib import Path
+import re
 import select
 import signal
 import sys
@@ -326,9 +327,13 @@ class TurretStartCommand(BaseTurretCommand):
         data = json.loads(to_unicode(msg[0]))
         self.log.debug('Receive message: %s', data)
         if data['type'] == 'log':
+            app_name = data['app_name']
             payload = data['payload']
             level = getattr(logging, payload['levelname'].upper())
-            logging.getLogger(data['app_name']).log(level, payload.get('message', ''))
+            msg = payload.get('message', '')
+            pats = self.conf['app'][app_name].get('logger', {}).get('ignore_regex', [])
+            if not any([re.search(p, msg) for p in pats]):
+                logging.getLogger(app_name).log(level, msg)
 
     @gen.coroutine
     def _start_processes(self):
