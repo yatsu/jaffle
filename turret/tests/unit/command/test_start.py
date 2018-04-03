@@ -18,6 +18,7 @@ from turret.status import TurretStatus, TurretSession
 @pytest.fixture(scope='function')
 def command():
     command = TurretStartCommand()
+    command.check_running = Mock()
     command.initialize(argv=[])
     command.log = Mock(logging.Logger)
     return command
@@ -53,14 +54,16 @@ def test_extra_args(command):
 
 def test_initialize():
     command = TurretStartCommand()
+    command.check_running = Mock()
 
-    with patch.object(command, 'init_dir') as init_dir:
-        with patch.object(command, 'init_signal') as init_signal:
-            with patch.object(command, 'load_conf') as load_conf:
-                with patch('turret.command.start.TurretStatus',
-                           return_value=Mock(TurretStatus)) as status:
+    with patch('turret.command.start.TurretStatus',
+               return_value=Mock(TurretStatus)) as status:
+        with patch.object(command, 'init_dir') as init_dir:
+            with patch.object(command, 'init_signal') as init_signal:
+                with patch.object(command, 'load_conf') as load_conf:
                     command.initialize(argv=[])
 
+    command.check_running.assert_called_once_with()
     init_dir.assert_called_once_with()
     init_signal.assert_called_once_with()
     load_conf.assert_called_once_with()

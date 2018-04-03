@@ -91,6 +91,8 @@ class TurretStartCommand(BaseTurretCommand):
         """
         super().initialize(argv)
 
+        self.check_running()
+
         self.init_dir()
 
         self.kernel_spec_manager = KernelSpecManager(
@@ -119,6 +121,16 @@ class TurretStartCommand(BaseTurretCommand):
         self.load_conf()
 
         self.status = TurretStatus(conf=self.conf)
+
+    def check_running(self):
+        """
+        Checks whether Turret is already running.
+        """
+        if self.status_file_path.exists():
+            print('Turret is already running in this directory.',
+                  'If it is not, please remove .turret/runtime directory.',
+                  file=sys.stderr)
+            sys.exit(1)
 
     def init_dir(self):
         """
