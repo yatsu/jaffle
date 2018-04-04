@@ -1,51 +1,44 @@
 # -*- coding: utf-8 -*-
 
-from jupyter_client.blocking import BlockingKernelClient
-from jupyter_client.blocking.channels import ZMQSocketChannel
+from jupyter_client.channels import HBChannel
+from jupyter_client.threaded import ThreadedZMQSocketChannel, ThreadedKernelClient
 import logging
+from tornado import gen
 from traitlets import Type
-from zmq.eventloop import zmqstream
+
 
 logger = logging.getLogger('turret')
 
 
-class TurretIOPubChannel(ZMQSocketChannel):
+class TurretZMQSocketChannel(ThreadedZMQSocketChannel):
+    """
+    ThreadedZMQSocketChannel for Turret which calls callbacks in an ioloop.
+    """
+
+    on_recv = None
+
+    def call_handlers(self, msg):
+        """
+        Call message handlers.
+
+        Parameters
+        ----------
+        msg : dict
+            ZeroMQ message.
+        """
+        if self.on_recv:
+            self.ioloop.add_callback(gen.maybe_future(self.on_recv(msg)))
+
+
+class TurretIOPubChannel(TurretZMQSocketChannel):
     """
     Socket channel to receive messages from IOPub.
     This is required for error logging in the Turret server.
     """
 
-    def __init__(self, socket, session, loop=None):
-        """
-        Initializes TurretIOPubChannel.
-        Sets a message handler to IOPub.
-
-        Parameters
-        ----------
-        socket : :class:`zmq.Socket`
-            The ZMQ socket to use.
-        session : :class:`session.Session`
-            The session to use.
-        loop
-            Unused here, for other implementations.
-        """
-        super().__init__(socket, session, loop=loop)
-
-        zmqstream.ZMQStream(self.socket).on_recv(self._handle_recv)
-
-    def _handle_recv(self, msg):
-        """
-        Callback for stream.on_recv.
-
-        Unpacks message, and calls handlers with it.
-        """
-        ident, smsg = self.session.feed_identities(msg)
-        msg = self.session.deserialize(smsg)
-        self.call_handlers(msg)
-
     def call_handlers(self, msg):
         """
-        Message handlers for IOPub.
+        Call message handlers for IOPub message.
         If ``msg_type`` is 'error', sends the traceback to the Turret main
         logger.
 
@@ -64,8 +57,10 @@ class TurretIOPubChannel(ZMQSocketChannel):
             if msg['content']['name'] == 'stderr':
                 logger.warning(msg['content']['text'])
 
+        super().call_handlers(msg)
 
-class TurretKernelClient(BlockingKernelClient):
+
+class TurretKernelClient(ThreadedKernelClient):
     """
     Jupyter kernel client for Turret server.
 
@@ -73,3 +68,6 @@ class TurretKernelClient(BlockingKernelClient):
     """
 
     iopub_channel_class = Type(TurretIOPubChannel)
+    shell_channel_clsss = Type(TurretZMQSocketChannel)
+    stdin_channel_class = Type(TurretZMQSocketChannel)
+    hb_channel_class = Type(HBChannel)

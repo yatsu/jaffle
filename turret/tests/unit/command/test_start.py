@@ -279,31 +279,11 @@ def test_start_sessions(command):
 
     command.kernel_manager.get_kernel.assert_called_once_with('kernel-1')
 
-    client.start_channels.assert_called_once_with()
-    client.wait_for_ready.assert_called_once_with()
+    client.start_channels.assert_called_once_with(hb=False)
 
     get_logger.assert_has_calls([call(name) for name in apps.keys()])
     assert logger.parent is command.log
     logger.setLevel.assert_has_calls([call(logging.DEBUG), call(logging.DEBUG)])
-
-    assert len(client.execute.call_args_list) == 2
-
-    exec1 = client.execute.call_args_list[0]
-    "from foo import Foo;" in exec1[0]
-    "app1 = Foo('app1', " in exec1[0]
-    "**{'opt1': True}" in exec1[0]
-    "app1.start()" in exec1[0]
-    assert exec1[1] == {'silent': True}
-
-    exec2 = client.execute.call_args_list[1]
-    "from bar import Bar;" in exec2[0]
-    "app2 = Bar('app2', " in exec2[0]
-    "**{}" in exec2[0]
-    assert exec2[1] == {'silent': True}
-
-    client.shell_channel.get_msg.assert_has_calls([
-        call(block=True), call(block=True)
-    ])
 
     command.status.add_app.assert_has_calls([
         call(name=name, session_name='sess_name')
@@ -311,3 +291,15 @@ def test_start_sessions(command):
     ])
 
     command.status.save.assert_called_once_with(command.status_file_path)
+
+    assert len(client.execute.call_args_list) == 1
+
+    exec_args = client.execute.call_args_list[0]
+    "from foo import Foo" in exec_args[0]
+    "app1 = Foo('app1', " in exec_args[0]
+    "**{'opt1': True}" in exec_args[0]
+    "app1.start()" in exec_args[0]
+    "from bar import Bar" in exec_args[0]
+    "app2 = Bar('app2', " in exec_args[0]
+    "**{}" in exec_args[0]
+    assert exec_args[1] == {'silent': True}

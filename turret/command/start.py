@@ -35,6 +35,7 @@ from .base import BaseTurretCommand, TurretConfError
 from ..status import TurretStatus
 from ..process import Process
 from ..session import TurretSessionManager
+from ..kernel_client import TurretKernelClient
 
 
 class TurretStartCommand(BaseTurretCommand):
@@ -263,19 +264,17 @@ class TurretStartCommand(BaseTurretCommand):
                 if len(apps) == 0:
                     continue
                 kernel = self.kernel_manager.get_kernel(kernel_id)
+                kernel.client_factory = TurretKernelClient
                 client = self.clients[session.name] = kernel.client()
-                client.start_channels()
-                client.wait_for_ready()
+                client.start_channels(hb=False)
+
+                code_lines = []
 
                 env = {e: os.getenv(e, '') for e in kernels[session.name].get('pass_env', [])}
                 if len(env) > 0:
-                    client.execute(
-                        'import os\n' +
-                        '\n'.join(['os.environ[{!r}] = {!r}'.format(k, v)
-                                   for k, v in env.items()]),
-                        silent=True
-                    )
-                    client.shell_channel.get_msg(block=True)
+                    code_lines.append('import os')
+                    code_lines.append('\n'.join(['os.environ[{!r}] = {!r}'.format(k, v)
+                                                 for k, v in env.items()]))
 
                 for app_name, app_data in apps.items():
                     logger = logging.getLogger(app_name)
@@ -290,23 +289,20 @@ class TurretStartCommand(BaseTurretCommand):
                         opts = app_data.get('options', {})
                         self.log.info('Initializing %s.%s', mod, cls)
                         self.log.debug('options for %s: %s', cls, opts)
-                        code = ('from {mod} import {cls}; {app} = {cls}({app!r}, {conf}, {port}, '
-                                '{status}, **{opts})'.format(
-                                    mod=mod, cls=cls, app=app_name, conf=self.conf, port=self.port,
-                                    status=self.status.to_dict(), opts=opts))
+                        code_lines.append('from {} import {}'.format(mod, cls))
+                        code_lines.append(
+                            '{app} = {cls}({app!r}, {conf}, {port}, {status}, **{opts})'
+                            .format(cls=cls, app=app_name, conf=self.conf, port=self.port,
+                                    status=self.status.to_dict(), opts=opts)
+                        )
                         if 'start' in app_data:
-                            code += '; {}'.format(app_data['start'])
-                        client.execute(code, silent=True)
-
-                    msg = client.shell_channel.get_msg(block=True)
-                    if msg['content']['status'] != 'ok':
-                        self.log.error('Initializing kernel {!r} with app {!r} failed'
-                                       .format(session.name, app_name))
-                        print('\n'.join(msg['content']['traceback']), file=sys.stderr)
+                            code_lines.append(app_data['start'])
 
                     self.status.add_app(name=app_name, session_name=session.name)
 
             self.status.save(self.status_file_path)
+
+            client.execute('\n'.join(code_lines), silent=True)
 
         except Exception as e:
             if self.log_level == logging.DEBUG:
