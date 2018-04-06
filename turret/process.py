@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 import shlex
 import signal
 from subprocess import TimeoutExpired
@@ -14,7 +15,7 @@ class Process(object):
     Process handles starting and stopping an external process.
     """
 
-    def __init__(self, log, proc_name, command, tty=False, env={}):
+    def __init__(self, log, proc_name, command, tty=False, env={}, log_ignore_regex=[]):
         """
         Initializes Process.
 
@@ -24,14 +25,16 @@ class Process(object):
             Logger.
         proc_name : str
             Process name (internal identifier for Turret).
-        comand : str
+        command : str
             Command-line string including command name and arguments.
         tty : bool
             Whether to require TTY emulation.
         env : dict{str: str}
             Environment variables.
+        log_ignore_regex : list[str]
+            Log ignore patterns.
         """
-        self.log = log
+        self.log = ProcessLogger(log, log_ignore_regex)
         self.proc_name = proc_name
         self.command = command
         self.tty = tty
@@ -84,3 +87,116 @@ class Process(object):
             os.killpg(os.getpgid(self.proc.proc.pid), signal.SIGKILL)
 
         self.proc = None
+
+
+class ProcessLogger(object):
+    """
+    Logger for Process.
+    """
+
+    def __init__(self, log, ignore_regex=[]):
+        """
+        Initializes ProcessLogger.
+
+        Parameters
+        ----------
+        log : logging.Logger
+            Logger.
+        ignore_regex : list[str]
+            Log ignore patterns.
+        """
+        self.log = log
+        self.ignore_regex = ignore_regex
+
+    def emit(self, method, msg, *args, **kwargs):
+        """
+        Emits a log message.
+
+        Parameters
+        ----------
+        method : function
+            Logging function. (e.g.: ``self.error()``)
+        msg : str
+            Log message.
+        args : list
+            Arguments for the log message.
+        kwargs : dict
+            Keyword arguments for the log message
+        """
+        if not any([re.search(p, msg) for p in self.ignore_regex]):
+            method(msg, *args, **kwargs)
+
+    def debug(self, msg, *args, **kwargs):
+        """
+        Calls ``logging.Logger.debug()`` with given arguments.
+
+        Parameters
+        ----------
+        msg : str
+            Log message.
+        args : list
+            Arguments for the log message.
+        kwargs : dict
+            Keyword arguments for the log message
+        """
+        self.emit(self.log.debug, msg, *args, **kwargs)
+
+    def info(self, msg, *args, **kwargs):
+        """
+        Calls ``logging.Logger.info()`` with given arguments.
+
+        Parameters
+        ----------
+        msg : str
+            Log message.
+        args : list
+            Arguments for the log message.
+        kwargs : dict
+            Keyword arguments for the log message
+        """
+        self.emit(self.log.info, msg, *args, **kwargs)
+
+    def warning(self, msg, *args, **kwargs):
+        """
+        Calls ``logging.Logger.warning()`` with given arguments.
+
+        Parameters
+        ----------
+        msg : str
+            Log message.
+        args : list
+            Arguments for the log message.
+        kwargs : dict
+            Keyword arguments for the log message
+        """
+        self.emit(self.log.warning, msg, *args, **kwargs)
+
+    def error(self, msg, *args, **kwargs):
+        """
+        Calls ``logging.Logger.error()`` with given arguments.
+
+        Parameters
+        ----------
+        msg : str
+            Log message.
+        args : list
+            Arguments for the log message.
+        kwargs : dict
+            Keyword arguments for the log message
+        """
+        self.emit(self.log.error, msg, *args, **kwargs)
+
+    def critical(self, msg, *args, **kwargs):
+        """
+        Calls ``logging.Logger.critical()`` with given arguments.
+
+        Parameters
+        ----------
+        msg : str
+            Log message.
+        args : list
+            Arguments for the log message.
+        kwargs : dict
+            Keyword arguments for the log message
+        """
+        self.emit(self.log.critical, msg, *args, **kwargs)

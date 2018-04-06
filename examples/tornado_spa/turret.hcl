@@ -39,8 +39,10 @@ app "watchdog" {
 }
 
 app "tornado_app" {
-  class  = "turret.app.tornado.TornadoApp"
-  kernel = "py_kernel"
+  class   = "turret.app.tornado.TornadoApp"
+  kernel  = "py_kernel"
+  start   = "tornado_app.start()"
+  uncache = []
 
   logger {
     level = "info"
@@ -53,15 +55,12 @@ app "tornado_app" {
       "--port=9999",
     ]
   }
-
-  uncache = []
-
-  start = "tornado_app.start()"
 }
 
 app "pytest_runner" {
-  class  = "turret.app.pytest.PyTestRunnerApp"
-  kernel = "py_kernel"
+  class   = "turret.app.pytest.PyTestRunnerApp"
+  kernel  = "py_kernel"
+  uncache = []
 
   logger {
     level = "info"
@@ -78,19 +77,26 @@ app "pytest_runner" {
       "turret_tornado_spa_example/**/*.py" = "turret_tornado_spa_example/tests/{}/test_{}.py"
     }
   }
-
-  uncache = []
 }
 
 process "webdev_server" {
   command = "yarn start"
+  tty     = true
 
   env {
     BROWSER = "none"
+  }
+
+  logger {
+    ignore_regex = ["^\s*$"] # ignore empty message
   }
 }
 
 process "jest" {
   command = "yarn test"
   tty     = true
+
+  logger {
+    ignore_regex = ["^\s*$"] # ignore empty message
+  }
 }

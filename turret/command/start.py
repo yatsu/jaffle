@@ -342,7 +342,11 @@ class TurretStartCommand(BaseTurretCommand):
         for proc_name, proc_data in self.conf.get('process', {}).items():
             logger = logging.getLogger(proc_name)
             logger.parent = self.log
-            proc = self.procs[proc_name] = Process(logger, proc_name, **proc_data)
+            proc = self.procs[proc_name] = Process(
+                logger, proc_name, proc_data.get('command'),
+                proc_data.get('tty', False), proc_data.get('env', {}),
+                proc_data.get('logger', {}).get('ignore_regex', [])
+            )
             processes.append(proc.start())
         yield processes
 
