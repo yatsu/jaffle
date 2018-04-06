@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from importlib import import_module
+import logging
 from setuptools import find_packages
 from tornado import ioloop
 from unittest.mock import patch
@@ -78,6 +79,10 @@ class TornadoApp(BaseTurretApp):
 
         self.log.info('Starting %s %s', type(self.app).__name__, ' '.join(self.argv))
         self.app.initialize(self.argv)
+
+        logger = logging.getLogger('tornado')
+        if logger.parent:
+            logger.handlers = []  # prevent duplicated logging
 
         loop = ioloop.IOLoop.current()
         with patch.object(loop, 'start'):
