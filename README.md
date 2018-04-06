@@ -30,8 +30,6 @@ create a interactive client which connects to a running app using
 
 - Turret is in a pre-alpha stage.
     - The API may change without notice during this period.
-- Currently Turret can manage only one Jupyter kernel.
-- Inter-kernel communication is not implemented yet.
 
 ## Examples
 
@@ -216,6 +214,13 @@ process "webdev_server" {
 - When `src/App.js` is updated, webpack-dev-server recompiles the front-end
   code (This is done outside of Turret).
 - `Ctrl-C` terminates the Jupyter kernel and the webpack-dev-server process.
+
+### Jupyter extension development
+
+[examples/jupyter_ext](https://github.com/yatsu/turret/tree/master/examples/jupyter_ext)
+is an example project that implements Jupyter serverextension and nbextension.
+Turret launches Jupyter Notebook server in a Jupyter kernel and manages server
+restart and reinstalling nbextension.
 
 ## Prerequisite
 
