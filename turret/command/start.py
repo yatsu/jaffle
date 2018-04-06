@@ -31,7 +31,7 @@ from traitlets import default, Dict, Instance, Int
 from traitlets.config.application import catch_config_error
 import zmq
 from zmq.eventloop import zmqstream
-from .base import BaseTurretCommand, TurretConfError
+from .base import BaseTurretCommand
 from ..status import TurretStatus
 from ..process import Process
 from ..session import TurretSessionManager
@@ -244,9 +244,6 @@ class TurretStartCommand(BaseTurretCommand):
         """
         try:
             kernels = self.conf.get('kernel', {})
-            if len(kernels) > 1:
-                raise TurretConfError('Turret currently supports only one kernel')
-
             # session_name == kernel instance name
             for session_name, data in kernels.items():
                 self.log.info('Starting kernel: %s', session_name)
@@ -287,7 +284,7 @@ class TurretStartCommand(BaseTurretCommand):
                     if 'class' in app_data:
                         mod, cls = app_data['class'].rsplit('.', 1)
                         opts = app_data.get('options', {})
-                        self.log.info('Initializing %s.%s', mod, cls)
+                        self.log.info('Initializing %s.%s on %s', mod, cls, session.name)
                         self.log.debug('options for %s: %s', cls, opts)
                         code_lines.append('from {} import {}'.format(mod, cls))
                         code_lines.append(
@@ -300,9 +297,9 @@ class TurretStartCommand(BaseTurretCommand):
 
                     self.status.add_app(name=app_name, session_name=session.name)
 
-            self.status.save(self.status_file_path)
+                client.execute('\n'.join(code_lines), silent=True)
 
-            client.execute('\n'.join(code_lines), silent=True)
+            self.status.save(self.status_file_path)
 
         except Exception as e:
             if self.log_level == logging.DEBUG:

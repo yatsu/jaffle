@@ -195,19 +195,6 @@ def test_shutdown(command):
 
 
 @pytest.mark.gen_test
-def test_multiple_kernel_error(command):
-    command.conf = {'kernel': {'foo': {}, 'bar': {}}}
-    with pytest.raises(SystemExit) as ex:
-        yield command._start_sessions()
-
-    assert ex.type == SystemExit
-    assert ex.value.code == 1
-
-    assert (str(command.log.error.call_args[0][0]) ==
-            'Turret currently supports only one kernel')
-
-
-@pytest.mark.gen_test
 def test_start_sessions(command):
     created_sessions = []
 

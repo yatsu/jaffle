@@ -28,7 +28,7 @@ def test_pytest_example(pytest_example_dir):
         while True:
             line = yield proc.stderr.read_until(b'\n')
             stdout.append(to_unicode(line).rstrip())
-            if line.endswith(b'Initializing turret.app.pytest.PyTestRunnerApp\n'):
+            if line.endswith(b'Initializing turret.app.pytest.PyTestRunnerApp on py_kernel\n'):
                 break
     except StreamClosedError:
         pass
@@ -38,5 +38,5 @@ def test_pytest_example(pytest_example_dir):
     assert 'Turret port:' in stdout[0]
     assert 'Starting kernel: py_kernel' in stdout[1]
     assert 'Kernel started:' in stdout[2]
-    assert 'Initializing turret.app.watchdog.WatchdogApp' in stdout[3]
-    assert 'Initializing turret.app.pytest.PyTestRunnerApp' in stdout[4]
+    assert 'Initializing turret.app.watchdog.WatchdogApp on py_kernel' in stdout[3]
+    assert 'Initializing turret.app.pytest.PyTestRunnerApp on py_kernel' in stdout[4]
