@@ -13,6 +13,20 @@ class OutputStream(io.StringIO):
     """
 
     _ESC_PATTERN = re.compile(r'(\x9B|\x1B\[)[0-?]*[ -/]*[@-ln-~]')
+    _ESC_PATTERN_NOCOLOR = re.compile(r'(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]')
+
+    def __init__(self, color=True):
+        """
+        Initializes OutputStream.
+
+        Parameters
+        ----------
+        color : bool
+            Whether to enable color output.
+        """
+        super().__init__()
+
+        self.color = color
 
     def _drop_escape_sequences(self, buf):
         """
@@ -28,7 +42,10 @@ class OutputStream(io.StringIO):
         buf : str
             Result string.
         """
-        return self._ESC_PATTERN.sub('', buf)
+        if self.color:
+            return self._ESC_PATTERN.sub('', buf)
+        else:
+            return self._ESC_PATTERN_NOCOLOR.sub('', buf)
 
     def write(self, buf):
         """
@@ -55,7 +72,7 @@ class TurretTTYCommand(BaseTurretCommand):
     description = __doc__
 
     examples = '''
-turret tty yarn test
+turret tty "yarn test"
     '''
 
     def parse_command_line(self, argv):
@@ -67,12 +84,14 @@ turret tty yarn test
         argv : list[str]
             Command line strings.
         """
-        self.args = argv
+        super().parse_command_line(argv)
+
+        self.command = ' '.join(self.extra_args)
 
     def start(self):
         """
         Starts the session and attaches the shell to the app.
         """
-        proc = pexpect.spawn(' '.join(self.args), encoding='utf-8')
-        proc.logfile = OutputStream()
+        proc = pexpect.spawn(self.command, encoding='utf-8')
+        proc.logfile = OutputStream(self.color)
         proc.expect(pexpect.EOF, timeout=None)

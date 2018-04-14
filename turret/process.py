@@ -15,7 +15,8 @@ class Process(object):
     Process handles starting and stopping an external process.
     """
 
-    def __init__(self, log, proc_name, command, tty=False, env={}, log_ignore_regex=[]):
+    def __init__(self, log, proc_name, command, tty=False, env={}, log_ignore_regex=[],
+                 color=True):
         """
         Initializes Process.
 
@@ -33,6 +34,8 @@ class Process(object):
             Environment variables.
         log_ignore_regex : list[str]
             Log ignore patterns.
+        color : bool
+            Whether to enable color output.
         """
         self.log = ProcessLogger(log, log_ignore_regex)
         self.proc_name = proc_name
@@ -40,6 +43,7 @@ class Process(object):
         self.tty = tty
         self.env = env
         self.proc = None
+        self.color = color
 
     @gen.coroutine
     def start(self):
@@ -52,7 +56,9 @@ class Process(object):
         env.update(**self.env)
 
         if self.tty:
-            command = 'turret tty {}'.format(self.command)
+            command = 'turret tty {} {!r}'.format(
+                '' if self.color else '--disable-color', self.command
+            )
         else:
             command = self.command
 
