@@ -5,6 +5,7 @@ import shlex
 import signal
 import os
 import pytest
+import re
 from tornado.escape import to_unicode
 from tornado.process import Subprocess
 from tornado.iostream import StreamClosedError
@@ -26,9 +27,10 @@ def test_pytest_example(pytest_example_dir):
     stdout = []
     try:
         while True:
-            line = yield proc.stderr.read_until(b'\n')
-            stdout.append(to_unicode(line).rstrip())
-            if line.endswith(b'Initializing turret.app.pytest.PyTestRunnerApp on py_kernel\n'):
+            line_bytes = yield proc.stderr.read_until(b'\n')
+            line = to_unicode(line_bytes).rstrip()
+            stdout.append(line)
+            if re.search(r'Kernel py_kernel \(.*\) is ready', line):
                 break
     except StreamClosedError:
         pass

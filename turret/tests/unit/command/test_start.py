@@ -266,7 +266,7 @@ def test_start_sessions(command):
 
     command.kernel_manager.get_kernel.assert_called_once_with('kernel-1')
 
-    client.start_channels.assert_called_once_with(hb=False)
+    client.start_channels.assert_called_once_with()
 
     get_logger.assert_has_calls([call(name) for name in apps.keys()])
     assert logger.parent is command.log

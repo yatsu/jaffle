@@ -12,6 +12,7 @@ try:
     from notebook.transutils import _  # noqa: required to import notebook classes
 except ImportError:
     pass
+from functools import partial
 import hcl
 import json
 from jupyter_client.kernelspec import KernelSpecManager
@@ -260,10 +261,14 @@ class TurretStartCommand(BaseTurretCommand):
                 apps = self._get_apps_for_session(session.name)
                 if len(apps) == 0:
                     continue
-                kernel = self.kernel_manager.get_kernel(kernel_id)
-                kernel.client_factory = TurretKernelClient
-                client = self.clients[session.name] = kernel.client()
-                client.start_channels(hb=False)
+
+                kernel_manager = self.kernel_manager.get_kernel(kernel_id)
+                kernel_manager.client_factory = TurretKernelClient
+                client = self.clients[session.name] = kernel_manager.client()
+                client.shell_channel.add_handler(partial(
+                    self._handle_shell_msg, session, kernel_manager
+                ))
+                client.start_channels()
 
                 code_lines = []
 
@@ -438,3 +443,23 @@ class TurretStartCommand(BaseTurretCommand):
         # use IOLoop.add_callback because signal.signal must be called
         # from main thread
         self.io_loop.add_callback_from_signal(self._restore_sigint_handler)
+
+    def _handle_shell_msg(self, session, kernel_manager, msg):
+        """
+        Handles Shell channel message.
+
+        Parameters
+        ----------
+        session : TurretSession
+            Turret session
+        kernel_manager : TurretKernelManager
+            Kernel manager.
+        msg : dict
+            Shell message.
+        """
+        if kernel_manager.is_ready:
+            return
+
+        if msg['msg_type'] == 'execute_reply' and msg['content'].get('status') == 'ok':
+            kernel_manager.is_ready = True
+            self.log.info('Kernel %s (%s) is ready', session.name, session.kernel.id)

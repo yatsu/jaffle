@@ -3,7 +3,6 @@
 from jupyter_client.channels import HBChannel
 from jupyter_client.threaded import ThreadedZMQSocketChannel, ThreadedKernelClient
 import logging
-from tornado import gen
 from traitlets import Type
 
 
@@ -14,8 +13,24 @@ class TurretZMQSocketChannel(ThreadedZMQSocketChannel):
     """
     ThreadedZMQSocketChannel for Turret which calls callbacks in an ioloop.
     """
+    def __init__(self, socket, session, loop):
+        """
+        Initializes TurretZMQSocketChannel.
 
-    on_recv = None
+        Parameters
+        ----------
+        socket : :class:`zmq.Socket`
+            The ZMQ socket to use.
+        session : :class:`session.Session`
+            The session to use.
+        loop
+            A pyzmq ioloop to connect the socket to using a ZMQStream
+        callback : function
+
+        """
+        super().__init__(socket, session, loop)
+
+        self._handlers = {}
 
     def call_handlers(self, msg):
         """
@@ -26,8 +41,31 @@ class TurretZMQSocketChannel(ThreadedZMQSocketChannel):
         msg : dict
             ZeroMQ message.
         """
-        if self.on_recv:
-            self.ioloop.add_callback(gen.maybe_future(self.on_recv(msg)))
+        for handler in self._handlers.values():
+            self.ioloop.add_callback(handler, msg)
+
+    def add_handler(self, handler):
+        """
+        Adds a channel message handler to the channel.
+
+        Parameters
+        ----------
+        handler : function
+            Channel message handler.
+        """
+        self._handlers[id(handler)] = handler
+
+    def remove_handler(self, handler):
+        """
+        Removes the given channel message handler.
+
+        Parameters
+        ----------
+        handler : function
+            Channel message handler.
+        """
+        if id(handler) in self._handlers:
+            del self._handlers[id(handler)]
 
 
 class TurretIOPubChannel(TurretZMQSocketChannel):
@@ -68,6 +106,6 @@ class TurretKernelClient(ThreadedKernelClient):
     """
 
     iopub_channel_class = Type(TurretIOPubChannel)
-    shell_channel_clsss = Type(TurretZMQSocketChannel)
+    shell_channel_class = Type(TurretZMQSocketChannel)
     stdin_channel_class = Type(TurretZMQSocketChannel)
     hb_channel_class = Type(HBChannel)

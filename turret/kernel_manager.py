@@ -3,7 +3,7 @@
 from distutils.version import StrictVersion
 import jupyter_client
 from jupyter_client.ioloop.manager import IOLoopKernelManager
-from traitlets import default
+from traitlets import default, Bool
 
 
 class TurretKernelManager(IOLoopKernelManager):
@@ -14,6 +14,8 @@ class TurretKernelManager(IOLoopKernelManager):
     If jupyter_client version is smaller than 5.1.0, it clones the session
     to avoid duplicated digest error on getting the connection info.
     """
+
+    is_ready = Bool(False)
 
     @default('client_class')
     def _client_class_default(self):
@@ -71,3 +73,6 @@ class TurretKernelManager(IOLoopKernelManager):
         new_session.digest_history = set()
         new_session.digest_history.update(session.digest_history)
         return new_session
+
+    def update_status(self, kernel_id, ready):
+        pass
