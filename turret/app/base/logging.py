@@ -37,6 +37,7 @@ class TurretAppLogHandler(logging.StreamHandler):
             'app_name': self.app_name,
             'type': 'log',
             'payload': {
+                'logger': record.name,
                 'levelname': record.levelname,
                 'message': self.format(record)
             }

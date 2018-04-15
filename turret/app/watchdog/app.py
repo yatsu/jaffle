@@ -39,7 +39,7 @@ class WatchdogApp(BaseTurretApp):
             wh = WatchdogHandler(
                 ioloop.IOLoop.current(),
                 self.execute_code,
-                self.execute_command,
+                self.execute_job,
                 self.log,
                 patterns=handler.get('patterns', []),
                 ignore_patterns=handler.get('ignore_patterns', []),
@@ -47,7 +47,7 @@ class WatchdogApp(BaseTurretApp):
                 case_sensitive=handler.get('case_sensitive', False),
                 uncache_modules=partial(self.uncache_modules, handler.get('uncache', [])),
                 functions=handler.get('functions', []),
-                commands=handler.get('commands', []),
+                jobs=handler.get('jobs', []),
                 debounce=handler.get('debounce', 0.0),
                 throttle=handler.get('throttle', 0.0)
             )

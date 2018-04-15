@@ -42,8 +42,22 @@ class Process(object):
         self.command = command
         self.tty = tty
         self.env = env
-        self.proc = None
         self.color = color
+
+        self.proc = None
+
+    def __repr__(self):
+        """
+        Returns string representation of Process.
+
+        Returns
+        -------
+        repr : str
+            String representation of Process.
+        """
+        return '<%s {proc_name: %s command: %s tty: %s env=%s}>' % (
+            self.__class__.__name__, self.proc_name, self.command, self.tty, self.env
+        )
 
     @gen.coroutine
     def start(self):

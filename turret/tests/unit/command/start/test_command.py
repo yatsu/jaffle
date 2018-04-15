@@ -20,6 +20,7 @@ def command():
     command = TurretStartCommand()
     command.check_running = Mock()
     command.initialize(argv=[])
+    command._init_job_loggers = Mock()
     command.log = Mock(logging.Logger)
     return command
 

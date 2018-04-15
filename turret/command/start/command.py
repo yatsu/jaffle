@@ -56,6 +56,7 @@ class TurretStartCommand(BaseTurretCommand):
     status = Instance(TurretStatus, allow_none=True)
     clients = Dict(default_value={})
     procs = Dict(default_value={})
+    jobs = Dict(default_value={})
     socket = Instance('zmq.Socket', allow_none=True)
     port = Int(allow_none=True)
     io_loop = Instance(ioloop.IOLoop, allow_none=True)
@@ -180,6 +181,8 @@ class TurretStartCommand(BaseTurretCommand):
             self.io_loop = ioloop.IOLoop.current()
             self.io_loop.add_callback(self._start_sessions)
             self.io_loop.add_callback(self._start_processes)
+
+            self._init_job_loggers()
 
             ctx = zmq.Context.instance()
             self.socket = ctx.socket(zmq.PULL)
@@ -327,11 +330,12 @@ class TurretStartCommand(BaseTurretCommand):
         if data['type'] == 'log':
             app_name = data['app_name']
             payload = data['payload']
+            logger_name = payload.get('logger') or app_name
             level = getattr(logging, payload['levelname'].upper())
             msg = payload.get('message', '')
-            pats = self.conf['app'][app_name].get('logger', {}).get('ignore_regex', [])
-            if not any([re.search(p, msg) for p in pats]):
-                logging.getLogger(app_name).log(level, msg)
+            patterns = self.conf['app'][app_name].get('logger', {}).get('ignore_regex', [])
+            if not any([re.search(p, msg) for p in patterns]):
+                logging.getLogger(logger_name).log(level, msg)
 
     @gen.coroutine
     def _start_processes(self):
@@ -347,14 +351,26 @@ class TurretStartCommand(BaseTurretCommand):
         for proc_name, proc_data in self.conf.get('process', {}).items():
             logger = logging.getLogger(proc_name)
             logger.parent = self.log
+            logger_data = proc_data.get('logger', {})
+            logger.setLevel(getattr(logging, logger_data.get('level', 'info').upper()))
             proc = self.procs[proc_name] = Process(
                 logger, proc_name, proc_data.get('command'),
                 proc_data.get('tty', False), proc_data.get('env', {}),
-                proc_data.get('logger', {}).get('ignore_regex', []),
+                logger_data.get('ignore_regex', []),
                 self.color
             )
             processes.append(proc.start())
         yield processes
+
+    def _init_job_loggers(self):
+        """
+        Initializes job loggers.
+        """
+        for job_name, job_data in self.conf.get('job', {}).items():
+            logger = logging.getLogger(job_name)
+            logger.parent = self.log
+            logger_data = job_data.get('logger', {})
+            logger.setLevel(getattr(logging, logger_data.get('level', 'info').upper()))
 
     def _get_apps_for_session(self, session_name):
         """

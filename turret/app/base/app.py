@@ -10,6 +10,7 @@ from tornado.iostream import StreamClosedError
 from tornado.process import Subprocess
 from unittest.mock import patch
 import zmq
+from ...job import Job
 from ...status import TurretStatus
 from .logging import TurretAppLogHandler
 
@@ -20,8 +21,8 @@ class BaseTurretApp(object):
     """
 
     completer_class = None
-
     lexer_class = None
+    jobs = None
 
     def __init__(self, app_name, turret_conf, turret_port, turret_status):
         """
@@ -49,10 +50,17 @@ class BaseTurretApp(object):
         self.turret_socket.connect('tcp://127.0.0.1:{0}'.format(self.turret_port))
 
         self.log = logging.getLogger(app_name)
-        level = turret_conf['app'][app_name].get('logger', {}).get('level', 'info')
+        level = turret_conf.get('app', {})[app_name].get('logger', {}).get('level', 'info')
         self.log.setLevel(getattr(logging, level.upper()))
         handler = TurretAppLogHandler(app_name, self.turret_socket)
         self.log.addHandler(handler)
+
+        self.jobs = {}
+        for job_name, job_data in turret_conf.get('job', {}).items():
+            logger = logging.getLogger(job_name)
+            logger.parent = self.log
+            logger.setLevel(self.log.level)
+            self.jobs[job_name] = Job(logger, job_name, job_data.get('command'))
 
     def execute_code(self, code, *args, **kwargs):
         """
@@ -79,7 +87,7 @@ class BaseTurretApp(object):
         return future
 
     @gen.coroutine
-    def execute_command(self, command, *args, **kwargs):
+    def execute_command(self, command, logger=None):
         """
         Executes a command.
 
@@ -87,27 +95,43 @@ class BaseTurretApp(object):
         ----------
         command : str
             Command to be executed.
-            It will be formateed as ``command.format(*args, **kwargs)``.
-        args : list
-            Positional arguments to ``command.format()``.
-        kwargs : dict
-            Keyward arguments to ``command.formmat()``.
+        logger : logging.Logger
+            Logger.
 
         Returns
         -------
         future : tornado.gen.Future
             Future which will have the execution result.
         """
-        cmd = command.format(*args, **kwargs)
-        self.log.info('Executing command: %s', cmd)
-        proc = Subprocess(shlex.split(cmd), stdout=Subprocess.STREAM, stderr=Subprocess.STREAM)
+        log = logger or self.log
+        log.debug('Executing command: %s', command)
+        proc = Subprocess(shlex.split(command), stdout=Subprocess.STREAM, stderr=Subprocess.STREAM)
         try:
             while True:
                 line_bytes = yield proc.stdout.read_until(b'\n')
                 line = to_unicode(line_bytes).strip('\r\n')
-                self.log.info(line)
+                log.info(line)
         except StreamClosedError:
             pass
+
+    @gen.coroutine
+    def execute_job(self, job_name):
+        """
+        Executes a job.
+
+        Parameters
+        ----------
+        job_name : str
+            Job to be executed.
+
+        Returns
+        -------
+        future : tornado.gen.Future
+            Future which will have the execution result.
+        """
+        job = self.jobs[job_name]
+        result = yield self.execute_command(job.command, logger=job.log)
+        return result
 
     def uncache_modules(self, modules):
         """

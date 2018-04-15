@@ -31,10 +31,10 @@ class WatchdogHandler(PatternMatchingEventHandler):
     Watchdog event handler for Turret.
     """
 
-    def __init__(self, ioloop, execute_code, execute_command, log,
+    def __init__(self, ioloop, execute_code, execute_job, log,
                  patterns=None, ignore_patterns=None, ignore_directories=False,
                  case_sensitive=False, uncache_modules=None,
-                 functions=[], commands=[], debounce=0.0, throttle=0.0):
+                 functions=[], jobs=[], debounce=0.0, throttle=0.0):
         """
         Initializes WatchdogHandler.
 
@@ -42,8 +42,8 @@ class WatchdogHandler(PatternMatchingEventHandler):
         ----------
         execute_code : function
             Function to execute a code.
-        execute_command : function
-            Function to execute a command.
+        execute_job : function
+            Function to execute a job.
         log : logging.Logger
             Logger.
         patterns : list[str]
@@ -58,8 +58,8 @@ class WatchdogHandler(PatternMatchingEventHandler):
             Module names to be uncached.
         functions : list[str]
             Functions to be executed on receiving filesystem events.
-        commands : list[str]
-            Commands to be executed on receiving filesystem events.
+        jobs : list[str]
+            Jobs to be executed on receiving filesystem events.
         debounce : float
             Debounce time in seconds. If it is 0.0, debounce is disabled.
         throttle : float
@@ -70,11 +70,11 @@ class WatchdogHandler(PatternMatchingEventHandler):
 
         self.ioloop = ioloop
         self.execute_code = execute_code
-        self.execute_command = execute_command
+        self.execute_job = execute_job
         self.log = log
         self.uncache_modules = uncache_modules
         self.functions = functions
-        self.commands = commands
+        self.jobs = jobs
         self.debounce = debounce
         self.throttle = throttle
 
@@ -107,11 +107,11 @@ class WatchdogHandler(PatternMatchingEventHandler):
                     except Exception as e:
                         self.log.exception('Code execution error: %s', e)
 
-                for command in self.commands:
+                for job in self.jobs:
                     try:
-                        yield self.execute_command(command)
+                        yield self.execute_job(job)
                     except Exception as e:
-                        self.log.exception('Command execution error: %s', e)
+                        self.log.exception('Job execution error: %s', e)
 
             if self.debounce > 0.0:
                 if self._timeout:

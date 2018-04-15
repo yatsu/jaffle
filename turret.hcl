@@ -29,8 +29,8 @@ app "watchdog" {
         ignore_directories = true
         throttle           = 0.5
 
-        commands = [
-          "sphinx-build -M html docs docs/_build",
+        jobs = [
+          "sphinx",
         ]
       },
     ]
@@ -56,4 +56,8 @@ app "pytest" {
       "turret/**/*.py" = "turret/tests/unit/{}/test_{}.py"
     }
   }
+}
+
+job "sphinx" {
+  command = "sphinx-build -M html docs docs/_build"
 }
