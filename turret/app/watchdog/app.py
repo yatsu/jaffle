@@ -2,8 +2,6 @@
 
 from functools import partial
 from pathlib import Path
-import shlex
-import subprocess
 from tornado import ioloop
 from watchdog.observers import Observer
 from ..base import BaseTurretApp
@@ -39,30 +37,27 @@ class WatchdogApp(BaseTurretApp):
 
         for handler in self.handlers:
             wh = WatchdogHandler(
-                self.log, self.execute, ioloop.IOLoop.current(),
+                ioloop.IOLoop.current(),
+                self.execute_code,
+                self.execute_command,
+                self.log,
                 patterns=handler.get('patterns', []),
                 ignore_patterns=handler.get('ignore_patterns', []),
                 ignore_directories=handler.get('ignore_directories', False),
                 case_sensitive=handler.get('case_sensitive', False),
                 uncache_modules=partial(self.uncache_modules, handler.get('uncache', [])),
                 functions=handler.get('functions', []),
+                commands=handler.get('commands', []),
                 debounce=handler.get('debounce', 0.0),
                 throttle=handler.get('throttle', 0.0)
             )
-            self.observer.schedule(wh, str(Path.cwd()), recursive=True)
+
+            watch_path = handler.get('watch_path', '.')
+            if Path(watch_path).is_absolute():
+                observe_path = str(watch_path)
+            else:
+                observe_path = str(Path.cwd() / watch_path)
+
+            self.observer.schedule(wh, observe_path, recursive=True)
 
         self.observer.start()
-
-    def execute_command(self, command):
-        """
-        Executes a command.
-
-        Parameters
-        ----------
-        command : str
-            Command name and arguments separated by whitespaces.
-        """
-        self.log.info('Execute: %s', command)
-        output = subprocess.check_output(shlex.split(command), shell=True)
-        if len(output) > 0:
-            self.log.info(output)

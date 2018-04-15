@@ -2,8 +2,12 @@
 
 from functools import wraps
 import logging
+import shlex
 import sys
 from tornado import gen
+from tornado.escape import to_unicode
+from tornado.iostream import StreamClosedError
+from tornado.process import Subprocess
 from unittest.mock import patch
 import zmq
 from ...status import TurretStatus
@@ -50,8 +54,10 @@ class BaseTurretApp(object):
         handler = TurretAppLogHandler(app_name, self.turret_socket)
         self.log.addHandler(handler)
 
-    def execute(self, code, *args, **kwargs):
+    def execute_code(self, code, *args, **kwargs):
         """
+        Executes a code.
+
         Parameters
         ----------
         code : str
@@ -72,9 +78,41 @@ class BaseTurretApp(object):
         future.set_result(result.result)
         return future
 
+    @gen.coroutine
+    def execute_command(self, command, *args, **kwargs):
+        """
+        Executes a command.
+
+        Parameters
+        ----------
+        command : str
+            Command to be executed.
+            It will be formateed as ``command.format(*args, **kwargs)``.
+        args : list
+            Positional arguments to ``command.format()``.
+        kwargs : dict
+            Keyward arguments to ``command.formmat()``.
+
+        Returns
+        -------
+        future : tornado.gen.Future
+            Future which will have the execution result.
+        """
+        cmd = command.format(*args, **kwargs)
+        self.log.info('Executing command: %s', cmd)
+        proc = Subprocess(shlex.split(cmd), stdout=Subprocess.STREAM, stderr=Subprocess.STREAM)
+        try:
+            while True:
+                line_bytes = yield proc.stdout.read_until(b'\n')
+                line = to_unicode(line_bytes).strip('\r\n')
+                self.log.info(line)
+        except StreamClosedError:
+            pass
+
     def uncache_modules(self, modules):
         """
-        Uncache modules.
+        Clears the module cache.
+
         This method deletes cache of imported modules from ``sys.modules``
         whose name starts with specified modules.
         For example, ``turret`` is specified, ``turret.app`` will also be

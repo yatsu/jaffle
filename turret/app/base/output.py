@@ -25,15 +25,15 @@ except ImportError:
             sys.stderr = self._old_targets.pop()
 
 
-class OutputCapturer(io.StringIO):
+class OutputLogger(io.StringIO):
     """
-    Output stream capturer, which indended to be used as a replacement of
-    ``sys.stdout`` and ``sys.stderr``.
+    Output stream logger, which can be used as a replacement of ``sys.stdout``
+    and ``sys.stderr``.
     """
-    def __init__(self, log, log_level=logging.INFO, std=None):
+    def __init__(self, log, log_level=logging.INFO, org_io=None):
         """
-        Initializes OutputCapturer.
-        If ``std`` is specified, the output echoes through it.
+        Initializes OutputLogger.
+        If ``org_io`` is specified, the output echoes through it.
 
         Parameters
         ----------
@@ -41,13 +41,14 @@ class OutputCapturer(io.StringIO):
             Logger.
         log_level : int
             Log level.
-        std : ipykernel.iostream.OutStream
+        org_io : io.TextIOBase
             Original output stream.
+            If it is not None, the output will also be written to it.
         """
         super().__init__()
         self.log = log
         self.log_level = log_level
-        self.std = std
+        self.org_io = org_io
 
     def write(self, buf):
         """
@@ -58,8 +59,8 @@ class OutputCapturer(io.StringIO):
         buf : str
             String buffer to be written.
         """
-        if self.std:
-            self.std.write(buf)
+        if self.org_io:
+            self.org_io.write(buf)
         for line in buf.rstrip().splitlines():
             text = line.rstrip()
             if len(text) > 0:
@@ -69,8 +70,8 @@ class OutputCapturer(io.StringIO):
         """
         Flushes the stream.
         """
-        if self.std:
-            self.std.flush()
+        if self.org_io:
+            self.org_io.flush()
 
 
 def capture_method_output(func):
@@ -88,11 +89,11 @@ def capture_method_output(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         # Prevent nested capturing
-        if isinstance(sys.stdout, OutputCapturer):
+        if isinstance(sys.stdout, OutputLogger):
             return func(self, *args, **kwargs)
 
-        stdout = OutputCapturer(self.log, logging.INFO, sys.stdout)
-        stderr = OutputCapturer(self.log, logging.WARNING, sys.stderr)
+        stdout = OutputLogger(self.log, logging.INFO, sys.stdout)
+        stderr = OutputLogger(self.log, logging.WARNING, sys.stderr)
 
         with redirect_stdout(stdout):
             with redirect_stderr(stderr):

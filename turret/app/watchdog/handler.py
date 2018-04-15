@@ -31,18 +31,21 @@ class WatchdogHandler(PatternMatchingEventHandler):
     Watchdog event handler for Turret.
     """
 
-    def __init__(self, log, execute, ioloop, patterns=None, ignore_patterns=None,
-                 ignore_directories=False, case_sensitive=False, uncache_modules=None,
-                 functions=[], debounce=0.0, throttle=0.0):
+    def __init__(self, ioloop, execute_code, execute_command, log,
+                 patterns=None, ignore_patterns=None, ignore_directories=False,
+                 case_sensitive=False, uncache_modules=None,
+                 functions=[], commands=[], debounce=0.0, throttle=0.0):
         """
         Initializes WatchdogHandler.
 
         Parameters
         ----------
+        execute_code : function
+            Function to execute a code.
+        execute_command : function
+            Function to execute a command.
         log : logging.Logger
             Logger.
-        execute : function
-            Function to execute the code.
         patterns : list[str]
             File path pattern to be watched (glob pattern for ``fnmatch``).
         ignore_patterns : list[str]
@@ -54,16 +57,24 @@ class WatchdogHandler(PatternMatchingEventHandler):
         uncache_modules : list[str]
             Module names to be uncached.
         functions : list[str]
-            Functions to be called on filesystem events.
+            Functions to be executed on receiving filesystem events.
+        commands : list[str]
+            Commands to be executed on receiving filesystem events.
+        debounce : float
+            Debounce time in seconds. If it is 0.0, debounce is disabled.
+        throttle : float
+            Throttle time in seconds. If it is 0.0, throttle is disabled.
         """
         super().__init__(patterns=patterns, ignore_patterns=ignore_patterns,
                          ignore_directories=ignore_directories, case_sensitive=case_sensitive)
 
-        self.log = log
-        self.execute = execute
         self.ioloop = ioloop
+        self.execute_code = execute_code
+        self.execute_command = execute_command
+        self.log = log
         self.uncache_modules = uncache_modules
         self.functions = functions
+        self.commands = commands
         self.debounce = debounce
         self.throttle = throttle
 
@@ -89,17 +100,23 @@ class WatchdogHandler(PatternMatchingEventHandler):
             self.log.debug('event: %s', event_dict)
 
             @gen.coroutine
-            def call_funcs():
+            def execute_callbacks():
                 for function in self.functions:
                     try:
-                        yield self.execute(function, event=event_dict)
+                        yield self.execute_code(function, event=event_dict)
                     except Exception as e:
-                        self.log.error('Event handling error: %s', str(e))
+                        self.log.exception('Code execution error: %s', e)
+
+                for command in self.commands:
+                    try:
+                        yield self.execute_command(command)
+                    except Exception as e:
+                        self.log.exception('Command execution error: %s', e)
 
             if self.debounce > 0.0:
                 if self._timeout:
                     self.ioloop.remove_timeout(self._timeout)
-                self._timeout = self.ioloop.call_later(self.debounce, call_funcs)
+                self._timeout = self.ioloop.call_later(self.debounce, execute_callbacks)
             else:
                 if self.throttle > 0.0:
                     if self._in_throttle:
@@ -111,6 +128,6 @@ class WatchdogHandler(PatternMatchingEventHandler):
                     self._in_throttle = True
                     self._timeout = self.ioloop.call_later(self.throttle, unthrottle)
 
-                self.ioloop.add_callback(call_funcs)
+                self.ioloop.add_callback(execute_callbacks)
 
         self.ioloop.add_callback(handle_event)

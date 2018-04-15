@@ -13,15 +13,25 @@ app "watchdog" {
   options {
     handlers = [
       {
+        watch_path         = "turret"
         patterns           = ["*.py"]
         ignore_patterns    = ["*/examples/*.py"]
         ignore_directories = true
+        throttle           = 0.5
 
         functions = [
           "pytest.handle_watchdog_event({event})",
         ]
+      },
+      {
+        watch_path         = "docs"
+        patterns           = ["*.rst"]
+        ignore_directories = true
+        throttle           = 0.5
 
-        throttle = 0.5
+        commands = [
+          "sphinx-build -M html docs docs/_build",
+        ]
       },
     ]
   }

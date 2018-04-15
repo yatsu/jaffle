@@ -63,16 +63,16 @@ class Process(object):
             command = self.command
 
         # os.setpgrp() is required to prevent SIGINT propagation
-        self.proc = Subprocess(shlex.split(command), env=env,
-                               stdin=None, stdout=Subprocess.STREAM, stderr=Subprocess.STREAM,
+        self.proc = Subprocess(shlex.split(command), env=env, stdin=None,
+                               stdout=Subprocess.STREAM, stderr=Subprocess.STREAM,
                                preexec_fn=os.setpgrp)
         self.log.debug('proc: %s', self.proc)
 
         try:
             while True:
-                line = yield self.proc.stdout.read_until(b'\n')
-                msg = to_unicode(line).strip('\r\n')
-                self.log.info(msg)
+                line_bytes = yield self.proc.stdout.read_until(b'\n')
+                line = to_unicode(line_bytes).strip('\r\n')
+                self.log.info(line)
         except Exception as e:
             self.log.error(str(e))
 
