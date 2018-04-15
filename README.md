@@ -53,12 +53,12 @@ app "watchdog" {
     handlers = [{
       patterns           = ["*.py"]
       ignore_directories = true
-      functions          = ["pytest_runner.handle_watchdog_event({event})"]
+      functions          = ["pytest.handle_watchdog_event({event})"]
     }]
   }
 }
 
-app "pytest_runner" {
+app "pytest" {
   class  = "turret.app.pytest.PyTestRunnerApp"
   kernel = "py_kernel"
 
@@ -85,7 +85,7 @@ instance name which is referred from apps.
 
 "app" creates an app. In this example, `turret.app.watchdog.WatchdogApp` and
 `turret.app.pytest.PyTestRunnerApp` will be instantiated in the same Jupyter
-kernel `py_kernel`, and assigned to variable `watchdog` and `pytest_runner`
+kernel `py_kernel`, and assigned to variable `watchdog` and `pytest`
 respectively.
 
 `WatchdogApp` can have multiple `handlers` which execute `functions` on
@@ -106,8 +106,8 @@ The screen capture below shows how they work:
 - `turret start` starts a Jupyter kernel and instantiates apps in it.
 - When `turret_pytest_example/example.py` is updated, pytest executes
   `turret_pytest_example/tests/test_example.py`.
-- `turret attach pytest_runner` opens an interactive shell and attaches it into
-  `pytest_runner` app.
+- `turret attach pytest` opens an interactive shell and attaches it into
+  `pytest` app.
 - The pytest interactive shell accepts a test target and executes it in
   a Jupyter kernel of the app.
 
@@ -146,14 +146,14 @@ app "watchdog" {
 
         functions = [
           "tornado_app.handle_watchdog_event({event})",
-          "pytest_runner.handle_watchdog_event({event})",
+          "pytest.handle_watchdog_event({event})",
         ]
       },
       {
         patterns           = ["*/tests/test_*.py"]
         ignore_directories = true
         uncache            = ["turret_tornado_spa_example.tests"]
-        functions          = ["pytest_runner.handle_watchdog_event({event})"]
+        functions          = ["pytest.handle_watchdog_event({event})"]
       },
     ]
   }
@@ -176,7 +176,7 @@ app "tornado_app" {
   start = "tornado_app.start()"
 }
 
-app "pytest_runner" {
+app "pytest" {
   class  = "turret.app.pytest.PyTestRunnerApp"
   kernel = "py_kernel"
 
@@ -195,7 +195,7 @@ app "pytest_runner" {
   uncache = []
 }
 
-process "webdev_server" {
+process "frontend" {
   command = "yarn start"
 
   env {
@@ -207,7 +207,7 @@ process "webdev_server" {
 ![tornado_spa example](https://github.com/yatsu/turret/blob/master/assets/tornado_spa_example.gif)
 
 - `turret start` instantiates apps in the Jupyter kernel and launches
-  `webdev_server` by executing `yarn start`
+  `frontend` by executing `yarn start`
 - When `turret_tornado_spa_example/webapp.py` is updated, pytest executes
   `turret_tornado_spa_example/tests/test_webapp.py` and the Tornado app
   restarts.

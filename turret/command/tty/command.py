@@ -4,7 +4,7 @@ import io
 import pexpect
 import re
 import sys
-from .base import BaseTurretCommand
+from ..base import BaseTurretCommand
 
 
 class OutputStream(io.StringIO):

@@ -12,15 +12,15 @@ from tornado.iostream import StreamClosedError
 
 
 @pytest.fixture(scope='module')
-def tornado_spa_example_dir():
+def jupyter_ext_example_dir():
     cwd_org = Path.cwd()
-    os.chdir(Path(__file__).parent.parent.parent.parent.parent / 'examples' / 'tornado_spa')
+    os.chdir(Path(__file__).parent.parent.parent.parent.parent / 'examples' / 'jupyter_ext')
     yield Path.cwd()
     os.chdir(cwd_org)
 
 
 @pytest.mark.gen_test(timeout=10)
-def test_tornado_spa_example(tornado_spa_example_dir):
+def test_jupyter_ext_example(jupyter_ext_example_dir):
     command = 'turret start --disable-color -y'
     proc = Subprocess(shlex.split(command), stdin=None, stderr=Subprocess.STREAM,
                       preexec_fn=os.setpgrp)
@@ -43,3 +43,4 @@ def test_tornado_spa_example(tornado_spa_example_dir):
     assert 'Initializing turret.app.watchdog.WatchdogApp on py_kernel' in stdout[3]
     assert 'Initializing turret.app.tornado.TornadoApp on py_kernel' in stdout[4]
     assert 'Initializing turret.app.pytest.PyTestRunnerApp on py_kernel' in stdout[5]
+    assert 'Initializing jupyter_myext._devel.NBExtensionInstaller on py_kernel' in stdout[6]

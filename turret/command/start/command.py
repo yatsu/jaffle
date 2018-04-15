@@ -32,11 +32,11 @@ from traitlets import default, Dict, Instance, Int
 from traitlets.config.application import catch_config_error
 import zmq
 from zmq.eventloop import zmqstream
-from .base import BaseTurretCommand
-from ..status import TurretStatus
-from ..process import Process
-from ..session import TurretSessionManager
-from ..kernel_client import TurretKernelClient
+from ..base import BaseTurretCommand
+from ...status import TurretStatus
+from ...process import Process
+from ...session import TurretSessionManager
+from ...kernel_client import TurretKernelClient
 
 
 class TurretStartCommand(BaseTurretCommand):
@@ -248,7 +248,7 @@ class TurretStartCommand(BaseTurretCommand):
             # session_name == kernel instance name
             for session_name, data in kernels.items():
                 self.log.info('Starting kernel: %s', session_name)
-                startup = str(Path(__file__).parent.parent / 'startup.py')
+                startup = str(Path(__file__).parent.parent.parent / 'startup.py')
                 session_model = yield self.session_manager.create_session(
                     name=session_name,
                     kernel_name=data.get('kernel_name'),

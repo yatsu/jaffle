@@ -18,7 +18,7 @@ app "watchdog" {
         ignore_directories = true
 
         functions = [
-          "pytest_runner.handle_watchdog_event({event})",
+          "pytest.handle_watchdog_event({event})",
         ]
 
         throttle = 0.5
@@ -27,7 +27,7 @@ app "watchdog" {
   }
 }
 
-app "pytest_runner" {
+app "pytest" {
   class  = "turret.app.pytest.PyTestRunnerApp"
   kernel = "py_kernel"
 

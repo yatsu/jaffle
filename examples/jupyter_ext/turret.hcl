@@ -18,7 +18,7 @@ app "watchdog" {
 
         functions = [
           "notebook.handle_watchdog_event({event})",
-          "pytest_runner.handle_watchdog_event({event})",
+          "pytest.handle_watchdog_event({event})",
         ]
 
         throttle = 0.5
@@ -29,7 +29,7 @@ app "watchdog" {
         uncache            = ["jupyter_myext.tests"]
 
         functions = [
-          "pytest_runner.handle_watchdog_event({event})",
+          "pytest.handle_watchdog_event({event})",
         ]
 
         throttle = 0.5
@@ -70,7 +70,7 @@ app "notebook" {
   start = "notebook.start()"
 }
 
-app "pytest_runner" {
+app "pytest" {
   class  = "turret.app.pytest.PyTestRunnerApp"
   kernel = "py_kernel"
 

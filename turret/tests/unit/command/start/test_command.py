@@ -56,7 +56,7 @@ def test_initialize():
     command = TurretStartCommand()
     command.check_running = Mock()
 
-    with patch('turret.command.start.TurretStatus',
+    with patch('turret.command.start.command.TurretStatus',
                return_value=Mock(TurretStatus)) as status:
         with patch.object(command, 'init_dir') as init_dir:
             with patch.object(command, 'init_signal') as init_signal:
@@ -69,9 +69,9 @@ def test_initialize():
     load_conf.assert_called_once_with()
     status.assert_called_once_with(conf={})
 
-    with patch('turret.command.start.os.environ', {}) as environ:
+    with patch('turret.command.start.command.os.environ', {}) as environ:
         mock_dir = Mock(Path, return_value=Mock(exists=lambda: False))
-        with patch('turret.command.start.Path', mock_dir) as path:
+        with patch('turret.command.start.command.Path', mock_dir) as path:
             command.init_dir()
 
     assert environ == {'JUPYTER_DATA_DIR': str(Path('.turret').absolute())}
@@ -83,8 +83,8 @@ def test_initialize():
 
     mock_dir.return_value.mkdir.assert_has_calls([call(), call()])
 
-    with patch('turret.command.start.sys.stdin.isatty', lambda: True):
-        with patch('turret.command.start.signal.signal') as sig:
+    with patch('turret.command.start.command.sys.stdin.isatty', lambda: True):
+        with patch('turret.command.start.command.signal.signal') as sig:
             command.init_signal()
 
     sig.assert_has_calls([
@@ -93,21 +93,21 @@ def test_initialize():
     ])
 
     mopen = mock_open(read_data='py_kernel = {}')
-    with patch('turret.command.start.Path.open', mopen):
+    with patch('turret.command.start.command.Path.open', mopen):
         command.load_conf()
 
     assert command.conf == {'py_kernel': {}}
 
 
 def test_start(command):
-    with patch('turret.command.start.ioloop.IOLoop.current',
+    with patch('turret.command.start.command.ioloop.IOLoop.current',
                return_value=Mock(ioloop.IOLoop)) as ioloop_current:
-        with patch('turret.command.start.zmq.Context.instance',
+        with patch('turret.command.start.command.zmq.Context.instance',
                    return_value=Mock(socket=Mock(return_value=Mock(
                        zmq.Socket,
                        bind_to_random_port=Mock(return_value=1234)
                    )))) as zmq_instance:
-            with patch('turret.command.start.zmqstream.ZMQStream',
+            with patch('turret.command.start.command.zmqstream.ZMQStream',
                        return_value=Mock(zmqstream.ZMQStream)) as zmq_stream:
                 command.start()
 
@@ -247,14 +247,17 @@ def test_start_sessions(command):
     )
 
     logger = Mock()
-    with patch('turret.command.start.logging.getLogger', return_value=logger) as get_logger:
+    with patch('turret.command.start.command.logging.getLogger',
+               return_value=logger) as get_logger:
         yield command._start_sessions()
 
     assert created_sessions == [{
         'name': 'sess_name',
         'kernel_name': 'my_kernel',
         'env': {
-            'PYTHONSTARTUP': str((Path(__file__).parent.parent.parent.parent / 'startup.py'))
+            'PYTHONSTARTUP': str(
+                Path(__file__).parent.parent.parent.parent.parent / 'startup.py'
+            )
         }
     }]
 

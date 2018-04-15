@@ -4,9 +4,9 @@ from jupyter_client.consoleapp import JupyterConsoleApp
 from jupyter_console.app import ZMQTerminalIPythonApp
 import signal
 import sys
-from .base import BaseTurretCommand
-from ..shell import TurretInteractiveShell
-from ..status import TurretStatus
+from ..base import BaseTurretCommand
+from ...shell import TurretInteractiveShell
+from ...status import TurretStatus
 
 
 class TurretConsoleCommand(BaseTurretCommand, ZMQTerminalIPythonApp):

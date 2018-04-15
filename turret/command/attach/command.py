@@ -16,7 +16,7 @@ class TurretAttachCommand(BaseTurretCommand, JupyterConsoleApp):
     description = __doc__
 
     examples = '''
-turret attach pytest_runner
+turret attach pytest
     '''
 
     classes = [TurretAppShell] + JupyterConsoleApp.classes

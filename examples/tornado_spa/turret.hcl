@@ -18,7 +18,7 @@ app "watchdog" {
 
         functions = [
           "tornado_app.handle_watchdog_event({event})",
-          "pytest_runner.handle_watchdog_event({event})",
+          "pytest.handle_watchdog_event({event})",
         ]
 
         throttle = 0.5
@@ -29,7 +29,7 @@ app "watchdog" {
         uncache            = ["turret_tornado_spa_example.tests"]
 
         functions = [
-          "pytest_runner.handle_watchdog_event({event})",
+          "pytest.handle_watchdog_event({event})",
         ]
 
         throttle = 0.5
@@ -57,7 +57,7 @@ app "tornado_app" {
   }
 }
 
-app "pytest_runner" {
+app "pytest" {
   class   = "turret.app.pytest.PyTestRunnerApp"
   kernel  = "py_kernel"
   uncache = []
@@ -79,7 +79,7 @@ app "pytest_runner" {
   }
 }
 
-process "webdev_server" {
+process "frontend" {
   command = "yarn start"
   tty     = true
 
