@@ -179,6 +179,16 @@ class TurretStartCommand(BaseTurretCommand):
         self.conf = hcl.loads(template.render(**dict(os.environ, env=env, exec=exec)))
         self.log.debug('conf: %s', self.conf)
 
+        self.log_suppress_regex = {
+            app_name: [re.compile(r) for r in app_data.get('logger', {}).get('suppress_regex', [])]
+            for app_name, app_data in self.conf.get('app', {}).items()
+        }
+        self.log_replace_regex = {
+            app_name: [(re.compile(r['from']), r['to'])
+                       for r in app_data.get('logger', {}).get('replace_regex', [])]
+            for app_name, app_data in self.conf.get('app', {}).items()
+        }
+
     def start(self):
         """
         Starts Turret server and creates a ZeroMQ channel to receive messages
@@ -342,8 +352,9 @@ class TurretStartCommand(BaseTurretCommand):
             logger_name = payload.get('logger') or app_name
             level = getattr(logging, payload['levelname'].upper())
             msg = payload.get('message', '')
-            patterns = self.conf['app'][app_name].get('logger', {}).get('suppress_regex', [])
-            if not any([re.search(p, msg) for p in patterns]):
+            if not any([r.search(msg) for r in self.log_suppress_regex.get(app_name, [])]):
+                for pattern, replace in self.log_replace_regex.get(app_name, []):
+                    msg = pattern.sub(replace, msg)
                 logging.getLogger(logger_name).log(level, msg)
 
     @gen.coroutine
@@ -366,6 +377,7 @@ class TurretStartCommand(BaseTurretCommand):
                 logger, proc_name, proc_data.get('command'),
                 proc_data.get('tty', False), proc_data.get('env', {}),
                 logger_data.get('suppress_regex', []),
+                logger_data.get('replace_regex', []),
                 self.color
             )
             processes.append(proc.start())

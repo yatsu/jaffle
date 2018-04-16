@@ -42,7 +42,8 @@ app "pytest" {
   kernel = "py_kernel"
 
   logger {
-    level = "info"
+    level          = "info"
+    suppress_regex = ["^platform "]
   }
 
   options {

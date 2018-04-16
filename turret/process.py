@@ -15,8 +15,8 @@ class Process(object):
     Process handles starting and stopping an external process.
     """
 
-    def __init__(self, log, proc_name, command, tty=False, env={}, log_suppress_regex=[],
-                 color=True):
+    def __init__(self, log, proc_name, command, tty=False, env=None, log_suppress_regex=None,
+                 log_replace_regex=None, color=True):
         """
         Initializes Process.
 
@@ -33,15 +33,17 @@ class Process(object):
         env : dict{str: str}
             Environment variables.
         log_suppress_regex : list[str]
-            Log ignore patterns.
+            Log suppress patterns.
+        log_replace_regex : list[str]
+            Log replace patterns.
         color : bool
             Whether to enable color output.
         """
-        self.log = ProcessLogger(log, log_suppress_regex)
+        self.log = ProcessLogger(log, log_suppress_regex or [], log_replace_regex or [])
         self.proc_name = proc_name
         self.command = command
         self.tty = tty
-        self.env = env
+        self.env = env or {}
         self.color = color
 
         self.proc = None
@@ -114,7 +116,7 @@ class ProcessLogger(object):
     Logger for Process.
     """
 
-    def __init__(self, log, suppress_regex=[]):
+    def __init__(self, log, suppress_regex=None, replace_regex=None):
         """
         Initializes ProcessLogger.
 
@@ -123,10 +125,13 @@ class ProcessLogger(object):
         log : logging.Logger
             Logger.
         suppress_regex : list[str]
-            Log ignore patterns.
+            Log suppress patterns.
+        replace_regex : list[str]
+            Log replace patterns.
         """
         self.log = log
-        self.suppress_regex = suppress_regex
+        self.suppress_regex = suppress_regex or []
+        self.replace_regex = replace_regex or []
 
     def emit(self, method, msg, *args, **kwargs):
         """
@@ -144,6 +149,8 @@ class ProcessLogger(object):
             Keyword arguments for the log message
         """
         if not any([re.search(p, msg) for p in self.suppress_regex]):
+            for pat in self.replace_regex:
+                msg = re.sub(pat['from'], pat['to'], msg)
             method(msg, *args, **kwargs)
 
     def debug(self, msg, *args, **kwargs):

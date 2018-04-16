@@ -46,6 +46,21 @@ app "tornado_app" {
 
   logger {
     level = "info"
+
+    replace_regex = [
+      {
+        from = "^([12]\\d{2}) "
+        to   = "\033[32m\\1\033[0m "
+      },
+      {
+        from = "^(3\\d{2}) "
+        to   = "\033[33m\\1\033[0m "
+      },
+      {
+        from = "^([45]\\d{2}) "
+        to   = "\033[31m\\1\033[0m "
+      },
+    ]
   }
 
   options {
@@ -88,7 +103,10 @@ process "frontend" {
   }
 
   logger {
-    suppress_regex = ["^\s*$"] # ignore empty message
+    suppress_regex = [
+      "^\\s*$",   # ignore empty message
+      "yarn run",
+    ]
   }
 }
 
@@ -97,6 +115,16 @@ process "jest" {
   tty     = true
 
   logger {
-    suppress_regex = ["^\s*$"] # ignore empty message
+    suppress_regex = [
+      "^\\s*$",   # ignore empty message
+      "yarn run",
+    ]
+
+    replace_regex = [
+      {
+        from = " Press (\\S+) "
+        to   = " Press `\\1` "
+      },
+    ]
   }
 }
