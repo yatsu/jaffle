@@ -80,9 +80,16 @@ class TornadoApp(BaseTurretApp):
         self.log.info('Starting %s %s', type(self.app).__name__, ' '.join(self.argv))
         self.app.initialize(self.argv)
 
+        from tornado.log import app_log, access_log, gen_log
+        for log in app_log, access_log, gen_log:
+            log.name = self.log.name
+
         logger = logging.getLogger('tornado')
         if logger.parent:
             logger.handlers = []  # prevent duplicated logging
+        logger.propagate = True
+        logger.parent = self.log
+        logger.setLevel(self.log.level)
 
         loop = ioloop.IOLoop.current()
         with patch.object(loop, 'start'):
