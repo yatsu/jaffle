@@ -15,7 +15,7 @@ class Process(object):
     Process handles starting and stopping an external process.
     """
 
-    def __init__(self, log, proc_name, command, tty=False, env={}, log_ignore_regex=[],
+    def __init__(self, log, proc_name, command, tty=False, env={}, log_suppress_regex=[],
                  color=True):
         """
         Initializes Process.
@@ -32,12 +32,12 @@ class Process(object):
             Whether to require TTY emulation.
         env : dict{str: str}
             Environment variables.
-        log_ignore_regex : list[str]
+        log_suppress_regex : list[str]
             Log ignore patterns.
         color : bool
             Whether to enable color output.
         """
-        self.log = ProcessLogger(log, log_ignore_regex)
+        self.log = ProcessLogger(log, log_suppress_regex)
         self.proc_name = proc_name
         self.command = command
         self.tty = tty
@@ -114,7 +114,7 @@ class ProcessLogger(object):
     Logger for Process.
     """
 
-    def __init__(self, log, ignore_regex=[]):
+    def __init__(self, log, suppress_regex=[]):
         """
         Initializes ProcessLogger.
 
@@ -122,11 +122,11 @@ class ProcessLogger(object):
         ----------
         log : logging.Logger
             Logger.
-        ignore_regex : list[str]
+        suppress_regex : list[str]
             Log ignore patterns.
         """
         self.log = log
-        self.ignore_regex = ignore_regex
+        self.suppress_regex = suppress_regex
 
     def emit(self, method, msg, *args, **kwargs):
         """
@@ -143,7 +143,7 @@ class ProcessLogger(object):
         kwargs : dict
             Keyword arguments for the log message
         """
-        if not any([re.search(p, msg) for p in self.ignore_regex]):
+        if not any([re.search(p, msg) for p in self.suppress_regex]):
             method(msg, *args, **kwargs)
 
     def debug(self, msg, *args, **kwargs):

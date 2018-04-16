@@ -342,7 +342,7 @@ class TurretStartCommand(BaseTurretCommand):
             logger_name = payload.get('logger') or app_name
             level = getattr(logging, payload['levelname'].upper())
             msg = payload.get('message', '')
-            patterns = self.conf['app'][app_name].get('logger', {}).get('ignore_regex', [])
+            patterns = self.conf['app'][app_name].get('logger', {}).get('suppress_regex', [])
             if not any([re.search(p, msg) for p in patterns]):
                 logging.getLogger(logger_name).log(level, msg)
 
@@ -365,7 +365,7 @@ class TurretStartCommand(BaseTurretCommand):
             proc = self.procs[proc_name] = Process(
                 logger, proc_name, proc_data.get('command'),
                 proc_data.get('tty', False), proc_data.get('env', {}),
-                logger_data.get('ignore_regex', []),
+                logger_data.get('suppress_regex', []),
                 self.color
             )
             processes.append(proc.start())

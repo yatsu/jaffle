@@ -88,7 +88,7 @@ process "frontend" {
   }
 
   logger {
-    ignore_regex = ["^\s*$"] # ignore empty message
+    suppress_regex = ["^\s*$"] # ignore empty message
   }
 }
 
@@ -97,6 +97,6 @@ process "jest" {
   tty     = true
 
   logger {
-    ignore_regex = ["^\s*$"] # ignore empty message
+    suppress_regex = ["^\s*$"] # ignore empty message
   }
 }
