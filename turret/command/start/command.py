@@ -268,10 +268,10 @@ class TurretStartCommand(BaseTurretCommand):
                 kernel_manager = self.kernel_manager.get_kernel(kernel_id)
                 kernel_manager.client_factory = TurretKernelClient
                 client = self.clients[session.name] = kernel_manager.client()
+                client.start_channels()
                 client.shell_channel.add_handler(partial(
                     self._handle_shell_msg, session, kernel_manager
                 ))
-                client.start_channels()
 
                 code_lines = []
 
