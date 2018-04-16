@@ -294,3 +294,27 @@ def test_start_sessions(command):
     "app2 = Bar('app2', " in exec_args[0]
     "**{}" in exec_args[0]
     assert exec_args[1] == {'silent': True}
+
+
+def test_load_conf():
+    def read_file():
+        return '''
+kernel "${FOO}" {
+  pass_env = [
+    "${env('BAR', 'not_found')}",
+    "${env('BAZ', 'not_found')}",
+    "${exec('echo -n \"hello\"')}",
+  ]
+}
+    '''
+    with patch('turret.command.start.command.os.environ', {'FOO': 'foo', 'BAR': 'bar'}):
+        command = TurretStartCommand()
+        command.conf_file = Mock(Path, read_text=read_file)
+        command.load_conf()
+
+    assert 'kernel' in command.conf
+    assert 'foo' in command.conf['kernel']
+    assert 'pass_env' in command.conf['kernel']['foo']
+    assert command.conf['kernel']['foo']['pass_env'] == [
+        'bar', 'not_found', 'hello'
+    ]

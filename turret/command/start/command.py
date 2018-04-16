@@ -17,13 +17,16 @@ import hcl
 import json
 from jupyter_client.kernelspec import KernelSpecManager
 import logging
+from mako.template import Template
 from notebook.services.contents.manager import ContentsManager
 from notebook.services.kernels.kernelmanager import MappingKernelManager
 import os
 from pathlib import Path
 import re
 import select
+import shlex
 import signal
+import subprocess
 import sys
 import threading
 from tornado import gen, ioloop
@@ -166,8 +169,14 @@ class TurretStartCommand(BaseTurretCommand):
         """
         Loads config from ``turret.hcl``.
         """
-        with self.conf_file.open() as f:
-            self.conf = hcl.load(f)
+        def env(name, default=None):
+            return os.environ.get(name, default)
+
+        def exec(command):
+            return to_unicode(subprocess.check_output(shlex.split(command)))
+
+        template = Template(self.conf_file.read_text())
+        self.conf = hcl.loads(template.render(**dict(os.environ, env=env, exec=exec)))
         self.log.debug('conf: %s', self.conf)
 
     def start(self):
