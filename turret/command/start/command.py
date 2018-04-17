@@ -175,7 +175,7 @@ class TurretStartCommand(BaseTurretCommand):
         def exec(command):
             return to_unicode(subprocess.check_output(shlex.split(command)))
 
-        template = Template(self.conf_file.read_text())
+        template = Template(filename=str(self.conf_file))
         self.conf = hcl.loads(template.render(**dict(os.environ, env=env, exec=exec)))
         self.log.debug('conf: %s', self.conf)
 
