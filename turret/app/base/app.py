@@ -133,7 +133,7 @@ class BaseTurretApp(object):
         result = yield self.execute_command(job.command, logger=job.log)
         return result
 
-    def uncache_modules(self, modules):
+    def invalidate_modules(self, modules):
         """
         Clears the module cache.
 
@@ -151,7 +151,7 @@ class BaseTurretApp(object):
             return any([mod == m or mod.startswith('{}.'.format(m)) for m in modules])
 
         for mod in [mod for mod in sys.modules if match(mod)]:
-            self.log.debug('uncache: %s', mod)
+            self.log.debug('invalidate: %s', mod)
             del sys.modules[mod]
 
     @classmethod
@@ -177,30 +177,30 @@ class BaseTurretApp(object):
         raise NotImplementedError('Must be implemented to support attaching')
 
 
-def uncache_modules_once(func):
+def invalidate_modules_once(method):
     """
-    Decorator to ensure doing uncache only once.
-    You can call ``uncache_modules()`` multiple times without considering
-    duplicated uncache and reloading in a method decorated by this.
+    Decorator for an app method to ensure doing invalidate only once.
+    You can call ``BaseTurretApp.invalidate_modules()`` multiple times without
+    worrying duplicated invalidation.
 
     Parameters
     ----------
-    func : function
-        Function to be wrapped.
+    method : function
+        Method to be wrapped.
     """
-    @wraps(func)
+    @wraps(method)
     def wrapper(self, *args, **kwargs):
-        uncached = False
-        __uncache_modules = self.uncache_modules
+        invalidated = False
+        __invalidate_modules = self.invalidate_modules
 
-        def _uncache_modules(modules):
-            nonlocal uncached
-            if uncached:
+        def _invalidate_modules(modules):
+            nonlocal invalidated
+            if invalidated:
                 return
-            __uncache_modules(modules)
-            uncached = True
+            __invalidate_modules(modules)
+            invalidated = True
 
-        with patch.object(self, 'uncache_modules', _uncache_modules):
-            return func(self, *args, **kwargs)
+        with patch.object(self, 'invalidate_modules', _invalidate_modules):
+            return method(self, *args, **kwargs)
 
     return wrapper

@@ -6,7 +6,7 @@ import pkg_resources
 import pytest
 import re
 from setuptools import find_packages
-from ..base import BaseTurretApp, capture_method_output, uncache_modules_once
+from ..base import BaseTurretApp, capture_method_output, invalidate_modules_once
 from .collect import collect_test_items
 from .completer import PyTestCompleter
 from .lexer import PyTestLexer
@@ -22,7 +22,7 @@ class PyTestRunnerApp(BaseTurretApp):
 
     def __init__(self, app_name, turret_conf, turret_port, turret_status,
                  args=['-s', '-v'], plugins=[], auto_test=[], auto_test_map={},
-                 uncache=None):
+                 invalidate=None):
         """
         Initializes PyTestRunnerApp.
 
@@ -44,8 +44,8 @@ class PyTestRunnerApp(BaseTurretApp):
             Test file names which should be executed when it is updated.
         auto_test_map : dict{str: str}
             Map from .py file patterns to test file patterns.
-        uncache : list[str]
-            Module names to be uncached.
+        invalidate : list[str]
+            Module names to be invalidated.
         """
         super().__init__(app_name, turret_conf, turret_port, turret_status)
 
@@ -53,7 +53,7 @@ class PyTestRunnerApp(BaseTurretApp):
         self.plugins = plugins
         self.auto_test = auto_test
         self.auto_test_map = auto_test_map
-        self.uncache = uncache if uncache is not None else find_packages()
+        self.invalidate = invalidate if invalidate is not None else find_packages()
 
         # Suppress pytest warning for plugin: 'Module already imported'
         for plugin in pkg_resources.iter_entry_points('pytest11'):
@@ -61,7 +61,7 @@ class PyTestRunnerApp(BaseTurretApp):
             mod.__doc__ = 'PYTEST_DONT_REWRITE'
 
     @capture_method_output
-    @uncache_modules_once
+    @invalidate_modules_once
     def handle_watchdog_event(self, event):
         """
         WatchdogApp callback to be executed on filessystem update.
@@ -80,7 +80,7 @@ class PyTestRunnerApp(BaseTurretApp):
             self.log.debug('auto_test glob: %s regex: %s src_path: %s match: %s',
                            glob, regex, src_path, match.groups() if match else None)
             if match:
-                self.uncache_modules(self.uncache)
+                self.invalidate_modules(self.invalidate)
                 self.test(src_path)
 
         for glob, target in self.auto_test_map.items():
@@ -91,7 +91,7 @@ class PyTestRunnerApp(BaseTurretApp):
             if match:
                 target_path = Path(target.format(*match.groups()).replace('//', '/'))
                 if target_path.exists():
-                    self.uncache_modules(self.uncache)
+                    self.invalidate_modules(self.invalidate)
                     self.test(str(target_path))
 
     @capture_method_output

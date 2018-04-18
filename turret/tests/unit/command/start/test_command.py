@@ -93,12 +93,6 @@ def test_initialize():
         call(signal.SIGTERM, command._signal_stop)
     ])
 
-    mopen = mock_open(read_data='py_kernel = {}')
-    with patch('turret.command.start.command.Path.open', mopen):
-        command.load_conf()
-
-    assert command.conf == {'py_kernel': {}}
-
 
 def test_start(command):
     with patch('turret.command.start.command.ioloop.IOLoop.current',
@@ -296,9 +290,9 @@ def test_start_sessions(command):
     assert exec_args[1] == {'silent': True}
 
 
-def test_load_conf():
-    def read_file():
-        return '''
+def test_load_conf(tmpdir):
+    conf_file = tmpdir.join('turret.hcl')
+    conf_file.write('''
 kernel "${FOO}" {
   pass_env = [
     "${env('BAR', 'not_found')}",
@@ -306,10 +300,11 @@ kernel "${FOO}" {
     "${exec('echo -n \"hello\"')}",
   ]
 }
-    '''
+    ''')
+
     with patch('turret.command.start.command.os.environ', {'FOO': 'foo', 'BAR': 'bar'}):
         command = TurretStartCommand()
-        command.conf_file = Mock(Path, read_text=read_file)
+        command.conf_file = Path(str(conf_file))
         command.load_conf()
 
     assert 'kernel' in command.conf

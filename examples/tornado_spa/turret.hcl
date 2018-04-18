@@ -14,35 +14,33 @@ app "watchdog" {
         patterns           = ["*.py"]
         ignore_patterns    = ["*/tests/*.py"]
         ignore_directories = true
-        uncache            = ["turret_tornado_spa_example"]
+        invalidate         = ["turret_tornado_spa_example"]
+        throttle           = 0.5
 
         functions = [
           "tornado_app.handle_watchdog_event({event})",
           "pytest.handle_watchdog_event({event})",
         ]
-
-        throttle = 0.5
       },
       {
         patterns           = ["*/tests/test_*.py"]
         ignore_directories = true
-        uncache            = ["turret_tornado_spa_example.tests"]
+        invalidate         = ["turret_tornado_spa_example.tests"]
+        throttle           = 0.5
 
         functions = [
           "pytest.handle_watchdog_event({event})",
         ]
-
-        throttle = 0.5
       },
     ]
   }
 }
 
 app "tornado_app" {
-  class   = "turret.app.tornado.TornadoApp"
-  kernel  = "py_kernel"
-  start   = "tornado_app.start()"
-  uncache = []
+  class      = "turret.app.tornado.TornadoApp"
+  kernel     = "py_kernel"
+  start      = "tornado_app.start()"
+  invalidate = []
 
   logger {
     level = "info"
@@ -73,9 +71,9 @@ app "tornado_app" {
 }
 
 app "pytest" {
-  class   = "turret.app.pytest.PyTestRunnerApp"
-  kernel  = "py_kernel"
-  uncache = []
+  class      = "turret.app.pytest.PyTestRunnerApp"
+  kernel     = "py_kernel"
+  invalidate = []
 
   logger {
     level = "info"

@@ -33,7 +33,7 @@ class WatchdogHandler(PatternMatchingEventHandler):
 
     def __init__(self, ioloop, execute_code, execute_job, log,
                  patterns=None, ignore_patterns=None, ignore_directories=False,
-                 case_sensitive=False, uncache_modules=None,
+                 case_sensitive=False, invalidate_modules=None,
                  functions=[], jobs=[], debounce=0.0, throttle=0.0):
         """
         Initializes WatchdogHandler.
@@ -54,8 +54,8 @@ class WatchdogHandler(PatternMatchingEventHandler):
             Whether to ignore directories.
         case_sensitive : bool
             Case sensitive or not.
-        uncache_modules : list[str]
-            Module names to be uncached.
+        invalidate_modules : list[str]
+            Module names to be invalidated.
         functions : list[str]
             Functions to be executed on receiving filesystem events.
         jobs : list[str]
@@ -72,7 +72,7 @@ class WatchdogHandler(PatternMatchingEventHandler):
         self.execute_code = execute_code
         self.execute_job = execute_job
         self.log = log
-        self.uncache_modules = uncache_modules
+        self.invalidate_modules = invalidate_modules
         self.functions = functions
         self.jobs = jobs
         self.debounce = debounce
@@ -92,9 +92,9 @@ class WatchdogHandler(PatternMatchingEventHandler):
             Watchdog filesystem event.
         """
         def handle_event():
-            if self.uncache_modules:
-                self.log.debug('uncache_modules')
-                self.uncache_modules()
+            if self.invalidate_modules:
+                self.log.debug('invalidate_modules')
+                self.invalidate_modules()
 
             event_dict = _event_to_dict(event)
             self.log.debug('event: %s', event_dict)

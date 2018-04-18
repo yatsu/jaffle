@@ -3,4 +3,4 @@
 
 from .output import capture_method_output
 from .logging import TurretAppLogHandler
-from .app import BaseTurretApp, uncache_modules_once
+from .app import BaseTurretApp, invalidate_modules_once

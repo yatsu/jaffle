@@ -14,35 +14,32 @@ app "watchdog" {
         patterns           = ["*.py"]
         ignore_patterns    = ["*/tests/*.py"]
         ignore_directories = true
-        uncache            = ["jupyter_myext"]
+        invalidate         = ["jupyter_myext"]
+        throttle           = 0.5
 
         functions = [
           "notebook.handle_watchdog_event({event})",
           "pytest.handle_watchdog_event({event})",
         ]
-
-        throttle = 0.5
       },
       {
         patterns           = ["*/tests/test_*.py"]
         ignore_directories = true
-        uncache            = ["jupyter_myext.tests"]
+        invalidate         = ["jupyter_myext.tests"]
+        throttle           = 0.5
 
         functions = [
           "pytest.handle_watchdog_event({event})",
         ]
-
-        throttle = 0.5
       },
       {
         patterns           = ["*.js"]
         ignore_directories = true
+        throttle           = 0.5
 
         functions = [
           "nbext_install.handle_watchdog_event({event})",
         ]
-
-        throttle = 0.5
       },
     ]
   }
@@ -65,7 +62,7 @@ app "notebook" {
     ]
   }
 
-  uncache = []
+  invalidate = []
 
   start = "notebook.start()"
 }
@@ -90,7 +87,7 @@ app "pytest" {
     }
   }
 
-  uncache = []
+  invalidate = []
 }
 
 app "nbext_install" {

@@ -45,7 +45,7 @@ class WatchdogApp(BaseTurretApp):
                 ignore_patterns=handler.get('ignore_patterns', []),
                 ignore_directories=handler.get('ignore_directories', False),
                 case_sensitive=handler.get('case_sensitive', False),
-                uncache_modules=partial(self.uncache_modules, handler.get('uncache', [])),
+                invalidate_modules=partial(self.invalidate_modules, handler.get('invalidate', [])),
                 functions=handler.get('functions', []),
                 jobs=handler.get('jobs', []),
                 debounce=handler.get('debounce', 0.0),
