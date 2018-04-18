@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 import signal
 from tornado import gen, ioloop
-from unittest.mock import call, mock_open, patch, Mock
+from unittest.mock import call, patch, Mock
 import zmq
 from zmq.eventloop import zmqstream
 from turret.command.start import TurretStartCommand
