@@ -24,8 +24,13 @@ app "watchdog" {
         ]
       },
       {
-        watch_path         = "docs"
-        patterns           = ["*.rst"]
+        patterns = [
+          "*/turret/_version.py",
+          "*/turret/app/*.py",
+          "*/docs/*.*",
+        ]
+
+        ignore_patterns    = ["*/_build/*"]
         ignore_directories = true
         throttle           = 0.5
 
