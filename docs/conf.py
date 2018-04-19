@@ -170,8 +170,6 @@ texinfo_documents = [
 # -- Extension configuration -------------------------------------------------
 
 def setup(app):
-    # from pygments.lexers import TerraformLexer
     from turret.pygments import TurretHCLLexer
 
-    # app.add_lexer('hcl', TerraformLexer())
     app.add_lexer('hcl', TurretHCLLexer())
