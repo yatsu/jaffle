@@ -5,6 +5,17 @@ from pygments.token import (
     Text, Comment, Operator, Keyword, Name, String, Number, Punctuation
 )
 
+# TurretHCLLexer inherits some code from ``pygments.lexers.configs``.
+# Here is the Pygments copyright:
+#
+#     pygments.lexers.configs
+#     ~~~~~~~~~~~~~~~~~~~~~~~
+#
+#     Lexers for configuration file formats.
+#
+#     :copyright: Copyright 2006-2017 by the Pygments team, see AUTHORS.
+#     :license: BSD, see LICENSE for details.
+
 
 class TurretHCLLexer(RegexLexer):
     """
