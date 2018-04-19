@@ -4,7 +4,7 @@ Sphinx Document Build Example
 .. code-block:: hcl
 
     kernel "py_kernel" {
-      pass_env = ["PATH"]
+      pass_env = ["PATH"] # required to run sphinx-build in virtualenv
     }
 
     app "watchdog" {
@@ -18,19 +18,11 @@ Sphinx Document Build Example
       options {
         handlers = [
           {
-            patterns = [
-              "*/turret/_version.py",
-              "*/turret/app/*.py",
-              "*/docs/*.*",
-            ]
-
+            patterns           = ["*/docs/*.*"]
             ignore_patterns    = ["*/_build/*"]
             ignore_directories = true
             throttle           = 0.5
-
-            jobs = [
-              "sphinx",
-            ]
+            jobs               = ["sphinx"]
           },
         ]
       }

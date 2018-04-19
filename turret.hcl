@@ -1,5 +1,5 @@
 kernel "py_kernel" {
-  pass_env = ["PATH"]
+  pass_env = ["PATH"] # required to run sphinx-build in virtualenv
 }
 
 app "watchdog" {
