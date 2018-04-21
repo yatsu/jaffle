@@ -44,7 +44,7 @@ class PyTestRunnerApp(BaseTurretApp):
             Test file names which should be executed when it is updated.
         auto_test_map : dict{str: str}
             Map from .py file patterns to test file patterns.
-        invalidate : list[str]
+        invalidate : list[str] or None
             Module names to be invalidated.
         """
         super().__init__(app_name, turret_conf, turret_port, turret_status)

@@ -74,29 +74,28 @@ class OutputLogger(io.StringIO):
             self.org_io.flush()
 
 
-def capture_method_output(func):
+def capture_method_output(method):
     """
-    Decorator to a Turret app method to capture output and send it to the
-    logger.
-    ``stdout`` and ``stderr`` are redirected as ``logging.INFO`` and
-    ``logging.WARNING`` respectively.
+    Decorator for an app method to capture standard output and redirects it to
+    the logger. ``stdout`` and ``stderr`` are logged with level ``INFO`` and
+    ``WARNING`` respectively.
 
     Parameters
     ----------
-    func : function
-        Function to be wrapped.
+    method : function
+        Method to be wrapped.
     """
-    @wraps(func)
+    @wraps(method)
     def wrapper(self, *args, **kwargs):
-        # Prevent nested capturing
+        # Prevent nested capture
         if isinstance(sys.stdout, OutputLogger):
-            return func(self, *args, **kwargs)
+            return method(self, *args, **kwargs)
 
         stdout = OutputLogger(self.log, logging.INFO, sys.stdout)
         stderr = OutputLogger(self.log, logging.WARNING, sys.stderr)
 
         with redirect_stdout(stdout):
             with redirect_stderr(stderr):
-                return func(self, *args, **kwargs)
+                return method(self, *args, **kwargs)
 
     return wrapper
