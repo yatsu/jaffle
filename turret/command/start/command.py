@@ -24,9 +24,7 @@ import os
 from pathlib import Path
 import re
 import select
-import shlex
 import signal
-import subprocess
 import sys
 import threading
 from tornado import gen, ioloop
@@ -36,6 +34,7 @@ from traitlets.config.application import catch_config_error
 import zmq
 from zmq.eventloop import zmqstream
 from ..base import BaseTurretCommand
+from ..functions import functions
 from ...status import TurretStatus
 from ...process import Process
 from ...session import TurretSessionManager
@@ -46,6 +45,9 @@ class TurretStartCommand(BaseTurretCommand):
     """
     Starts turret server.
     """
+
+    _ENV_PATTERN = re.compile(r'^[A-Z0-9_]+')
+
     description = __doc__
 
     @default('log_format')
@@ -169,25 +171,29 @@ class TurretStartCommand(BaseTurretCommand):
         """
         Loads config from ``turret.hcl``.
         """
-        def env(name, default=None):
-            return os.environ.get(name, default)
-
-        def exec(command):
-            return to_unicode(subprocess.check_output(shlex.split(command)))
-
         template = Template(filename=str(self.conf_file))
-        self.conf = hcl.loads(template.render(**dict(os.environ, env=env, exec=exec)))
+        ns = {k: v for k, v in os.environ.items() if self._ENV_PATTERN.search(k)}
+        ns.update({f.__name__: f for f in functions})
+        self.conf = hcl.loads(template.render(**ns))
         self.log.debug('conf: %s', self.conf)
 
-        self.log_suppress_regex = {
+        self.app_log_suppress_patterns = {
             app_name: [re.compile(r) for r in app_data.get('logger', {}).get('suppress_regex', [])]
             for app_name, app_data in self.conf.get('app', {}).items()
         }
-        self.log_replace_regex = {
+        self.app_log_replace_patterns = {
             app_name: [(re.compile(r['from']), r['to'])
                        for r in app_data.get('logger', {}).get('replace_regex', [])]
             for app_name, app_data in self.conf.get('app', {}).items()
         }
+        self.global_log_suppress_patterns = [
+            re.compile(r)
+            for r in self.conf.get('logger', {}).get('suppress_regex', [])
+        ]
+        self.global_log_replace_patterns = [
+            (re.compile(r['from']), r['to'])
+            for r in self.conf.get('logger', {}).get('replace_regex', [])
+        ]
 
     def start(self):
         """
@@ -352,8 +358,12 @@ class TurretStartCommand(BaseTurretCommand):
             logger_name = payload.get('logger') or app_name
             level = getattr(logging, payload['levelname'].upper())
             msg = payload.get('message', '')
-            if not any([r.search(msg) for r in self.log_suppress_regex.get(app_name, [])]):
-                for pattern, replace in self.log_replace_regex.get(app_name, []):
+            if not any([r.search(msg) for r in
+                        self.app_log_suppress_patterns.get(app_name, []) +
+                        self.global_log_suppress_patterns]):
+                for pattern, replace in (
+                        self.app_log_replace_patterns.get(app_name, []) +
+                        self.global_log_replace_patterns):
                     msg = pattern.sub(replace, msg)
                 logging.getLogger(logger_name).log(level, msg)
 
