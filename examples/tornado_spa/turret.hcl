@@ -11,10 +11,11 @@ app "watchdog" {
   options {
     handlers = [
       {
+        watch_path         = "turret_tornado_spa_example"
         patterns           = ["*.py"]
         ignore_patterns    = ["*/tests/*.py"]
         ignore_directories = true
-        invalidate         = ["turret_tornado_spa_example"]
+        invalidate_modules = ["turret_tornado_spa_example"]
         throttle           = 0.5
 
         functions = [
@@ -23,9 +24,10 @@ app "watchdog" {
         ]
       },
       {
-        patterns           = ["*/tests/test_*.py"]
+        watch_path         = "turret_tornado_spa_example/tests"
+        patterns           = ["*/test_*.py"]
         ignore_directories = true
-        invalidate         = ["turret_tornado_spa_example.tests"]
+        invalidate_modules = ["turret_tornado_spa_example.tests"]
         throttle           = 0.5
 
         functions = [
@@ -37,10 +39,9 @@ app "watchdog" {
 }
 
 app "tornado_app" {
-  class      = "turret.app.tornado.TornadoApp"
-  kernel     = "py_kernel"
-  start      = "tornado_app.start()"
-  invalidate = []
+  class  = "turret.app.tornado.TornadoApp"
+  kernel = "py_kernel"
+  start  = "tornado_app.start()"
 
   logger {
     level = "info"
@@ -62,18 +63,15 @@ app "tornado_app" {
   }
 
   options {
-    app_class = "turret_tornado_spa_example.app.ExampleApp"
-
-    argv = [
-      "--port=9999",
-    ]
+    app_class          = "turret_tornado_spa_example.app.ExampleApp"
+    argv               = ["--port=9999"]
+    invalidate_modules = []
   }
 }
 
 app "pytest" {
-  class      = "turret.app.pytest.PyTestRunnerApp"
-  kernel     = "py_kernel"
-  invalidate = []
+  class  = "turret.app.pytest.PyTestRunnerApp"
+  kernel = "py_kernel"
 
   logger {
     level = "info"
@@ -89,6 +87,8 @@ app "pytest" {
     auto_test_map {
       "turret_tornado_spa_example/**/*.py" = "turret_tornado_spa_example/tests/{}/test_{}.py"
     }
+
+    invalidate_modules = []
   }
 }
 
@@ -125,4 +125,13 @@ process "jest" {
       },
     ]
   }
+}
+
+logger {
+  replace_regex = [
+    {
+      from = "(invalidate|invalidating)"
+      to   = "\033[31m\\1\033[0m"
+    },
+  ]
 }

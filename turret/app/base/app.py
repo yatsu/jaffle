@@ -133,7 +133,7 @@ class BaseTurretApp(object):
         result = yield self.execute_command(job.command, logger=job.log)
         return result
 
-    def invalidate_modules(self, modules):
+    def invalidate_module_cache(self, modules):
         """
         Clears the module cache.
 
@@ -150,8 +150,9 @@ class BaseTurretApp(object):
         def match(mod):
             return any([mod == m or mod.startswith('{}.'.format(m)) for m in modules])
 
+        self.log.debug('invalidating module cache: %s', modules)
         for mod in [mod for mod in sys.modules if match(mod)]:
-            self.log.debug('invalidate: %s', mod)
+            self.log.debug('  invalidate %s', mod)
             del sys.modules[mod]
 
     @classmethod
@@ -177,10 +178,10 @@ class BaseTurretApp(object):
         raise NotImplementedError('Must be implemented to support attaching')
 
 
-def invalidate_modules_once(method):
+def invalidate_module_cache_once(method):
     """
     Decorator for an app method to ensure doing invalidate only once.
-    You can call ``BaseTurretApp.invalidate_modules()`` multiple times without
+    You can call ``BaseTurretApp.invalidate_module_cache()`` multiple times without
     worrying duplicated invalidation.
 
     Parameters
@@ -191,16 +192,16 @@ def invalidate_modules_once(method):
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         invalidated = False
-        __invalidate_modules = self.invalidate_modules
+        __invalidate_module_cache = self.invalidate_module_cache
 
-        def _invalidate_modules(modules):
+        def _invalidate_module_cache(modules):
             nonlocal invalidated
             if invalidated:
                 return
-            __invalidate_modules(modules)
+            __invalidate_module_cache(modules)
             invalidated = True
 
-        with patch.object(self, 'invalidate_modules', _invalidate_modules):
+        with patch.object(self, 'invalidate_module_cache', _invalidate_module_cache):
             return method(self, *args, **kwargs)
 
     return wrapper

@@ -40,7 +40,7 @@ class TornadoApp(BaseTurretApp):
     """
 
     def __init__(self, app_name, turret_conf, turret_port, turret_status,
-                 app_class, argv=[], invalidate=None):
+                 app_class, argv=[], invalidate_modules=None):
         """
         Initializes TurretApp.
 
@@ -58,14 +58,15 @@ class TornadoApp(BaseTurretApp):
             Tornado application class.
         argv : list[str]
             Command line arguments for Tornado app.
-        invalidate : list[str]
+        invalidate_modules : list[str] or None
             Module names to be invalidated.
         """
         super().__init__(app_name, turret_conf, turret_port, turret_status)
 
         self.app_class = app_class
         self.argv = argv
-        self.invalidate = invalidate if invalidate is not None else find_packages()
+        self.invalidate_modules = (invalidate_modules if invalidate_modules is not None
+                                   else find_packages())
 
     @capture_method_output
     def start(self):
@@ -118,7 +119,7 @@ class TornadoApp(BaseTurretApp):
         """
         Restarts the tornado app.
         """
-        self.invalidate_modules(self.invalidate)
+        self.invalidate_module_cache(self.invalidate_modules)
         self.stop()
         ioloop.IOLoop.current().add_callback(self.start)
 
