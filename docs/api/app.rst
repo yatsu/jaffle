@@ -1,20 +1,30 @@
-app
-===
+===============
+turret.app.base
+===============
+
+.. module:: turret.app.base
+
+.. _base_turret_app:
 
 BaseTurretApp
--------------
-
-.. currentmodule:: turret.app.base
+=============
 
 .. autoclass:: BaseTurretApp
+   :members: execute_code, execute_command, execute_job, invalidate_module_cache, command_to_code
 
    .. attribute:: completer_class
 
       The completer class for the interactive shell.
+      It is required only if the app supports interactive shell.
 
-   .. automethod:: execute_code
+   .. attribute:: lexer_class
 
-Utility functions
------------------
+      The lexer class for the interactive shell.
+      It is required only if the app supports interactive shell.
 
-.. autofunction:: invalidate_modules_once
+Utility Functions
+=================
+
+.. autofunction:: capture_method_output
+
+.. autofunction:: invalidate_module_cache_once

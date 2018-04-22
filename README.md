@@ -29,7 +29,10 @@ create a interactive client which connects to a running app using
 ## Warning
 
 - Turret is in a pre-alpha stage.
-    - The API may change without notice during this period.
+    - Configurations and API may change without notice during this period.
+- Turret does not care much about security.
+    - Arbitrary Python code can be used in some part of ``turret.hcl``.
+    - You should not use it as a part of production environments.
 
 ## Examples
 

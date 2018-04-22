@@ -41,7 +41,7 @@ class TurretHCLLexer(RegexLexer):
              (r'\s*/\*', Comment.Multiline, 'comment'),
              (r'\s*#.*\n', Comment.Single),
              (r'(.*?)(\s+)(=)(\s+)', bygroups(Name.Attribute, Text, Operator, Text)),
-             (words(('logger', 'options', 'auto_test_map'),
+             (words(('logger', 'options', 'env', 'auto_test_map'),
                     prefix=r'\b', suffix=r'\b'), Keyword.Reserved, 'function'),
              (words(('kernel', 'app', 'process', 'job'),
                     prefix=r'\b', suffix=r'\b'), Keyword.Declaration),
