@@ -12,8 +12,7 @@ from ..logging import LogFormatter
 aliases = {
     'log-level': 'Application.log_level',
     'log-datefmt': 'Application.log_datefmt',
-    'log-format': 'Application.log_format',
-    'color': 'BaseTurretCommand.color'
+    'log-format': 'Application.log_format'
 }
 
 flags = {
