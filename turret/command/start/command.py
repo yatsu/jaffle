@@ -398,9 +398,10 @@ class TurretStartCommand(BaseTurretCommand):
         Initializes job loggers.
         """
         for job_name, job_data in self.conf.get('job', {}).items():
-            logger = logging.getLogger(job_name)
-            logger.parent = self.log
             logger_data = job_data.get('logger', {})
+            logger_name = logger_data.get('name', job_name)
+            logger = logging.getLogger(logger_name)
+            logger.parent = self.log
             logger.setLevel(getattr(logging, logger_data.get('level', 'info').upper()))
 
     def _get_apps_for_session(self, session_name):
