@@ -1,0 +1,34 @@
+#!/bin/bash -eu
+
+sleep_sec=0
+
+usage() {
+    echo "Usage: $0 [-s sleep_sec] <num>"
+}
+
+while getopts :s:h OPT; do
+    case $OPT in
+        s)  sleep_sec=$OPTARG
+            ;;
+        h)  usage
+            exit
+            ;;
+        \?) usage 1>&2
+            exit 1
+            ;;
+    esac
+done
+
+shift $((OPTIND - 1))
+
+if [ -z "$1" ]; then
+    usage 1>&2
+    exit 1
+fi
+
+set -eu
+
+for i in $(seq $1); do
+    sleep $sleep_sec
+    echo $(($1 - $i))
+done
