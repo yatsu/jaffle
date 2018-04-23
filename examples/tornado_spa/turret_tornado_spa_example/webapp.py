@@ -60,7 +60,7 @@ class APIStreamExampleHandler(web.RequestHandler):
     @gen.coroutine
     def get(self, arg):
         """
-        Handles ``GET /api/example``.
+        Handles ``GET /api/stream-example``.
         """
         self.log.info('APIStreamExampleHandler.get: %s', arg)
 
