@@ -4,12 +4,14 @@ from functools import wraps
 import logging
 import shlex
 import sys
-from tornado import gen
+import threading
+from tornado import gen, ioloop
 from tornado.escape import to_unicode
 from tornado.iostream import StreamClosedError
 from tornado.process import Subprocess
 from unittest.mock import patch
 import zmq
+from zmq.eventloop import zmqstream
 from ...job import Job
 from ...status import TurretStatus
 from .logging import TurretAppLogHandler
@@ -45,15 +47,13 @@ class BaseTurretApp(object):
         self.turret_status = TurretStatus.from_dict(turret_status)
         self.ipython = get_ipython()  # noqa
 
-        ctx = zmq.Context.instance()
-        self.turret_socket = ctx.socket(zmq.PUSH)
-        self.turret_socket.connect('tcp://127.0.0.1:{0}'.format(self.turret_port))
+        logging.getLogger().handlers = []
 
         self.log = logging.getLogger(app_name)
         level = turret_conf.get('app', {})[app_name].get('logger', {}).get('level', 'info')
         self.log.setLevel(getattr(logging, level.upper()))
-        handler = TurretAppLogHandler(app_name, self.turret_socket)
-        self.log.addHandler(handler)
+        self.log.handlers = [TurretAppLogHandler(app_name, self.turret_stream)]
+        self.log.propagate = False
 
         self.jobs = {}
         for job_name, job_data in turret_conf.get('job', {}).items():
@@ -61,6 +61,8 @@ class BaseTurretApp(object):
             logger.parent = self.log
             logger.setLevel(self.log.level)
             self.jobs[job_name] = Job(logger, job_name, job_data.get('command'))
+
+        self._turret_streams = {}
 
     def execute_code(self, code, *args, **kwargs):
         """
@@ -176,6 +178,29 @@ class BaseTurretApp(object):
             Code to be executed.
         """
         raise NotImplementedError('Must be implemented to support attaching')
+
+    def turret_stream(self):
+        """
+        Returns the Turret ZeroMQ stream for the current thread.
+        Each thread must have its own ZeroMQ stream.
+
+        Returns
+        -------
+        stream : zmq.eventloop.zmqstream.ZMQStream
+            Turret ZeroMQ stream for the current thread.
+        """
+        current_thread_id = threading.current_thread().ident
+
+        if current_thread_id in self._turret_streams:
+            return self._turret_streams[current_thread_id]
+
+        ctx = zmq.Context.instance()
+        socket = ctx.socket(zmq.PUSH)
+        socket.connect('tcp://127.0.0.1:{0}'.format(self.turret_port))
+        stream = self._turret_streams[current_thread_id] = (
+            zmqstream.ZMQStream(socket, ioloop.IOLoop.current())
+        )
+        return stream
 
 
 def invalidate_module_cache_once(method):

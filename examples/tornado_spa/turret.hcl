@@ -66,6 +66,8 @@ app "tornado_app" {
     app_class          = "turret_tornado_spa_example.app.ExampleApp"
     argv               = ["--port=9999"]
     invalidate_modules = []
+
+    # threaded = true
   }
 }
 

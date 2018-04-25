@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from importlib import import_module
+from jupyter_client.threaded import IOLoopThread
 import logging
 from setuptools import find_packages
 from tornado import ioloop
@@ -40,7 +41,7 @@ class TornadoApp(BaseTurretApp):
     """
 
     def __init__(self, app_name, turret_conf, turret_port, turret_status,
-                 app_class, argv=[], invalidate_modules=None):
+                 app_class, argv=[], invalidate_modules=None, threaded=False):
         """
         Initializes TurretApp.
 
@@ -60,6 +61,8 @@ class TornadoApp(BaseTurretApp):
             Command line arguments for Tornado app.
         invalidate_modules : list[str] or None
             Module names to be invalidated.
+        threaded : bool
+            Whether to launch the app in an independent thread.
         """
         super().__init__(app_name, turret_conf, turret_port, turret_status)
 
@@ -67,6 +70,9 @@ class TornadoApp(BaseTurretApp):
         self.argv = argv
         self.invalidate_modules = (invalidate_modules if invalidate_modules is not None
                                    else find_packages())
+        self.threaded = threaded
+        self.thread = None
+        self.main_io_loop = None
 
     @capture_method_output
     def start(self):
@@ -78,7 +84,6 @@ class TornadoApp(BaseTurretApp):
         self.app = cls()
         self.app.log = self.log
 
-        self.log.info('Starting %s %s', type(self.app).__name__, ' '.join(self.argv))
         self.app.initialize(self.argv)
 
         from tornado.log import app_log, access_log, gen_log
@@ -92,9 +97,20 @@ class TornadoApp(BaseTurretApp):
         logger.parent = self.log
         logger.setLevel(self.log.level)
 
-        loop = ioloop.IOLoop.current()
-        with patch.object(loop, 'start'):
-            self.app.start()
+        self.main_io_loop = ioloop.IOLoop.current()
+        if self.threaded:
+            self.thread = IOLoopThread(ioloop.IOLoop())
+            self.thread.ioloop.make_current()
+            self.log.info('Starting %s %s %s',
+                          type(self.app).__name__, ' '.join(self.argv), self.thread)
+            with patch.object(self.thread.ioloop, 'start'):
+                self.app.start()
+            self.main_io_loop.make_current()
+            self.thread.start()
+        else:
+            self.log.info('Starting %s %s', type(self.app).__name__, ' '.join(self.argv))
+            with patch.object(self.main_io_loop, 'start'):
+                self.app.start()
 
     @capture_method_output
     def stop(self):
@@ -102,18 +118,22 @@ class TornadoApp(BaseTurretApp):
         Stops the Tornado app.
         """
         self.log.info('Stopping %s', type(self.app).__name__)
-        loop = ioloop.IOLoop.current()
-        __add_callback = loop.add_callback
 
-        def _add_callback(callback):
-            def new_callback():
-                with patch.object(loop, 'stop'):
-                    callback()
-
-            __add_callback(new_callback)
-
-        with patch.object(loop, 'add_callback', _add_callback):
+        if self.threaded:
             self.app.stop()
+            self.thread = None
+        else:
+            __add_callback = self.main_io_loop.add_callback
+
+            def _add_callback(callback):
+                def new_callback():
+                    with patch.object(self.main_io_loop, 'stop'):
+                        callback()
+
+                __add_callback(new_callback)
+
+            with patch.object(self.main_io_loop, 'add_callback', _add_callback):
+                self.app.stop()
 
     def restart(self):
         """

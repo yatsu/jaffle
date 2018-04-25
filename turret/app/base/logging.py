@@ -8,7 +8,7 @@ class TurretAppLogHandler(logging.StreamHandler):
     Log handler for Turret apps, which sends log records to the Turret server's
     ZeroMQ channel.
     """
-    def __init__(self, app_name, socket):
+    def __init__(self, app_name, get_stream):
         """
         Initializes TurretAppLogHandler.
 
@@ -16,13 +16,13 @@ class TurretAppLogHandler(logging.StreamHandler):
         ----------
         app_name : str
             App name defined in turret.hcl.
-        socket : zmq.Socket
-            ZeroMQ socket, to which log records will be sent.
+        get_stream : function
+            Function to get Turret ZeroMQ stream.
         """
         super().__init__()
 
         self.app_name = app_name
-        self.socket = socket
+        self.get_stream = get_stream
 
     def emit(self, record):
         """
@@ -33,12 +33,14 @@ class TurretAppLogHandler(logging.StreamHandler):
         record : logging.LogRecord
             Log record.
         """
-        self.socket.send_json({
-            'app_name': self.app_name,
-            'type': 'log',
-            'payload': {
-                'logger': record.name,
-                'levelname': record.levelname,
-                'message': self.format(record)
-            }
-        })
+        stream = self.get_stream()
+        if stream:
+            stream.send_json({
+                'app_name': self.app_name,
+                'type': 'log',
+                'payload': {
+                    'logger': record.name,
+                    'levelname': record.levelname,
+                    'message': self.format(record)
+                }
+            })

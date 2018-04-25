@@ -214,7 +214,7 @@ class TurretStartCommand(BaseTurretCommand):
             self.port = self.socket.bind_to_random_port('tcp://*', min_port=9000, max_port=9099)
             self.log.info('Turret port: %s', self.port)
 
-            stream = zmqstream.ZMQStream(self.socket)
+            stream = zmqstream.ZMQStream(self.socket, self.io_loop)
             stream.on_recv(self._on_recv_msg)
 
             self.io_loop.start()

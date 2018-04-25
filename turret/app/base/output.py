@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from contextlib import redirect_stdout
 from functools import wraps
 import io
 import logging
 import sys
-from contextlib import redirect_stdout
 
 try:
     from contextlib import redirect_stderr

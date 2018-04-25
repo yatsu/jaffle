@@ -121,7 +121,7 @@ def test_start(command):
     )
     assert command.port is command.socket.bind_to_random_port.return_value
 
-    zmq_stream.assert_called_once_with(command.socket)
+    zmq_stream.assert_called_once_with(command.socket, command.io_loop)
     zmq_stream.return_value.on_recv.assert_called_once_with(command._on_recv_msg)
 
     ioloop_current.return_value.start.assert_called_once_with()

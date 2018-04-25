@@ -34,8 +34,6 @@ class ExampleApp(Application):
         """
         super().initialize(argv)
 
-        self.init_webapp()
-
     def init_webapp(self):
         """
         Initializes the web app (ExampleWebApp).
@@ -50,6 +48,9 @@ class ExampleApp(Application):
         Starts the main ioloop.
         """
         self.io_loop = ioloop.IOLoop.current()
+
+        self.init_webapp()
+
         try:
             self.io_loop.start()
         except KeyboardInterrupt:
