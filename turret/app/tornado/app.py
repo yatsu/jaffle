@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from distutils.version import StrictVersion
 from importlib import import_module
+import jupyter_client
 from jupyter_client.threaded import IOLoopThread
 import logging
 from setuptools import find_packages
@@ -99,14 +101,18 @@ class TornadoApp(BaseTurretApp):
 
         self.main_io_loop = ioloop.IOLoop.current()
         if self.threaded:
-            self.thread = IOLoopThread(ioloop.IOLoop())
-            self.thread.ioloop.make_current()
+
+            if StrictVersion(jupyter_client.__version__) < StrictVersion('5.2.3'):
+                self.thread = IOLoopThread(ioloop.IOLoop())
+            else:
+                self.thread = IOLoopThread()
+            self.thread.start()
             self.log.info('Starting %s %s %s',
                           type(self.app).__name__, ' '.join(self.argv), self.thread)
+            self.thread.ioloop.make_current()
             with patch.object(self.thread.ioloop, 'start'):
                 self.app.start()
             self.main_io_loop.make_current()
-            self.thread.start()
         else:
             self.log.info('Starting %s %s', type(self.app).__name__, ' '.join(self.argv))
             with patch.object(self.main_io_loop, 'start'):
