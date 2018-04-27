@@ -101,7 +101,6 @@ class TornadoApp(BaseTurretApp):
 
         self.main_io_loop = ioloop.IOLoop.current()
         if self.threaded:
-
             if StrictVersion(jupyter_client.__version__) < StrictVersion('5.2.3'):
                 self.thread = IOLoopThread(ioloop.IOLoop())
             else:
