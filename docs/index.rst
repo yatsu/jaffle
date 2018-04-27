@@ -14,6 +14,7 @@ Turret |version|
    :maxdepth: 2
    :caption: User Documentation
 
+   installation
    commands/index
    config/index
    apps/index

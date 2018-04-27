@@ -242,14 +242,13 @@ Please install it manually as follows until the first release:
 ```sh
 $ git clone https://github.com/yatsu/turret
 $ cd turret
-$ pip install -e .
+$ python setup.py install
 ```
 
-If you use Watchdog and pytest with Turret, install them:
+You will probably need Watchdog and pytest:
 
 ```sh
-$ pip install watchdog
-$ pip install pytest
+$ pip install watchdog pytest
 ```
 
 ## License
