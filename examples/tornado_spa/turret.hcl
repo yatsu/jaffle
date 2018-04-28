@@ -1,3 +1,27 @@
+variable "watchdog_log_level" {
+  default = "info"
+}
+
+variable "tornado_log_level" {
+  default = "info"
+}
+
+variable "pytest_log_level" {
+  default = "info"
+}
+
+variable "tornado_threaded" {
+  default = false
+}
+
+variable "disable_frontend" {
+  default = false
+}
+
+variable "disable_jest" {
+  default = false
+}
+
 kernel "py_kernel" {}
 
 app "watchdog" {
@@ -5,7 +29,7 @@ app "watchdog" {
   kernel = "py_kernel"
 
   logger {
-    level = "info"
+    level = "${var.watchdog_log_level}"
   }
 
   options {
@@ -44,7 +68,7 @@ app "tornado_app" {
   start  = "tornado_app.start()"
 
   logger {
-    level = "info"
+    level = "${var.tornado_log_level}"
 
     replace_regex = [
       {
@@ -66,8 +90,7 @@ app "tornado_app" {
     app_class          = "turret_tornado_spa_example.app.ExampleApp"
     argv               = ["--port=9999"]
     invalidate_modules = []
-
-    # threaded = true
+    threaded           = "${var.tornado_threaded}"
   }
 }
 
@@ -76,7 +99,7 @@ app "pytest" {
   kernel = "py_kernel"
 
   logger {
-    level = "info"
+    level = "${var.pytest_log_level}"
   }
 
   options {
@@ -95,8 +118,9 @@ app "pytest" {
 }
 
 process "frontend" {
-  command = "yarn start"
-  tty     = true
+  command  = "yarn start"
+  tty      = true
+  disabled = "${var.disable_frontend}"
 
   env {
     BROWSER = "none"
@@ -111,8 +135,9 @@ process "frontend" {
 }
 
 process "jest" {
-  command = "yarn test"
-  tty     = true
+  command  = "yarn test"
+  tty      = true
+  disabled = "${var.disable_jest}"
 
   logger {
     suppress_regex = [

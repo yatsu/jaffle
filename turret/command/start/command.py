@@ -33,12 +33,13 @@ from traitlets import default, Dict, Instance, Int
 from traitlets.config.application import catch_config_error
 import zmq
 from zmq.eventloop import zmqstream
-from ..base import BaseTurretCommand
-from ..functions import functions
 from ...status import TurretStatus
 from ...process import Process
 from ...session import TurretSessionManager
 from ...kernel_client import TurretKernelClient
+from ..base import BaseTurretCommand
+from ..functions import functions
+from .variables import VariablesNamespace
 
 
 class TurretStartCommand(BaseTurretCommand):
@@ -46,7 +47,9 @@ class TurretStartCommand(BaseTurretCommand):
     Starts turret server.
     """
 
-    _ENV_PATTERN = re.compile(r'^[A-Z0-9_]+')
+    _ENV_PATTERN = re.compile(r'^[A-Za-z0-9_]+')
+    _VAR_PATTERN = re.compile(r'^T_VAR_[A-Za-z0-9_]+')
+    _VAR_PREFIX = 'T_VAR_'
 
     description = __doc__
 
@@ -171,11 +174,33 @@ class TurretStartCommand(BaseTurretCommand):
         """
         Loads config from ``turret.hcl``.
         """
-        template = Template(filename=str(self.conf_file))
-        ns = {k: v for k, v in os.environ.items() if self._ENV_PATTERN.search(k)}
-        ns.update({f.__name__: f for f in functions})
-        self.conf = hcl.loads(template.render(**ns))
-        self.log.debug('conf: %s', self.conf)
+        try:
+            template = Template(filename=str(self.conf_file))
+
+            ns = {k: v for k, v in os.environ.items()
+                  if self._ENV_PATTERN.search(k) and not self._VAR_PATTERN.search(k)}
+            ns.update({f.__name__: f for f in functions})
+            # Use the dummy ``var`` to load variables
+            ns['var'] = VariablesNamespace(keep_undefined_vars=True)
+            first_rendered = template.render(**ns)
+            conf_for_vars = hcl.loads(first_rendered)
+
+            # Convert "${var.foo}" to ${var.foo}
+            template = Template(re.sub(r'"(\$\{.*\})"', r'\1', first_rendered))
+
+            # Insert the real variables to ``var`` and load the config again
+            ns['var'] = VariablesNamespace(
+                var_defs=conf_for_vars.get('variable'),
+                env_vars={k[len(self._VAR_PREFIX):]: v
+                          for k, v in os.environ.items() if self._VAR_PATTERN.search(k)}
+            )
+            self.log.debug('variables: %s', ns['var'])
+            self.conf = hcl.loads(template.render(**ns))
+            self.log.debug('conf: %s', self.conf)
+
+        except ValueError as e:
+            print('Configuration error: {}'.format(e), file=sys.stderr)
+            sys.exit(1)
 
         self.app_log_suppress_patterns = {
             app_name: [re.compile(r) for r in app_data.get('logger', {}).get('suppress_regex', [])]
