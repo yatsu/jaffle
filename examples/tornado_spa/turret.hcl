@@ -153,12 +153,3 @@ process "jest" {
     ]
   }
 }
-
-logger {
-  replace_regex = [
-    {
-      from = "(invalidate|invalidating)"
-      to   = "\033[31m\\1\033[0m"
-    },
-  ]
-}

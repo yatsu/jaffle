@@ -45,12 +45,13 @@ def test_log_format_default(command):
 
 
 def test_extra_args(command):
-    assert command.conf_file == Path('turret.hcl')
+    assert command.conf_files == [Path('turret.hcl')]
 
-    with patch.object(command, 'load_conf'):
-        command.initialize(argv=['foo.hcl'])
+    with patch('turret.command.start.command.Path.exists', return_value=True):
+        with patch.object(command, 'load_conf'):
+            command.initialize(argv=['turret.hcl', 'foo.hcl'])
 
-    assert command.conf_file == Path('foo.hcl')
+    assert command.conf_files == [Path('turret.hcl'), Path('foo.hcl')]
 
 
 def test_initialize():
@@ -304,7 +305,7 @@ kernel "${FOO}" {
 
     with patch('turret.command.start.command.os.environ', {'FOO': 'foo', 'BAR': 'bar'}):
         command = TurretStartCommand()
-        command.conf_file = Path(str(conf_file))
+        command.conf_files = [Path(str(conf_file))]
         command.load_conf()
 
     assert 'kernel' in command.conf

@@ -29,14 +29,15 @@ import sys
 import threading
 from tornado import gen, ioloop
 from tornado.escape import to_unicode
-from traitlets import default, Dict, Instance, Int
+from traitlets import default, Dict, Instance, Int, List
 from traitlets.config.application import catch_config_error
 import zmq
 from zmq.eventloop import zmqstream
-from ...status import TurretStatus
+from ...kernel_client import TurretKernelClient
 from ...process import Process
 from ...session import TurretSessionManager
-from ...kernel_client import TurretKernelClient
+from ...status import TurretStatus
+from ...utils import deep_merge
 from ..base import BaseTurretCommand
 from ..functions import functions
 from .variables import VariablesNamespace
@@ -59,7 +60,8 @@ class TurretStartCommand(BaseTurretCommand):
                 '%(name_color)s%(name)14s%(name_color_end)s '
                 '%(level_color)s %(levelname)1.1s %(level_color_end)s %(message)s')
 
-    conf_file = Instance(Path)
+    conf_files = List(Instance(Path))
+
     conf = Dict(default_value={})
     status = Instance(TurretStatus, allow_none=True)
     clients = Dict(default_value={})
@@ -86,9 +88,14 @@ class TurretStartCommand(BaseTurretCommand):
         super().parse_command_line(argv)
 
         if self.extra_args:
-            self.conf_file = Path(self.extra_args[0])
+            self.conf_files = [Path(a) for a in self.extra_args]
         else:
-            self.conf_file = Path('turret.hcl')
+            self.conf_files = [Path('turret.hcl')]
+
+        for f in self.conf_files:
+            if not f.exists():
+                print('File not found: {!r}'.format(str(f)), file=sys.stderr)
+                sys.exit(1)
 
     @catch_config_error
     def initialize(self, argv=None):
@@ -175,28 +182,13 @@ class TurretStartCommand(BaseTurretCommand):
         Loads config from ``turret.hcl``.
         """
         try:
-            template = Template(filename=str(self.conf_file))
-
+            env_vars = {k[len(self._VAR_PREFIX):]: v for k, v in os.environ.items()
+                        if self._VAR_PATTERN.search(k)}
             ns = {k: v for k, v in os.environ.items()
                   if self._ENV_PATTERN.search(k) and not self._VAR_PATTERN.search(k)}
             ns.update({f.__name__: f for f in functions})
-            # Use the dummy ``var`` to load variables
-            ns['var'] = VariablesNamespace(keep_undefined_vars=True)
-            first_rendered = template.render(**ns)
-            conf_for_vars = hcl.loads(first_rendered)
-
-            # Convert "${var.foo}" to ${var.foo}
-            template = Template(re.sub(r'"(\$\{.*\})"', r'\1', first_rendered))
-
-            # Insert the real variables to ``var`` and load the config again
-            ns['var'] = VariablesNamespace(
-                var_defs=conf_for_vars.get('variable'),
-                env_vars={k[len(self._VAR_PREFIX):]: v
-                          for k, v in os.environ.items() if self._VAR_PATTERN.search(k)}
-            )
-            self.log.debug('variables: %s', ns['var'])
-            self.conf = hcl.loads(template.render(**ns))
-            self.log.debug('conf: %s', self.conf)
+            self.conf = deep_merge(*(self._load_conf_file(f, env_vars, ns)
+                                     for f in self.conf_files))
 
         except ValueError as e:
             print('Configuration error: {}'.format(e), file=sys.stderr)
@@ -286,6 +278,44 @@ class TurretStartCommand(BaseTurretCommand):
 
         self.io_loop.stop()
 
+    def _load_conf_file(self, conf_file_path, env_vars, namespace):
+        """
+        Loads config from a configuration file.
+
+        Parameters
+        ----------
+        conf_file_path : pathlib.Path
+            Configuration file path.
+        env_vars : dict
+            Environment variables.
+        namespace : dict
+            Namespace for the configuration template.
+            It will be updated in this method.
+
+        Returns
+        -------
+        conf : dict
+            Turret configuration.
+        """
+        template = Template(filename=str(conf_file_path))
+
+        # Use the dummy ``var`` to load variables
+        old_var = namespace.get('var', VariablesNamespace({}))
+        namespace['var'] = VariablesNamespace(keep_undefined_vars=True)
+        first_rendered = template.render(**namespace)
+        conf_for_vars = hcl.loads(first_rendered)
+
+        # Convert "${var.foo}" to ${var.foo}
+        template = Template(re.sub(r'"(\$\{.*\})"', r'\1', first_rendered))
+
+        # Insert the real variables to ``var`` and load the config again
+        namespace['var'] = VariablesNamespace(
+            deep_merge(old_var.var_defs, conf_for_vars.get('variable', {})),
+            env_vars=env_vars
+        )
+        self.log.debug('variables: %s', namespace['var'])
+        return hcl.loads(template.render(**namespace))
+
     @gen.coroutine
     def _start_sessions(self):
         """
@@ -298,8 +328,7 @@ class TurretStartCommand(BaseTurretCommand):
         """
         try:
             kernels = self.conf.get('kernel', {})
-            # session_name == kernel instance name
-            for session_name, data in kernels.items():
+            for session_name, data in kernels.items():  # session_name == kernel instance name
                 self.log.info('Starting kernel: %s', session_name)
                 startup = str(Path(__file__).parent.parent.parent / 'startup.py')
                 session_model = yield self.session_manager.create_session(

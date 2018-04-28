@@ -33,6 +33,7 @@ class VariablesNamespace(object):
             ``${var.foo}``. This option is required by loading variables
             (the first turret.hcl loading).
         """
+        self.var_defs = var_defs
         self._variables = {
             name: self._get_hcl_value(
                 name, var_def, (env_vars or {}).get(name, self._NOT_FOUND))
