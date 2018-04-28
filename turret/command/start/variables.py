@@ -18,7 +18,7 @@ class VariablesNamespace(object):
 
     _TYPES = [str, bool, int, float, list, dict]
 
-    def __init__(self, var_defs=None, env_vars=None, keep_undefined_vars=False):
+    def __init__(self, var_defs=None, vars=None, keep_undefined_vars=False):
         """
         Initializes VariablesNamespace.
 
@@ -26,8 +26,8 @@ class VariablesNamespace(object):
         ----------
         var_defs : dict or None
             Variable definitions in format ``{ type: '...', default: ... }``.
-        env_vars : dict
-            Variables passed by environment variables.
+        vars : dict
+            Given variables.
         keep_undefined_vars : bool
             Whether to keep undefined variables as they are such as
             ``${var.foo}``. This option is required by loading variables
@@ -36,7 +36,7 @@ class VariablesNamespace(object):
         self.var_defs = var_defs
         self._variables = {
             name: self._get_hcl_value(
-                name, var_def, (env_vars or {}).get(name, self._NOT_FOUND))
+                name, var_def, (vars or {}).get(name, self._NOT_FOUND))
             for name, var_def in (var_defs or {}).items()
         }
         self._keep_undefined_vars = keep_undefined_vars

@@ -29,7 +29,7 @@ import sys
 import threading
 from tornado import gen, ioloop
 from tornado.escape import to_unicode
-from traitlets import default, Dict, Instance, Int, List
+from traitlets import default, Dict, Instance, Int, List, Unicode
 from traitlets.config.application import catch_config_error
 import zmq
 from zmq.eventloop import zmqstream
@@ -54,6 +54,9 @@ class TurretStartCommand(BaseTurretCommand):
 
     description = __doc__
 
+    aliases = dict(BaseTurretCommand.aliases,
+                   variables='TurretStartCommand.variables')
+
     @default('log_format')
     def _log_format_default(self):
         return ('%(time_color)s%(asctime)s.%(msecs).03d%(time_color_end)s '
@@ -61,7 +64,9 @@ class TurretStartCommand(BaseTurretCommand):
                 '%(level_color)s %(levelname)1.1s %(level_color_end)s %(message)s')
 
     conf_files = List(Instance(Path))
+    variables = List(Unicode(), default_value=[], config=True)
 
+    parsed_variables = Dict(default_value={})
     conf = Dict(default_value={})
     status = Instance(TurretStatus, allow_none=True)
     clients = Dict(default_value={})
@@ -86,6 +91,11 @@ class TurretStartCommand(BaseTurretCommand):
             Command line strings.
         """
         super().parse_command_line(argv)
+
+        for var in self.variables:
+            if '=' not in var:
+                print('Invalid variable assignment: {!r}'.format(var))
+                sys.exit(1)
 
         if self.extra_args:
             self.conf_files = [Path(a) for a in self.extra_args]
@@ -182,12 +192,13 @@ class TurretStartCommand(BaseTurretCommand):
         Loads config from ``turret.hcl``.
         """
         try:
-            env_vars = {k[len(self._VAR_PREFIX):]: v for k, v in os.environ.items()
-                        if self._VAR_PATTERN.search(k)}
+            vars = {k[len(self._VAR_PREFIX):]: v for k, v in os.environ.items()
+                    if self._VAR_PATTERN.search(k)}
+            vars.update(dict(tuple(var.split('=', 1)) for var in self.variables).items())
             ns = {k: v for k, v in os.environ.items()
                   if self._ENV_PATTERN.search(k) and not self._VAR_PATTERN.search(k)}
             ns.update({f.__name__: f for f in functions})
-            self.conf = deep_merge(*(self._load_conf_file(f, env_vars, ns)
+            self.conf = deep_merge(*(self._load_conf_file(f, vars, ns)
                                      for f in self.conf_files))
 
         except ValueError as e:
@@ -278,7 +289,7 @@ class TurretStartCommand(BaseTurretCommand):
 
         self.io_loop.stop()
 
-    def _load_conf_file(self, conf_file_path, env_vars, namespace):
+    def _load_conf_file(self, conf_file_path, vars, namespace):
         """
         Loads config from a configuration file.
 
@@ -286,7 +297,7 @@ class TurretStartCommand(BaseTurretCommand):
         ----------
         conf_file_path : pathlib.Path
             Configuration file path.
-        env_vars : dict
+        vars : dict
             Environment variables.
         namespace : dict
             Namespace for the configuration template.
@@ -311,7 +322,7 @@ class TurretStartCommand(BaseTurretCommand):
         # Insert the real variables to ``var`` and load the config again
         namespace['var'] = VariablesNamespace(
             deep_merge(old_var.var_defs, conf_for_vars.get('variable', {})),
-            env_vars=env_vars
+            vars=vars
         )
         self.log.debug('variables: %s', namespace['var'])
         return hcl.loads(template.render(**namespace))
