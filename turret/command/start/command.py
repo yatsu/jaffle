@@ -332,6 +332,8 @@ class TurretStartCommand(BaseTurretCommand):
                                                  for k, v in env.items()]))
 
                 for app_name, app_data in apps.items():
+                    if app_data.get('disabled', False):
+                        continue
                     logger = logging.getLogger(app_name)
                     logger.parent = self.log
                     logger.setLevel(logging.DEBUG)
@@ -404,6 +406,8 @@ class TurretStartCommand(BaseTurretCommand):
         """
         processes = []
         for proc_name, proc_data in self.conf.get('process', {}).items():
+            if proc_data.get('disabled', False):
+                continue
             logger = logging.getLogger(proc_name)
             logger.parent = self.log
             logger_data = proc_data.get('logger', {})
