@@ -101,17 +101,19 @@ class TornadoApp(BaseTurretApp):
 
         self.main_io_loop = ioloop.IOLoop.current()
         if self.threaded:
+            io_loop = ioloop.IOLoop()
             if StrictVersion(jupyter_client.__version__) < StrictVersion('5.2.3'):
-                self.thread = IOLoopThread(ioloop.IOLoop())
+                self.thread = IOLoopThread(io_loop)
             else:
                 self.thread = IOLoopThread()
-            self.thread.start()
             self.log.info('Starting %s %s %s',
                           type(self.app).__name__, ' '.join(self.argv), self.thread)
-            self.thread.ioloop.make_current()
-            with patch.object(self.thread.ioloop, 'start'):
+            io_loop.make_current()
+            with patch.object(io_loop, 'start'):
                 self.app.start()
             self.main_io_loop.make_current()
+            with patch('jupyter_client.threaded.ioloop.IOLoop', return_value=io_loop):
+                self.thread.start()
         else:
             self.log.info('Starting %s %s', type(self.app).__name__, ' '.join(self.argv))
             with patch.object(self.main_io_loop, 'start'):
