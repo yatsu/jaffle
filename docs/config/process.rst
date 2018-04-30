@@ -27,7 +27,7 @@ Description
 
 - **tty** (bool | optional | default: ``false``)
 
-    Whether to enable special treatment for a TTY application. Some applications require a foreground TTY access and/or send escape sequences aggressively. When ``tty`` is true, Turret runs the process via `Pexpect`_ and filters the output. Font style sequences are still available but all other escape sequences will be dropped. Try this option if your command dees not work or makes the log output collapse.
+    Whether to enable special care for a TTY application. Some applications require a foreground TTY access and/or send escape sequences aggressively. When ``tty`` is true, Turret runs the process via `Pexpect`_ and filters the output. Font style sequences are still available but all other escape sequences will be dropped. Try this option if your command does not work or makes the log output collapse.
 
     .. _Pexpect: https://pexpect.readthedocs.io/en/stable/
 

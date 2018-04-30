@@ -13,6 +13,7 @@ The top-level of the configuration can have the following items:
 - :doc:`process`
 - :doc:`job`
 - :doc:`logger`
+- :doc:`variable`
 
 Example
 =======

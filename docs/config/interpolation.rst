@@ -9,7 +9,7 @@ Example:
 
 .. code-block:: sh
 
-   ${'hello'.upper()}
+    ${'hello'.upper()}
 
 The above produces ``'HELLO'``.
 
@@ -24,11 +24,24 @@ Example:
 
 .. code-block:: sh
 
-   ${HOME}/etc
+    ${HOME}/etc
 
 The above produces ``/home/your_account/etc`` if your ``HOME`` is ``'/home/your_account'``.
 
 If you need a default value for an environment variable, use :ref:`env() <env>` function instead.
+
+Variables
+=========
+
+Defined variables can be embedded with ``${var.name}`` syntax in arbitrary HCL value part.
+
+Example:
+
+.. code-block:: sh
+
+    disabled = "${var.enable_debug}"
+
+See :doc:`variable` section for details.
 
 .. _functions:
 
@@ -58,7 +71,7 @@ Example:
 
 .. code-block:: sh
 
-   ${'hello world' | u}
+    ${'hello world' | u}
 
 The ``u`` filter applies URL escaping to the string, and produces ``'hello+world'``.
 
@@ -66,7 +79,7 @@ To apply more than one filter, separate them by a comma:
 
 .. code-block:: sh
 
-   ${'  hello world  ' | trim,u}
+    ${'  hello world  ' | trim,u}
 
 The above produces ``'hello+world'``.
 

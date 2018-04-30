@@ -2,7 +2,7 @@
 turret start
 ============
 
-Starts the Turret.
+Starts Turret.
 
 Type ``ctrl-c`` to stop it.
 
@@ -11,9 +11,11 @@ Usage
 
 .. code-block:: sh
 
-    turret start [conf_file] [options]
+    turret start [options] [conf_file, ...]
 
 The default value for ``conf_file`` is ``"turret.hcl"``.
+
+If multiple config files are provided, they will be merged into one configuration.
 
 Options
 =======
@@ -48,3 +50,116 @@ Options
     Default: '%(time_color)s%(asctime)s.%(msecs).03d%(time_color_end)s %(name_color)s%(name)14s%(name_color_end)s %(level_color)s %(levelname)1.1s %(level_color_end)s %(message)s'
 
     The Logging format template
+
+- **--variables=<List>** (TurretStartCommand.variables)
+
+    Default: []
+
+    Value assignments to the :doc:`variables </config/variable>`.
+
+Merging Multiple Configurations
+===============================
+
+If multiple configuration files are provided, they are merged into the first configuration. Given that we have the following three configurations.
+
+a.hcl:
+
+.. code-block:: hcl
+
+    process "server" {
+      command = "start_server"
+      env = {
+        FOO = 1
+      }
+    }
+
+b.hcl:
+
+.. code-block:: hcl
+
+    process "server" {
+      command = "start_server"
+      env = {
+        BAR = 2
+      }
+    }
+
+c.hcl:
+
+.. code-block:: hcl
+
+    process "server" {
+      command = "start_server"
+      env = {
+        FOO = 4
+        BAZ = 3
+      }
+    }
+
+.. code-block:: sh
+
+When we start Turret by typing ``turret start a.hcl b.hcl c.hcl``, the configuration will be as below:
+
+.. code-block:: hcl
+
+    process "server" {
+      command = "start_server"
+      env = {
+        FOO = 4
+        BAR = 2
+        BAZ = 3
+      }
+    }
+
+Resolved variables are passed to the later configurations. Given that we have the following two configurations and use them as ``turret start a.hcl b.hcl``.
+
+a.hcl:
+
+.. code-block:: hcl
+
+    variable "server_command" {
+      default = "start_server"
+    }
+
+    variable "disable_server" {
+      default = false
+    }
+
+    process "server" {
+      command  = "${var.server_command}"
+      disabled = "${var.disable_server}"
+    }
+
+b.hcl:
+
+.. code-block:: hcl
+
+    variable "disable_server" {
+      default = true # switch the default value to true
+    }
+
+    process "server" {
+      command  = "${var.server_command} --debug"
+      disabled = "${var.disable_server}" # this line is required to set true
+    }
+
+The merged configuration will be:
+
+.. code-block:: hcl
+
+    process "server" {
+      command  = "server_start --debug"
+      disabled = true
+    }
+
+Note that the line ``disabled = "${var.disable_server}"`` in b.hcl is required because the same line in a.hcl is already resolved as ``disabled = false`` before evaluating b.hcl.
+
+.. tip::
+
+   The configuration merging is useful when you have a default configuration in your repository and you want to overwrite some part of it.
+
+   Example:
+
+   .. code-block:: sh
+
+       $ turret start turret.hcl debug.hcl log_filter.hcl

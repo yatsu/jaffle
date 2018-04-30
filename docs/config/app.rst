@@ -2,7 +2,7 @@
 app
 ===
 
-The ``app`` block configures a :doc:`Turret app </apps/index>` which will be launched in a kernel.
+The ``app`` block configures a :doc:`Turret app </apps/index>` which will be launched in a kernel. The name next to ``app`` keyword will be the variable name in the kernel and will be accessed from other configuration blocks. The name must be valid in an IPython kernel.
 
 Example
 =======
@@ -51,4 +51,4 @@ Description
 
 - **options** (map | optional | default: ``{}``)
 
-    ``options`` will be passed to the app initializer (``__init__()`` method) as keyword arguments. The format of ``options`` depends on the app.
+    ``options`` will be passed to the app initializer (``__init__()`` method) as keyword arguments. The format of ``options`` depends on each :doc:`app </apps/index>`.

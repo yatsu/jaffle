@@ -11,7 +11,7 @@ Usage
 
 .. code-block:: sh
 
-    turret attach <app> [options]
+    turret attach [options] <app>
 
 Options
 =======

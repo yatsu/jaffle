@@ -2,7 +2,7 @@
 logger
 ======
 
-The ``logger`` block configures log suppressing and replacing rules by regular expression. ``logger`` is available in the lop-level and under ``app`` and ``process`` blocks. The top-level ``logger`` configures the global rules which are applied after each app- or process-level rule.
+The ``logger`` block configures log suppressing and replacing rules by regular expressions. ``logger`` is available in the root, ``app`` and ``process`` blocks. The root ``logger`` configures the global rules which are applied after each app- or process-level rule.
 
 Example
 =======
@@ -24,7 +24,7 @@ Description
 
 - **name** (str | optional | default: <object name>)
 
-    The logger name. The top-level ``logger`` does not have this.
+    The logger name. The root ``logger`` does not have this.
 
     .. note::
 

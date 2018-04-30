@@ -11,7 +11,7 @@ Usage
 
 .. code-block:: sh
 
-    turret console <kernel_instance_name> [options]
+    turret console [options] <kernel_instance_name>
 
 The default value for ``conf_file`` is ``"turret.hcl"``.
 

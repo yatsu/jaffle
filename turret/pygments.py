@@ -43,7 +43,7 @@ class TurretHCLLexer(RegexLexer):
              (r'(.*?)(\s+)(=)(\s+)', bygroups(Name.Attribute, Text, Operator, Text)),
              (words(('logger', 'options', 'env', 'auto_test_map'),
                     prefix=r'\b', suffix=r'\b'), Keyword.Reserved, 'function'),
-             (words(('kernel', 'app', 'process', 'job'),
+             (words(('kernel', 'app', 'process', 'job', 'variable'),
                     prefix=r'\b', suffix=r'\b'), Keyword.Declaration),
              ('\$\{', String.Interpol, 'var_builtin'),
         ],
