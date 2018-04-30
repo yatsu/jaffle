@@ -42,7 +42,7 @@ app "watchdog" {
         invalidate_modules = ["turret_tornado_spa_example"]
         throttle           = 0.5
 
-        functions = [
+        code_blocks = [
           "tornado_app.handle_watchdog_event({event})",
           "pytest.handle_watchdog_event({event})",
         ]
@@ -54,7 +54,7 @@ app "watchdog" {
         invalidate_modules = ["turret_tornado_spa_example.tests"]
         throttle           = 0.5
 
-        functions = [
+        code_blocks = [
           "pytest.handle_watchdog_event({event})",
         ]
       },
@@ -63,7 +63,7 @@ app "watchdog" {
 }
 
 app "tornado_app" {
-  class  = "turret.app.tornado.TornadoApp"
+  class  = "turret.app.tornado.TornadoBridgeApp"
   kernel = "py_kernel"
   start  = "tornado_app.start()"
 

@@ -34,7 +34,7 @@ class WatchdogHandler(PatternMatchingEventHandler):
     def __init__(self, ioloop, execute_code, execute_job, log,
                  patterns=None, ignore_patterns=None, ignore_directories=False,
                  case_sensitive=False, invalidate_module_cache=None,
-                 functions=[], jobs=[], debounce=0.0, throttle=0.0):
+                 code_blocks=[], jobs=[], debounce=0.0, throttle=0.0):
         """
         Initializes WatchdogHandler.
 
@@ -56,8 +56,8 @@ class WatchdogHandler(PatternMatchingEventHandler):
             Case sensitive or not.
         invalidate_module_cache : function or None
             Cache invalidation function.
-        functions : list[str]
-            Functions to be executed on receiving filesystem events.
+        code_blocks : list[str]
+            Code blocks to be executed on receiving filesystem events.
         jobs : list[str]
             Jobs to be executed on receiving filesystem events.
         debounce : float
@@ -73,7 +73,7 @@ class WatchdogHandler(PatternMatchingEventHandler):
         self.execute_job = execute_job
         self.log = log
         self.invalidate_module_cache = invalidate_module_cache
-        self.functions = functions
+        self.code_blocks = code_blocks
         self.jobs = jobs
         self.debounce = debounce
         self.throttle = throttle
@@ -100,9 +100,9 @@ class WatchdogHandler(PatternMatchingEventHandler):
 
             @gen.coroutine
             def execute_callbacks():
-                for function in self.functions:
+                for code in self.code_blocks:
                     try:
-                        yield self.execute_code(function, event=event_dict)
+                        yield self.execute_code(code, event=event_dict)
                     except Exception as e:
                         self.log.exception('Code execution error: %s', e)
 

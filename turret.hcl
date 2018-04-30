@@ -19,7 +19,7 @@ app "watchdog" {
         ignore_directories = true
         throttle           = 0.5
 
-        functions = [
+        code_blocks = [
           "pytest.handle_watchdog_event({event})",
         ]
       },

@@ -41,6 +41,6 @@ def test_jupyter_ext_example(jupyter_ext_example_dir):
     assert 'Starting kernel: py_kernel' in stdout[1]
     assert 'Kernel started:' in stdout[2]
     assert 'Initializing turret.app.watchdog.WatchdogApp on py_kernel' in stdout[3]
-    assert 'Initializing turret.app.tornado.TornadoApp on py_kernel' in stdout[4]
+    assert 'Initializing turret.app.tornado.TornadoBridgeApp on py_kernel' in stdout[4]
     assert 'Initializing turret.app.pytest.PyTestRunnerApp on py_kernel' in stdout[5]
     assert 'Initializing jupyter_myext._devel.NBExtensionInstaller on py_kernel' in stdout[6]

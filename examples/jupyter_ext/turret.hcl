@@ -17,7 +17,7 @@ app "watchdog" {
         invalidate         = ["jupyter_myext"]
         throttle           = 0.5
 
-        functions = [
+        code_blocks = [
           "notebook.handle_watchdog_event({event})",
           "pytest.handle_watchdog_event({event})",
         ]
@@ -28,7 +28,7 @@ app "watchdog" {
         invalidate         = ["jupyter_myext.tests"]
         throttle           = 0.5
 
-        functions = [
+        code_blocks = [
           "pytest.handle_watchdog_event({event})",
         ]
       },
@@ -37,7 +37,7 @@ app "watchdog" {
         ignore_directories = true
         throttle           = 0.5
 
-        functions = [
+        code_blocks = [
           "nbext_install.handle_watchdog_event({event})",
         ]
       },
@@ -46,7 +46,7 @@ app "watchdog" {
 }
 
 app "notebook" {
-  class  = "turret.app.tornado.TornadoApp"
+  class  = "turret.app.tornado.TornadoBridgeApp"
   kernel = "py_kernel"
 
   logger {

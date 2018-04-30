@@ -13,7 +13,7 @@ app "watchdog" {
       watch_path         = "turret_pytest_example"
       patterns           = ["*.py"]
       ignore_directories = true
-      functions          = ["pytest.handle_watchdog_event({event})"]
+      code_blocks        = ["pytest.handle_watchdog_event({event})"]
     }]
   }
 }

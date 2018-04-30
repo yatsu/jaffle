@@ -47,7 +47,7 @@ class WatchdogApp(BaseTurretApp):
                 case_sensitive=handler.get('case_sensitive', False),
                 invalidate_module_cache=partial(self.invalidate_module_cache,
                                                 handler.get('invalidate_modules', [])),
-                functions=handler.get('functions', []),
+                code_blocks=handler.get('code_blocks', []),
                 jobs=handler.get('jobs', []),
                 debounce=handler.get('debounce', 0.0),
                 throttle=handler.get('throttle', 0.0)

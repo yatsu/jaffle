@@ -11,7 +11,7 @@ from unittest.mock import patch
 from ..base import BaseTurretApp, capture_method_output
 
 
-class TornadoApp(BaseTurretApp):
+class TornadoBridgeApp(BaseTurretApp):
     """
     Turret app which runs a Tornado app in a kernel.
 
