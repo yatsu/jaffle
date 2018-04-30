@@ -2,6 +2,8 @@
 job
 ===
 
+The ``job`` block configures a job which can be executed from a Turret app.
+
 Example
 =======
 
@@ -41,3 +43,8 @@ Description
 - **logger** (:doc:`logger` | optional | default: ``{}``)
 
     The job logger configuration.
+
+Turret Apps
+===========
+
+Only :doc:`WatchdogApp </apps/watchdog>` supports executing jobs.
