@@ -56,7 +56,7 @@ app "notebook" {
   options {
     app_class = "notebook.notebookapp.NotebookApp"
 
-    argv = [
+    args = [
       "--port=9999",
       "--NotebookApp.token=''",
     ]

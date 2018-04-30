@@ -43,7 +43,7 @@ class TornadoBridgeApp(BaseTurretApp):
     """
 
     def __init__(self, app_name, turret_conf, turret_port, turret_status,
-                 app_class, argv=[], invalidate_modules=None, threaded=False):
+                 app_class, args=[], invalidate_modules=None, threaded=False):
         """
         Initializes TurretApp.
 
@@ -59,7 +59,7 @@ class TornadoBridgeApp(BaseTurretApp):
             Turret status.
         app_class : str
             Tornado application class.
-        argv : list[str]
+        args : list[str]
             Command line arguments for Tornado app.
         invalidate_modules : list[str] or None
             Module names to be invalidated.
@@ -69,7 +69,7 @@ class TornadoBridgeApp(BaseTurretApp):
         super().__init__(app_name, turret_conf, turret_port, turret_status)
 
         self.app_class = app_class
-        self.argv = argv
+        self.args = args
         self.invalidate_modules = (invalidate_modules if invalidate_modules is not None
                                    else find_packages())
         self.threaded = threaded
@@ -86,7 +86,7 @@ class TornadoBridgeApp(BaseTurretApp):
         self.app = cls()
         self.app.log = self.log
 
-        self.app.initialize(self.argv)
+        self.app.initialize(self.args)
 
         from tornado.log import app_log, access_log, gen_log
         for log in app_log, access_log, gen_log:
@@ -107,7 +107,7 @@ class TornadoBridgeApp(BaseTurretApp):
             else:
                 self.thread = IOLoopThread()
             self.log.info('Starting %s %s %s',
-                          type(self.app).__name__, ' '.join(self.argv), self.thread)
+                          type(self.app).__name__, ' '.join(self.args), self.thread)
             io_loop.make_current()
             with patch.object(io_loop, 'start'):
                 self.app.start()
@@ -115,7 +115,7 @@ class TornadoBridgeApp(BaseTurretApp):
             with patch('jupyter_client.threaded.ioloop.IOLoop', return_value=io_loop):
                 self.thread.start()
         else:
-            self.log.info('Starting %s %s', type(self.app).__name__, ' '.join(self.argv))
+            self.log.info('Starting %s %s', type(self.app).__name__, ' '.join(self.args))
             with patch.object(self.main_io_loop, 'start'):
                 self.app.start()
 
