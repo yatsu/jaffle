@@ -18,6 +18,8 @@ env:
   - REQUIREMENTS=notebook-5_3
   - REQUIREMENTS=notebook-latest
 
+before_install: pip install --upgrade pytest
+
 install: ./ci/install-${REQUIREMENTS}.sh requirements.in
 
-script: pytest
+script: py.test
