@@ -1,5 +1,7 @@
 # Turret
 
+[![Build Status](https://travis-ci.org/yatsu/turret.svg?branch=master)](https://travis-ci.org/yatsu/turret)
+
 Turret is a Python app and process orchestration tool for development
 environment leveraging [Jupyter](http://jupyter.org/) kernel and client
 technology.
