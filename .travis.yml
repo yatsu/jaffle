@@ -1,0 +1,23 @@
+dist: trusty
+
+sudo: false
+
+language: python
+
+cache: pip
+
+python:
+  - 3.4
+  - 3.5
+  - 3.6
+
+env:
+  - REQUIREMENTS=notebook-5_0
+  - REQUIREMENTS=notebook-5_1
+  - REQUIREMENTS=notebook-5_2
+  - REQUIREMENTS=notebook-5_3
+  - REQUIREMENTS=notebook-latest
+
+install: ./ci/install-${REQUIREMENTS}.sh requirements.in
+
+script: pytest
