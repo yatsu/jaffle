@@ -2,7 +2,7 @@
 WatchdogApp
 ===========
 
-WatchdogApp launches Watchdog handlers with given patterns and callback code blocks. Since Turret is initially designed to be an automation tool, WatchdogApp is regarded as the central app among other Turret apps.
+WatchdogApp launches Watchdog handlers with given patterns and callback code blocks. Since Jaffle is initially designed to be an automation tool, WatchdogApp is regarded as the central app among other Jaffle apps.
 
 Watchdog_ is a Python API library and shell utilities to monitor file system events.
 
@@ -14,7 +14,7 @@ Example Configuration
 .. code-block:: hcl
 
     app "watchdog" {
-      class  = "turret.app.watchdog.WatchdogApp"
+      class  = "jaffle.app.watchdog.WatchdogApp"
       kernel = "py_kernel"
 
       options {

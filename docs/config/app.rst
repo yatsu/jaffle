@@ -2,7 +2,7 @@
 app
 ===
 
-The ``app`` block configures a :doc:`Turret app </apps/index>` which will be launched in a kernel. The name next to ``app`` keyword will be the variable name in the kernel and will be accessed from other configuration blocks. The name must be valid in an IPython kernel.
+The ``app`` block configures a :doc:`Jaffle app </apps/index>` which will be launched in a kernel. The name next to ``app`` keyword will be the variable name in the kernel and will be accessed from other configuration blocks. The name must be valid in an IPython kernel.
 
 Example
 =======
@@ -10,7 +10,7 @@ Example
 .. code-block:: hcl
 
     app "pytest" {
-      class  = "turret.app.pytest.PyTestRunnerApp"
+      class  = "jaffle.app.pytest.PyTestRunnerApp"
       kernel = "py_kernel"
 
       options {
@@ -31,8 +31,8 @@ Description
 
 - **class** (str | required)
 
-    The class name of the Turret app. It must begin with the top-level module name.
-    e.g.: ``"turret.app.pytest.PyTestRunnerApp"``.
+    The class name of the Jaffle app. It must begin with the top-level module name.
+    e.g.: ``"jaffle.app.pytest.PyTestRunnerApp"``.
 
 - **kernel** (str | required)
 

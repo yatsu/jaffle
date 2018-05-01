@@ -4,7 +4,7 @@ Configuration
 
 .. note::
 
-   Currently Turret does not check the configuration file syntax. If Turret does not work as you expect, please check the configuration carefully. Turret will have the configuration validation in the future release.
+   Currently Jaffle does not check the configuration file syntax. If Jaffle does not work as you expect, please check the configuration carefully. Jaffle will have the configuration validation in the future release.
 
 Syntax
 ======

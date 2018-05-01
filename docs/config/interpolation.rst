@@ -2,7 +2,7 @@
 Interpolation Syntax
 ====================
 
-Turret configuration supports interpolation syntax wrapped by ``${}``.
+Jaffle configuration supports interpolation syntax wrapped by ``${}``.
 You can get :ref:`environment varialbes <env-vars>`, call :ref:`functions <functions>`, and execute Python code in it:
 
 Example:
@@ -48,7 +48,7 @@ See :doc:`variable` section for details.
 Functions
 =========
 
-.. currentmodule:: turret.command.functions
+.. currentmodule:: jaffle.command.functions
 
 .. _env:
 

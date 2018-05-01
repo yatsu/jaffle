@@ -9,7 +9,7 @@ Sphinx Document Build Example
     }
 
     app "watchdog" {
-      class  = "turret.app.watchdog.WatchdogApp"
+      class  = "jaffle.app.watchdog.WatchdogApp"
       kernel = "py_kernel"
 
       logger {

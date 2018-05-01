@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
-from turret import __version__
+from jaffle import __version__
 
 
 setup(
@@ -9,7 +9,7 @@ setup(
     version=__version__,
     description='Jupyter extension example',
     long_description='',
-    author='Turret Development Team',
+    author='Jaffle Development Team',
     packages=find_packages(),
     install_requires=['notebook'],
     test_require=['pytest', 'pytest-tornado'],

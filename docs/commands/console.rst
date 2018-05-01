@@ -1,5 +1,5 @@
 ==============
-turret console
+jaffle console
 ==============
 
 Opens an interactive shell and attaches to the specified kernel instance.
@@ -11,9 +11,9 @@ Usage
 
 .. code-block:: sh
 
-    turret console [options] <kernel_instance_name>
+    jaffle console [options] <kernel_instance_name>
 
-The default value for ``conf_file`` is ``"turret.hcl"``.
+The default value for ``conf_file`` is ``"jaffle.hcl"``.
 
 Options
 =======

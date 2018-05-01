@@ -1,14 +1,14 @@
-# Turret
+# Jaffle
 
-[![Build Status](https://travis-ci.org/yatsu/turret.svg?branch=master)](https://travis-ci.org/yatsu/turret)
+[![Build Status](https://travis-ci.org/yatsu/jaffle.svg?branch=master)](https://travis-ci.org/yatsu/jaffle)
 
-Turret is a Python app and process orchestration tool for development
+Jaffle is a Python app and process orchestration tool for development
 environment leveraging [Jupyter](http://jupyter.org/) kernel and client
 technology.
 
-"Examples" section below shows what you can do with Turret.
+"Examples" section below shows what you can do with Jaffle.
 
-Although Turret is a generic framework, the project is now mainly focusing
+Although Jaffle is a generic framework, the project is now mainly focusing
 on providing auto-test, process management and unified logging for Python
 software development.
 
@@ -21,7 +21,7 @@ developers need to write code and test faster.
 [Foreman](https://github.com/ddollar/foreman) and [its
 ports](https://github.com/ddollar/foreman#ports) accomplish that.
 
-Turret takes this one step further. What if we can launch multiple apps and
+Jaffle takes this one step further. What if we can launch multiple apps and
 developing tools in one Jupyter kernel instance? They can share imported
 modules and communicate with each other easily. Also it makes possible to
 create a interactive client which connects to a running app using
@@ -30,28 +30,28 @@ create a interactive client which connects to a running app using
 
 ## Warning
 
-- Turret is in a pre-alpha stage.
+- Jaffle is in a pre-alpha stage.
     - Configurations and API may change without notice during this period.
-- Turret does not care much about security.
-    - Arbitrary Python code can be used in some part of ``turret.hcl``.
+- Jaffle does not care much about security.
+    - Arbitrary Python code can be used in some part of ``jaffle.hcl``.
     - You should not use it as a part of production environments.
 
 ## Examples
 
 ### Simple Python project with auto-test
 
-[examples/pytest](https://github.com/yatsu/turret/tree/master/examples/pytest)
-is an example Python project which uses Turret to execute
+[examples/pytest](https://github.com/yatsu/jaffle/tree/master/examples/pytest)
+is an example Python project which uses Jaffle to execute
 [pytest](https://docs.pytest.org/) automatically when a `.py` file is updated.
 
-Here is the configuration file of Turret:
-[turret.hcl](https://github.com/yatsu/turret/blob/master/examples/pytest/turret.hcl).
+Here is the configuration file of Jaffle:
+[jaffle.hcl](https://github.com/yatsu/jaffle/blob/master/examples/pytest/jaffle.hcl).
 
 ```hcl
 kernel "py_kernel" {}
 
 app "watchdog" {
-  class  = "turret.app.watchdog.WatchdogApp"
+  class  = "jaffle.app.watchdog.WatchdogApp"
   kernel = "py_kernel"
 
   options {
@@ -64,32 +64,32 @@ app "watchdog" {
 }
 
 app "pytest" {
-  class  = "turret.app.pytest.PyTestRunnerApp"
+  class  = "jaffle.app.pytest.PyTestRunnerApp"
   kernel = "py_kernel"
 
   options {
     args = ["-s", "-v", "--color=yes"]
 
     auto_test = [
-      "turret_pytest_example/tests/test_*.py",
+      "jaffle_pytest_example/tests/test_*.py",
     ]
 
     auto_test_map {
-      "turret_pytest_example/**/*.py" = "turret_pytest_example/tests/{}/test_{}.py"
+      "jaffle_pytest_example/**/*.py" = "jaffle_pytest_example/tests/{}/test_{}.py"
     }
   }
 }
 ```
 
-The file format of `turret.hcl` is
+The file format of `jaffle.hcl` is
 [HCL](https://github.com/hashicorp/hc://github.com/hashicorp/hcl). If you
 prefer JSON, you can write it as JSON.
 
 `kernel "py_kernel" {}` creates a Jupyter kernel. "py_kernel" is a kernel
 instance name which is referred from apps.
 
-"app" creates an app. In this example, `turret.app.watchdog.WatchdogApp` and
-`turret.app.pytest.PyTestRunnerApp` will be instantiated in the same Jupyter
+"app" creates an app. In this example, `jaffle.app.watchdog.WatchdogApp` and
+`jaffle.app.pytest.PyTestRunnerApp` will be instantiated in the same Jupyter
 kernel `py_kernel`, and assigned to variable `watchdog` and `pytest`
 respectively.
 
@@ -106,19 +106,19 @@ replacing `{}`s with matched strings of `**` and `*`.
 
 The screen capture below shows how they work:
 
-![pytest example](https://github.com/yatsu/turret/blob/master/assets/pytest_example.gif)
+![pytest example](https://github.com/yatsu/jaffle/blob/master/assets/pytest_example.gif)
 
-- `turret start` starts a Jupyter kernel and instantiates apps in it.
-- When `turret_pytest_example/example.py` is updated, pytest executes
-  `turret_pytest_example/tests/test_example.py`.
-- `turret attach pytest` opens an interactive shell and attaches it into
+- `jaffle start` starts a Jupyter kernel and instantiates apps in it.
+- When `jaffle_pytest_example/example.py` is updated, pytest executes
+  `jaffle_pytest_example/tests/test_example.py`.
+- `jaffle attach pytest` opens an interactive shell and attaches it into
   `pytest` app.
 - The pytest interactive shell accepts a test target and executes it in
   a Jupyter kernel of the app.
 
 ### Tornado single-page web app
 
-[examples/tornado_spa](https://github.com/yatsu/turret/tree/master/examples/tornado_spa)
+[examples/tornado_spa](https://github.com/yatsu/jaffle/tree/master/examples/tornado_spa)
 is a single-page app (SPA) project using [Tornado](http://www.tornadoweb.org/).
 The front-end is created by [Create React
 App](https://github.com/facebook/create-react-app) (CRA).
@@ -129,16 +129,16 @@ serves static contents. The Tornado web app only serves the back-end web API.
 
 This example runs the Tornado web app in a Jupyter kernel and manages
 webpack-dev-server as a separated process. You can start them all by just
-typing `turret start` and stop them by `Ctrl-C` as if they were one process.
+typing `jaffle start` and stop them by `Ctrl-C` as if they were one process.
 All log messages are unified in the console.
 
-Here is the `turret.hcl`:
+Here is the `jaffle.hcl`:
 
 ```hcl
 kernel "py_kernel" {}
 
 app "watchdog" {
-  class  = "turret.app.watchdog.WatchdogApp"
+  class  = "jaffle.app.watchdog.WatchdogApp"
   kernel = "py_kernel"
 
   options {
@@ -163,11 +163,11 @@ app "watchdog" {
 }
 
 app "tornado_app" {
-  class  = "turret.app.tornado.TornadoApp"
+  class  = "jaffle.app.tornado.TornadoApp"
   kernel = "py_kernel"
 
   options {
-    app_class = "turret_tornado_spa_example.app.ExampleApp"
+    app_class = "jaffle_tornado_spa_example.app.ExampleApp"
     args      = ["--port=9999"]
   }
 
@@ -175,18 +175,18 @@ app "tornado_app" {
 }
 
 app "pytest" {
-  class  = "turret.app.pytest.PyTestRunnerApp"
+  class  = "jaffle.app.pytest.PyTestRunnerApp"
   kernel = "py_kernel"
 
   options {
     args = ["-s", "-v", "--color=yes"]
 
     auto_test = [
-      "turret_tornado_spa_example/tests/test_*.py",
+      "jaffle_tornado_spa_example/tests/test_*.py",
     ]
 
     auto_test_map {
-      "turret_tornado_spa_example/**/*.py" = "turret_tornado_spa_example/tests/{}/test_{}.py"
+      "jaffle_tornado_spa_example/**/*.py" = "jaffle_tornado_spa_example/tests/{}/test_{}.py"
     }
   }
 }
@@ -200,22 +200,22 @@ process "frontend" {
 }
 ```
 
-![tornado_spa example](https://github.com/yatsu/turret/blob/master/assets/tornado_spa_example.gif)
+![tornado_spa example](https://github.com/yatsu/jaffle/blob/master/assets/tornado_spa_example.gif)
 
-- `turret start` instantiates apps in the Jupyter kernel and launches
+- `jaffle start` instantiates apps in the Jupyter kernel and launches
   `frontend` by executing `yarn start`
-- When `turret_tornado_spa_example/webapp.py` is updated, pytest executes
-  `turret_tornado_spa_example/tests/test_webapp.py` and the Tornado app
+- When `jaffle_tornado_spa_example/webapp.py` is updated, pytest executes
+  `jaffle_tornado_spa_example/tests/test_webapp.py` and the Tornado app
   restarts.
 - When `src/App.js` is updated, webpack-dev-server recompiles the front-end
-  code (This is done outside of Turret).
+  code (This is done outside of Jaffle).
 - `Ctrl-C` terminates the Jupyter kernel and the webpack-dev-server process.
 
 ### Jupyter extension development
 
-[examples/jupyter_ext](https://github.com/yatsu/turret/tree/master/examples/jupyter_ext)
+[examples/jupyter_ext](https://github.com/yatsu/jaffle/tree/master/examples/jupyter_ext)
 is an example project that implements Jupyter serverextension and nbextension.
-Turret launches Jupyter Notebook server in a Jupyter kernel and manages server
+Jaffle launches Jupyter Notebook server in a Jupyter kernel and manages server
 restart and reinstalling nbextension.
 
 ## Prerequisite
@@ -225,7 +225,7 @@ restart and reinstalling nbextension.
 - Python >= 3.4
 - Jupyter Notebook >= 5.0
 
-Turret also requires other libraries listed in `requirements.in`. They
+Jaffle also requires other libraries listed in `requirements.in`. They
 are automatically installed by the installer.
 
 ## Installation
@@ -233,8 +233,8 @@ are automatically installed by the installer.
 Please install as follows until the first release:
 
 ```sh
-$ git clone https://github.com/yatsu/turret
-$ cd turret
+$ git clone https://github.com/yatsu/jaffle
+$ cd jaffle
 $ python setup.py install
 ```
 
@@ -251,11 +251,11 @@ BSD 3-Clause License
 ## Related Work
 
 - [Watchdog](https://github.com/gorakhargosh/watchdog)
-    - Python API and shell utilities to monitor file system events. Turret
+    - Python API and shell utilities to monitor file system events. Jaffle
       depends on it.
 - [pytest-testmon](https://github.com/tarpas/pytest-testmon)
     - pytest plugin to select tests affected by recent changes. It looks code
-      coverage to determine which tests should be executed, whereas Turret uses
+      coverage to determine which tests should be executed, whereas Jaffle uses
       simple pattern mapping.
 - [pytest-watch](https://github.com/joeyespo/pytest-watch)
     - Continuous pytest runner using Watchdog, which also supports
@@ -265,4 +265,4 @@ BSD 3-Clause License
     - Procfile-based process manager.
 - [coloredlogcat.py](http://jsharkey.org/logcat/) and [PID
   Cat](https://github.com/JakeWharton/pidcat)
-    - Android logcat modifier. Turret's log formatter was inspired by them.
+    - Android logcat modifier. Jaffle's log formatter was inspired by them.

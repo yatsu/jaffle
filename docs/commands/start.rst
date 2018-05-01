@@ -1,8 +1,8 @@
 ============
-turret start
+jaffle start
 ============
 
-Starts Turret.
+Starts Jaffle.
 
 Type ``ctrl-c`` to stop it.
 
@@ -11,9 +11,9 @@ Usage
 
 .. code-block:: sh
 
-    turret start [options] [conf_file, ...]
+    jaffle start [options] [conf_file, ...]
 
-The default value for ``conf_file`` is ``"turret.hcl"``.
+The default value for ``conf_file`` is ``"jaffle.hcl"``.
 
 If multiple config files are provided, they will be merged into one configuration.
 
@@ -51,7 +51,7 @@ Options
 
     The Logging format template
 
-- **--variables=<List>** (TurretStartCommand.variables)
+- **--variables=<List>** (JaffleStartCommand.variables)
 
     Default: []
 
@@ -98,7 +98,7 @@ c.hcl:
 
 .. code-block:: sh
 
-When we start Turret by typing ``turret start a.hcl b.hcl c.hcl``, the configuration will be as below:
+When we start Jaffle by typing ``jaffle start a.hcl b.hcl c.hcl``, the configuration will be as below:
 
 .. code-block:: hcl
 
@@ -111,7 +111,7 @@ When we start Turret by typing ``turret start a.hcl b.hcl c.hcl``, the configura
       }
     }
 
-Resolved variables are passed to the later configurations. Given that we have the following two configurations and use them as ``turret start a.hcl b.hcl``.
+Resolved variables are passed to the later configurations. Given that we have the following two configurations and use them as ``jaffle start a.hcl b.hcl``.
 
 a.hcl:
 
@@ -162,4 +162,4 @@ Note that the line ``disabled = "${var.disable_server}"`` in b.hcl is required b
 
    .. code-block:: sh
 
-       $ turret start turret.hcl debug.hcl log_filter.hcl
+       $ jaffle start jaffle.hcl debug.hcl log_filter.hcl

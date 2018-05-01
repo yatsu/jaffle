@@ -1,5 +1,5 @@
 =============
-turret attach
+jaffle attach
 =============
 
 Opens an interactive shell and attaches to the specified app. The app must support attaching. Only :doc:`/apps/pytest` supports this.
@@ -11,7 +11,7 @@ Usage
 
 .. code-block:: sh
 
-    turret attach [options] <app>
+    jaffle attach [options] <app>
 
 Options
 =======

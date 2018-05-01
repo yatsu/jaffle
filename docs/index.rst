@@ -1,13 +1,13 @@
 ================
-Turret |version|
+Jaffle |version|
 ================
 
 .. note::
 
-   Turret is in a pre-alpha stage.
+   Jaffle is in a pre-alpha stage.
    The configurations and the API may change without notice during this period.
 
-   Turret is intended to be a development tool and does not care much about security. Arbitrary Python code can be executed in ``turret.hcl`` and you should not use it as a part of production environment. ``turret.hcl`` is like a Makefile or a shell script included in a source code repository.
+   Jaffle is intended to be a development tool and does not care much about security. Arbitrary Python code can be executed in ``jaffle.hcl`` and you should not use it as a part of production environment. ``jaffle.hcl`` is like a Makefile or a shell script included in a source code repository.
 
 .. toctree::
    :maxdepth: 2
@@ -31,23 +31,23 @@ Turret |version|
 Source Code
 ===========
 
-GitHub repository: `yatsu/turret`_
+GitHub repository: `yatsu/jaffle`_
 
-.. _`yatsu/turret`: https://github.com/yatsu/turret
+.. _`yatsu/jaffle`: https://github.com/yatsu/jaffle
 
 Bugs/Requests
 =============
 
 Please use the `GitHub issue tracker`_ to submit bugs or request features.
 
-.. _`GitHub issue tracker`: https://github.com/yatsu/turret/issues
+.. _`GitHub issue tracker`: https://github.com/yatsu/jaffle/issues
 
 License
 =======
 
-Turret is available under `BSD 3-Clause License`_.
+Jaffle is available under `BSD 3-Clause License`_.
 
-.. _`BSD 3-Clause License`: https://github.com/yatsu/turret/blob/master/LICENSE
+.. _`BSD 3-Clause License`: https://github.com/yatsu/jaffle/blob/master/LICENSE
 
 This web site and all documentation are licensed under `Creative Commons 3.0`_.
 

@@ -2,7 +2,7 @@
 API
 ===
 
-.. module:: turret
+.. module:: jaffle
 
 .. toctree::
    :maxdepth: 2

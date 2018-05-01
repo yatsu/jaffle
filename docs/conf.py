@@ -19,9 +19,9 @@ import os
 
 # -- Project information -----------------------------------------------------
 
-project = 'Turret'
-copyright = '2018, Turret Development Team'
-author = 'Turret Development Team'
+project = 'Jaffle'
+copyright = '2018, Jaffle Development Team'
+author = 'Jaffle Development Team'
 
 # The short X.Y version
 version = ''
@@ -58,7 +58,7 @@ master_doc = 'index'
 
 version_ns = {}
 here = os.path.dirname(__file__)
-version_py = os.path.join(here, os.pardir, 'turret', '_version.py')
+version_py = os.path.join(here, os.pardir, 'jaffle', '_version.py')
 with open(version_py) as f:
     exec(compile(f.read(), version_py, 'exec'), version_ns)
 
@@ -115,7 +115,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Turretdoc'
+htmlhelp_basename = 'Jaffledoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -142,8 +142,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Turret.tex', 'Turret Documentation',
-     'Turret Development Team', 'manual'),
+    (master_doc, 'Jaffle.tex', 'Jaffle Documentation',
+     'Jaffle Development Team', 'manual'),
 ]
 
 
@@ -152,7 +152,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'turret', 'Turret Documentation',
+    (master_doc, 'jaffle', 'Jaffle Documentation',
      [author], 1)
 ]
 
@@ -163,8 +163,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'Turret', 'Turret Documentation',
-     author, 'Turret', 'One line description of project.',
+    (master_doc, 'Jaffle', 'Jaffle Documentation',
+     author, 'Jaffle', 'One line description of project.',
      'Miscellaneous'),
 ]
 
@@ -172,6 +172,6 @@ texinfo_documents = [
 # -- Extension configuration -------------------------------------------------
 
 def setup(app):
-    from turret.pygments import TurretHCLLexer
+    from jaffle.pygments import JaffleHCLLexer
 
-    app.add_lexer('hcl', TurretHCLLexer())
+    app.add_lexer('hcl', JaffleHCLLexer())

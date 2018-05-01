@@ -2,7 +2,7 @@
 job
 ===
 
-The ``job`` block configures a job which can be executed from a Turret app.
+The ``job`` block configures a job which can be executed from a Jaffle app.
 
 Example
 =======
@@ -18,7 +18,7 @@ Here is an :doc:`/apps/watchdog` configuration which executes the job:
 .. code-block:: hcl
 
     app "watchdog" {
-      class  = "turret.app.watchdog.WatchdogApp"
+      class  = "jaffle.app.watchdog.WatchdogApp"
       kernel = "py_kernel"
 
       options {
@@ -44,7 +44,7 @@ Description
 
     The job logger configuration.
 
-Turret Apps
+Jaffle Apps
 ===========
 
 Only :doc:`WatchdogApp </apps/watchdog>` supports executing jobs.

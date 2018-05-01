@@ -50,7 +50,7 @@ It cannot be used outside of a string even though the target attribute requires 
 
     disabled = ${var.disable_frontend} # NG
 
-Turret replaces the pattern ``"${...}"`` with ``${...}``. If the whole string is the embedding a variable, the quotation marks are removed. So the above example will be recognized by Turret as follows at runtime:
+Jaffle replaces the pattern ``"${...}"`` with ``${...}``. If the whole string is the embedding a variable, the quotation marks are removed. So the above example will be recognized by Jaffle as follows at runtime:
 
 .. code-block:: hcl
 
@@ -65,10 +65,10 @@ Example: Setting ``true`` to ``disable_frontend`` from an environment variable:
 
 .. code-block:: sh
 
-    $ T_VAR_disable_frontend=true turret start
+    $ T_VAR_disable_frontend=true jaffle start
 
 Example: Setting ``true`` to ``disable_frontend`` from the command-line argument:
 
 .. code-block:: sh
 
-    $ turret start --variables='["disable_frontend=true"]'
+    $ jaffle start --variables='["disable_frontend=true"]'

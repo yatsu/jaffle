@@ -5,13 +5,13 @@ Troubleshooting
 Debug Logging
 =============
 
-``--debug`` option enables the debug logging of Turret itself.
+``--debug`` option enables the debug logging of Jaffle itself.
 
 .. code-block:: sh
 
-    $ turret start --debug
+    $ jaffle start --debug
 
-Each app has its own log-level setting. You can set it in ``turret.hcl``.
+Each app has its own log-level setting. You can set it in ``jaffle.hcl``.
 
 .. code-block:: hcl
 
@@ -43,19 +43,19 @@ You can switch the log-level by providing the value as an environment variable.
 
 .. code-block:: sh
 
-    $ T_VAR_myapp_log_level=debug turret start
+    $ T_VAR_myapp_log_level=debug jaffle start
 
 The command-line argument ``--variables`` is also avilable to do the same thing.
 
 .. code-block:: sh
 
-    $ turret start --variables='["myapp_log_level=debug"]'
+    $ jaffle start --variables='["myapp_log_level=debug"]'
 
-Turret Console
+Jaffle Console
 ==============
 
-``turret console`` allows you to open an interactive shell and attaches the session into the running kernel. You can inspect or set variables of running apps in it.
+``jaffle console`` allows you to open an interactive shell and attaches the session into the running kernel. You can inspect or set variables of running apps in it.
 
 .. code-block:: sh
 
-    $ turret console my_kernel
+    $ jaffle console my_kernel

@@ -14,18 +14,18 @@ Example Configuration
 .. code-block:: hcl
 
 	app "pytest" {
-	  class  = "turret.app.pytest.PyTestRunnerApp"
+	  class  = "jaffle.app.pytest.PyTestRunnerApp"
 	  kernel = "py_kernel"
 
 	  options {
 	    args = ["-s", "-v", "--color=yes"]
 
 	    auto_test = [
-	      "turret_tornado_spa_example/tests/test_*.py",
+	      "jaffle_tornado_spa_example/tests/test_*.py",
 	    ]
 
 	    auto_test_map {
-	      "turret_tornado_spa_example/**/*.py" = "turret_tornado_spa_example/tests/{}/test_{}.py"
+	      "jaffle_tornado_spa_example/**/*.py" = "jaffle_tornado_spa_example/tests/{}/test_{}.py"
 	    }
 	  }
 	}
@@ -68,6 +68,6 @@ Example:
 
 .. code-block:: sh
 
-	$ turret attach pytest
+	$ jaffle attach pytest
 
 You can type test case names with auto-completion. The tests are executed in the Jupyter kernel.

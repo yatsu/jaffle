@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from notebook.nbextensions import install_nbextension_python
-from turret.app.base import BaseTurretApp, capture_method_output
+from jaffle.app.base import BaseJaffleApp, capture_method_output
 
 
-class NBExtensionInstaller(BaseTurretApp):
+class NBExtensionInstaller(BaseJaffleApp):
 
     @capture_method_output
     def handle_watchdog_event(self, event):

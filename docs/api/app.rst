@@ -1,15 +1,15 @@
 ===============
-turret.app.base
+jaffle.app.base
 ===============
 
-.. module:: turret.app.base
+.. module:: jaffle.app.base
 
-.. _base_turret_app:
+.. _base_jaffle_app:
 
-BaseTurretApp
+BaseJaffleApp
 =============
 
-.. autoclass:: BaseTurretApp
+.. autoclass:: BaseJaffleApp
    :members: execute_code, execute_command, execute_job, invalidate_module_cache, command_to_code
 
    .. attribute:: completer_class

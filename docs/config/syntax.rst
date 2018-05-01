@@ -2,7 +2,7 @@
 Configuration Syntax
 ====================
 
-The configuration language of ``turret.hcl`` is HCL_ (HashiCorp Configuration Language).
+The configuration language of ``jaffle.hcl`` is HCL_ (HashiCorp Configuration Language).
 
 .. _HCL: https://github.com/hashicorp/hcl
 
@@ -23,7 +23,7 @@ Example
     kernel "py_kernel" {}
 
     app "watchdog" {
-      class  = "turret.app.watchdog.WatchdogApp"
+      class  = "jaffle.app.watchdog.WatchdogApp"
       kernel = "py_kernel"
 
       logger {
@@ -41,7 +41,7 @@ Example
     }
 
     app "pytest" {
-      class  = "turret.app.pytest.PyTestRunnerApp"
+      class  = "jaffle.app.pytest.PyTestRunnerApp"
       kernel = "py_kernel"
 
       logger {
@@ -74,7 +74,7 @@ Since JSON is a valid HCL, you can also write the configuration file as JSON. Th
       },
       "app": {
         "watchdog": {
-          "class": "turret.app.watchdog.WatchdogApp",
+          "class": "jaffle.app.watchdog.WatchdogApp",
           "kernel": "py_kernel",
           "logger": {
             "level": "info"
@@ -95,7 +95,7 @@ Since JSON is a valid HCL, you can also write the configuration file as JSON. Th
           }
         },
         "pytest": {
-          "class": "turret.app.pytest.PyTestRunnerApp",
+          "class": "jaffle.app.pytest.PyTestRunnerApp",
           "kernel": "py_kernel",
           "logger": {
             "level": "info"

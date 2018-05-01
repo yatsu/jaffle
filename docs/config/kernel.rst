@@ -26,7 +26,7 @@ Description
 
 - **pass_env** ([str] | optional | default: [])
 
-    ``pass_env`` defines environment variables which will be passed to the kernel. Turret itself has the environment variables defined in your environment, but the kernel will be launched as an independent process and the environment variables are not passed by default.
+    ``pass_env`` defines environment variables which will be passed to the kernel. Jaffle itself has the environment variables defined in your environment, but the kernel will be launched as an independent process and the environment variables are not passed by default.
 
     .. tip::
 

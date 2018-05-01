@@ -2,7 +2,7 @@
 Commands
 ========
 
-Turret consists of the following commands:
+Jaffle consists of the following commands:
 
 .. toctree::
    :maxdepth: 2

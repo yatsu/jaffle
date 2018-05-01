@@ -1,5 +1,5 @@
 ===========
-Turret Apps
+Jaffle Apps
 ===========
 
 Built-in Apps
@@ -15,5 +15,5 @@ Built-in Apps
 Custom Apps
 ===========
 
-You can create your own Turret app by inheriting :ref:`base_turret_app`.
+You can create your own Jaffle app by inheriting :ref:`base_jaffle_app`.
 See :doc:`/devel/index` for more information.

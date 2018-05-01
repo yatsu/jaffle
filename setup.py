@@ -5,7 +5,7 @@ from os import path
 from pip.req import parse_requirements
 from pip.download import PipSession
 from setuptools import setup, find_packages
-from turret import __version__
+from jaffle import __version__
 
 
 with open(path.join(path.dirname(__file__), 'README.md'), encoding='utf-8') as f:
@@ -18,12 +18,12 @@ dev_requirements = [str(r.req) for r in
                     if r not in requirements]
 
 setup(
-    name='turret',
+    name='jaffle',
     version=__version__,
     description='Python app and process orchestration tool for development environment',
     long_description=long_description,
-    url='https://github.com/yatsu/turret',
-    author='Turret Development Team',
+    url='https://github.com/yatsu/jaffle',
+    author='Jaffle Development Team',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Console',
@@ -55,7 +55,7 @@ setup(
     include_package_data=True,
     entry_points={
         'console_scripts': [
-            'turret = turret.command:main'
+            'jaffle = jaffle.command:main'
         ]
     }
 )
