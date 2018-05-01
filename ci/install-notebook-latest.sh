@@ -2,3 +2,5 @@
 
 pip install notebook pytest
 pip install -r $@
+
+pip install -e .
