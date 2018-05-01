@@ -220,17 +220,17 @@ restart and reinstalling nbextension.
 
 ## Prerequisite
 
-- UNIX-like OS (tested on macOS)
+- UNIX-like OS
     - Windows is not supported
 - Python >= 3.4
 - Jupyter Notebook >= 5.0
 
-Turret also requires other libraries written in `requirements.in`. They
+Turret also requires other libraries listed in `requirements.in`. They
 are automatically installed by the installer.
 
 ## Installation
 
-Please install it manually as follows until the first release:
+Please install as follows until the first release:
 
 ```sh
 $ git clone https://github.com/yatsu/turret
@@ -238,10 +238,10 @@ $ cd turret
 $ python setup.py install
 ```
 
-You will probably need Watchdog and pytest:
+You will also probably need pytest:
 
 ```sh
-$ pip install watchdog pytest
+$ pip install pytest
 ```
 
 ## License

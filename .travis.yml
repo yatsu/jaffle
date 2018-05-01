@@ -32,3 +32,7 @@ before_install: pip install --upgrade pytest
 install: ./ci/install-${REQUIREMENTS}.sh requirements_dev.in
 
 script: py.test
+
+notifications:
+  email:
+    on_success: never

@@ -19,6 +19,7 @@ Turret |version|
    apps/index
    examples/index
    troubleshooting
+   related_work
 
 .. toctree::
    :maxdepth: 2
