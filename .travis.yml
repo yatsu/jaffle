@@ -6,17 +6,26 @@ language: python
 
 cache: pip
 
-python:
-  - 3.4
-  - 3.5
-  - 3.6
-
-env:
-  - REQUIREMENTS=notebook-5_0
-  - REQUIREMENTS=notebook-5_1
-  - REQUIREMENTS=notebook-5_2
-  - REQUIREMENTS=notebook-5_3
-  - REQUIREMENTS=notebook-latest
+matrix:
+  include:
+    - python: 3.4
+      env: REQUIREMENTS=notebook-5_0
+    - python: 3.4
+      env: REQUIREMENTS=notebook-latest
+    - python: 3.5
+      env: REQUIREMENTS=notebook-5_2
+    - python: 3.5
+      env: REQUIREMENTS=notebook-latest
+    - python: 3.6
+      env: REQUIREMENTS=notebook-5_0
+    - python: 3.6
+      env: REQUIREMENTS=notebook-5_1
+    - python: 3.6
+      env: REQUIREMENTS=notebook-5_2
+    - python: 3.6
+      env: REQUIREMENTS=notebook-5_3
+    - python: 3.6
+      env: REQUIREMENTS=notebook-latest
 
 before_install: pip install --upgrade pytest
 
