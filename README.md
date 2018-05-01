@@ -56,7 +56,7 @@ app "watchdog" {
     handlers = [{
       patterns           = ["*.py"]
       ignore_directories = true
-      functions          = ["pytest.handle_watchdog_event({event})"]
+      code_blocks        = ["pytest.handle_watchdog_event({event})"]
     }]
   }
 }
@@ -91,7 +91,7 @@ instance name which is referred from apps.
 kernel `py_kernel`, and assigned to variable `watchdog` and `pytest`
 respectively.
 
-`WatchdogApp` can have multiple `handlers` which execute `functions` on
+`WatchdogApp` can have multiple `handlers` which execute `code_blocks` on
 detecting filesystem update to a file that matches its `patterns`.
 
 `auto_test` option of `PyTestRunnerApp` includes test file patterns. When
@@ -145,9 +145,8 @@ app "watchdog" {
         patterns           = ["*.py"]
         ignore_patterns    = ["*/tests/*.py"]
         ignore_directories = true
-        uncache            = ["turret_tornado_spa_example"]
 
-        functions = [
+        code_blocks = [
           "tornado_app.handle_watchdog_event({event})",
           "pytest.handle_watchdog_event({event})",
         ]
@@ -155,8 +154,7 @@ app "watchdog" {
       {
         patterns           = ["*/tests/test_*.py"]
         ignore_directories = true
-        uncache            = ["turret_tornado_spa_example.tests"]
-        functions          = ["pytest.handle_watchdog_event({event})"]
+        code_blocks         = ["pytest.handle_watchdog_event({event})"]
       },
     ]
   }
@@ -167,14 +165,9 @@ app "tornado_app" {
   kernel = "py_kernel"
 
   options {
-    app_cls = "turret_tornado_spa_example.app.ExampleApp"
-
-    argv = [
-      "--port=9999",
-    ]
+    app_class = "turret_tornado_spa_example.app.ExampleApp"
+    args      = ["--port=9999"]
   }
-
-  uncache = []
 
   start = "tornado_app.start()"
 }
@@ -194,8 +187,6 @@ app "pytest" {
       "turret_tornado_spa_example/**/*.py" = "turret_tornado_spa_example/tests/{}/test_{}.py"
     }
   }
-
-  uncache = []
 }
 
 process "frontend" {
