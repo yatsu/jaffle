@@ -149,15 +149,15 @@ class JaffleStartCommand(BaseJaffleCommand):
 
         self.load_conf()
 
-        self.status = JaffleStatus(conf=self.conf)
+        self.status = JaffleStatus(pid=os.getpid(), conf=self.conf)
 
     def check_running(self):
         """
         Checks whether Jaffle is already running.
         """
         if self.status_file_path.exists():
-            print('Jaffle is already running in this directory.',
-                  'If it is not, please remove .jaffle/runtime directory.',
+            print("Jaffle is already running in this directory.",
+                  "Execute 'jaffle stop' to force stop the running Jaffle.",
                   file=sys.stderr)
             sys.exit(1)
 
@@ -165,13 +165,8 @@ class JaffleStartCommand(BaseJaffleCommand):
         """
         Creates directories.
         """
-        self.log.debug('data_dir: %s', self.data_dir)
         self.log.debug('runtime_dir: %s', self.runtime_dir)
-        os.environ['JUPYTER_DATA_DIR'] = self.data_dir
-
-        data_dir = Path(self.data_dir)
-        if not data_dir.exists():
-            data_dir.mkdir()
+        os.environ['JUPYTER_DATA_DIR'] = self.runtime_dir
 
         runtime_dir = Path(self.runtime_dir)
         if not runtime_dir.exists():

@@ -2,6 +2,7 @@
 
 from jupyter_client.consoleapp import JupyterConsoleApp
 from jupyter_console.app import ZMQTerminalIPythonApp
+from pathlib import Path
 import signal
 import sys
 from ..base import BaseJaffleCommand
@@ -24,9 +25,6 @@ jaffle console py_kernel
     frontend_aliases = set()
     frontend_flags = set()
 
-    _data_dir_default = BaseJaffleCommand._data_dir_default
-    _runtime_dir_default = BaseJaffleCommand._runtime_dir_default
-
     def parse_command_line(self, argv):
         """
         Parses comnand line.
@@ -46,8 +44,11 @@ jaffle console py_kernel
 
         try:
             status = JaffleStatus.load(self.status_file_path)
+            print('status', status)
         except FileNotFoundError:
-            print('Jaffle is not running.', file=sys.stderr)
+            print('Jaffle is not running - runtime_dir: {}'
+                  .format(Path(self.runtime_dir).relative_to(Path.cwd())),
+                  file=sys.stderr)
             self.exit(1)
 
         try:

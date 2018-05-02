@@ -8,5 +8,6 @@ Jaffle consists of the following commands:
    :maxdepth: 2
 
    start
+   stop
    console
    attach

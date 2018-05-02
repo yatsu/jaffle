@@ -9,26 +9,27 @@ class JaffleStatus(object):
     """
     Jaffle server status.
     """
+    _LOCK_TIMEOUT = 5
 
-    def __init__(self, sessions={}, apps={}, conf={}, lock_timeout=5):
+    def __init__(self, pid=None, sessions=None, apps=None, conf=None):
         """
         Initializes JaffleStatus.
 
         Parameters
         ----------
+        pid : int
+            Process ID.
         sessions : dict{src: dict}
             Jaffle sessions.
         apps : dict
             Current running apps data.
         conf : dict
             Jaffle configuration.
-        lock_timeout : int
-            File lock timeout.
         """
-        self.sessions = {}
-        self.apps = {}
-        self.conf = conf
-        self.lock_timeout = lock_timeout
+        self.pid = pid
+        self.sessions = sessions or {}
+        self.apps = apps or {}
+        self.conf = conf or {}
 
     def __repr__(self):
         """
@@ -39,17 +40,17 @@ class JaffleStatus(object):
         repr : str
             String representation of JaffleStatus.
         """
-        return '<%s {#sessions: %d #apps: %d}>' % (
-            self.__class__.__name__, len(self.sessions), len(self.apps))
+        return '<%s {pid: %d #sessions: %d #apps: %d}>' % (
+            type(self).__name__, self.pid, len(self.sessions), len(self.apps))
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, status_dict):
         """
         Creates a JaffleStatus from a dict.
 
         Parameters
         ----------
-        data : dict
+        status_dict : dict
             Python dict to initialize JaffleStatus.
 
         Returns
@@ -58,12 +59,12 @@ class JaffleStatus(object):
             Jaffle server status.
         """
         return cls(
+            pid=status_dict.get('pid'),
             sessions={n: JaffleSession.from_dict(s)
-                      for n, s in data.get('sessions', {}).items()},
+                      for n, s in status_dict.get('sessions', {}).items()},
             apps={n: JaffleAppData.from_dict(a)
-                  for n, a in data.get('apps', {}).items()},
-            conf=data.get('conf'),
-            lock_timeout=data.get('lock_timeout', 5)
+                  for n, a in status_dict.get('apps', {}).items()},
+            conf=status_dict.get('conf')
         )
 
     def add_session(self, id, name, kernel=None):
@@ -106,6 +107,7 @@ class JaffleStatus(object):
             Dict representation of a JaffleStatus.
         """
         return {
+            'pid': self.pid,
             'sessions': {n: s.to_dict() for n, s in self.sessions.items()},
             'apps': {n: a.to_dict() for n, a in self.apps.items()},
             'conf': self.conf
@@ -126,21 +128,10 @@ class JaffleStatus(object):
         status : JaffleStatus
             Jaffle server status.
         """
-        status = cls()
-
-        with filelock.FileLock(str(file_path) + '.lock').acquire(timeout=status.lock_timeout):
+        with filelock.FileLock(str(file_path) + '.lock').acquire(timeout=cls._LOCK_TIMEOUT):
             with Path(file_path).open() as f:
-                data = json.load(f)
-
-            for sess_name, sess_data in data.get('sessions', []).items():
-                status.sessions[sess_name] = JaffleSession(**sess_data)
-
-            for app_name, app_data in data.get('apps', []).items():
-                status.apps[app_name] = JaffleAppData(**app_data)
-
-            status.conf = data['conf']
-
-        return status
+                status_dict = json.load(f)
+                return JaffleStatus.from_dict(status_dict)
 
     def save(self, file_path):
         """
@@ -151,7 +142,7 @@ class JaffleStatus(object):
         file_path : pathlib.Path or str
             File path.
         """
-        with filelock.FileLock(str(file_path) + '.lock').acquire(timeout=self.lock_timeout):
+        with filelock.FileLock(str(file_path) + '.lock').acquire(timeout=self._LOCK_TIMEOUT):
             with file_path.open('w') as f:
                 json.dump(self.to_dict(), f, indent=2)
 
@@ -165,7 +156,7 @@ class JaffleStatus(object):
             File path.
         """
         if file_path.exists():
-            with filelock.FileLock(str(file_path) + '.lock').acquire(timeout=self.lock_timeout):
+            with filelock.FileLock(str(file_path) + '.lock').acquire(timeout=self._LOCK_TIMEOUT):
                 file_path.unlink()
         Path(str(file_path) + '.lock').unlink()
 

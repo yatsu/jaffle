@@ -11,7 +11,7 @@ Usage
 
 .. code-block:: sh
 
-    jaffle attach [options] <app>
+    jaffle attach <app> [options]
 
 Options
 =======
@@ -46,3 +46,8 @@ Options
     Default: '%(time_color)s%(asctime)s.%(msecs).03d%(time_color_end)s %(name_color)s%(name)14s%(name_color_end)s %(level_color)s %(levelname)1.1s %(level_color_end)s %(message)s'
 
     The Logging format template
+
+- **--runtime-dir=<Unicode>** (BaseJaffleCommand.runtime_dir)
+    Default: '.jaffle'
+
+    Runtime directory path.

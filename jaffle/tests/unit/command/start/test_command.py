@@ -58,32 +58,26 @@ def test_initialize():
     command = JaffleStartCommand()
     command.check_running = Mock()
 
-    with patch('jaffle.command.start.command.JaffleStatus',
-               return_value=Mock(JaffleStatus)) as status:
-        with patch.object(command, 'init_dir') as init_dir:
-            with patch.object(command, 'init_signal') as init_signal:
-                with patch.object(command, 'load_conf') as load_conf:
-                    command.initialize(argv=[])
+    with patch.object(command, 'init_dir') as init_dir:
+        with patch.object(command, 'init_signal') as init_signal:
+            with patch.object(command, 'load_conf') as load_conf:
+                command.initialize(argv=[])
 
     command.check_running.assert_called_once_with()
     init_dir.assert_called_once_with()
     init_signal.assert_called_once_with()
     load_conf.assert_called_once_with()
-    status.assert_called_once_with(conf={})
 
     with patch('jaffle.command.start.command.os.environ', {}) as environ:
         mock_dir = Mock(Path, return_value=Mock(exists=lambda: False))
         with patch('jaffle.command.start.command.Path', mock_dir) as path:
             command.init_dir()
 
-    assert environ == {'JUPYTER_DATA_DIR': str(Path('.jaffle').absolute())}
+    assert environ == {'JUPYTER_DATA_DIR': '.jaffle'}
 
-    path.assert_has_calls([
-        call(str(Path('.jaffle').absolute())),
-        call(str((Path('.jaffle') / 'runtime').absolute()))
-    ])
+    path.assert_has_calls([call('.jaffle')])
 
-    mock_dir.return_value.mkdir.assert_has_calls([call(), call()])
+    mock_dir.return_value.mkdir.assert_has_calls([call()])
 
     with patch('jaffle.command.start.command.sys.stdin.isatty', lambda: True):
         with patch('jaffle.command.start.command.signal.signal') as sig:

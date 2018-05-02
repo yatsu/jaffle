@@ -1,6 +1,7 @@
 # Jaffle
 
 [![Build Status](https://travis-ci.org/yatsu/jaffle.svg?branch=master)](https://travis-ci.org/yatsu/jaffle)
+[![Documentation Status](https://readthedocs.org/projects/jaffle/badge/?version=latest)](http://jaffle.readthedocs.io/en/latest/?badge=latest)
 
 Jaffle is a Python app and process orchestration tool for development
 environment leveraging [Jupyter](http://jupyter.org/) kernel and client

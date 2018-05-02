@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from jupyter_client.consoleapp import JupyterConsoleApp
+from pathlib import Path
 import signal
 import sys
 from traitlets.config import catch_config_error
@@ -26,9 +27,6 @@ jaffle attach pytest
     frontend_aliases = set()
     frontend_flags = set()
 
-    _data_dir_default = BaseJaffleCommand._data_dir_default
-    _runtime_dir_default = BaseJaffleCommand._runtime_dir_default
-
     def parse_command_line(self, argv):
         """
         Parses comnand line.
@@ -49,7 +47,9 @@ jaffle attach pytest
         try:
             self.status = JaffleStatus.load(self.status_file_path)
         except FileNotFoundError:
-            print('Jaffle is not running.', file=sys.stderr)
+            print('Jaffle is not running - runtime_dir: {}'
+                  .format(Path(self.runtime_dir).relative_to(Path.cwd())),
+                  file=sys.stderr)
             self.exit(1)
 
         try:
@@ -66,7 +66,7 @@ jaffle attach pytest
     @catch_config_error
     def initialize(self, argv=None):
         """
-        Initializes JaffleServer.
+        Initializes JaffleAttachCommand.
         Setup Jupyter and Jaffle managers before starting the server.
 
         Parameters

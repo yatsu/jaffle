@@ -12,7 +12,8 @@ from ..logging import LogFormatter
 aliases = {
     'log-level': 'Application.log_level',
     'log-datefmt': 'Application.log_datefmt',
-    'log-format': 'Application.log_format'
+    'log-format': 'Application.log_format',
+    'runtime-dir': 'BaseJaffleCommand.runtime_dir'
 }
 
 flags = {
@@ -79,15 +80,7 @@ class BaseJaffleCommand(Application):
 
     answer_yes = Bool(False, config=True, help='Answer yes to any prompts.')
 
-    data_dir = Unicode(config=True, help='Data directory path.')
-
-    def _data_dir_default(self):
-        return str(Path.cwd() / '.jaffle')
-
-    runtime_dir = Unicode(config=True, help='Runtime directory path.')
-
-    def _runtime_dir_default(self):
-        return str(Path(self.data_dir) / 'runtime')
+    runtime_dir = Unicode('.jaffle', config=True, help='Runtime directory path.')
 
     @property
     def status_file_path(self):

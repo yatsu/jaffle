@@ -51,6 +51,11 @@ Options
 
     The Logging format template
 
+- **--runtime-dir=<Unicode>** (BaseJaffleCommand.runtime_dir)
+    Default: '.jaffle'
+
+    Runtime directory path.
+
 - **--variables=<List>** (JaffleStartCommand.variables)
 
     Default: []
