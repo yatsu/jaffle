@@ -34,23 +34,37 @@ jaffle stop
             os.kill(status.pid, signal.SIGTERM)
 
         except FileNotFoundError:
-            print('Jaffle is not running - runtime_dir: {}'
-                  .format(Path(self.runtime_dir).relative_to(Path.cwd())),
+            print('Jaffle is not running - runtime_dir: {}' .format(self.runtime_dir),
                   file=sys.stderr)
+            self._cleanup_runtime_dir()
             self.exit(1)
 
         except ProcessLookupError:
-            runtime_dir = Path(self.runtime_dir)
             print('Jaffle has already stopped')
-            print('Cleaning up the runtime directory: {}'
-                  .format(runtime_dir.relative_to(Path.cwd())))
-            try:
-                (runtime_dir / 'jaffle.json').unlink()
-                (runtime_dir / 'jaffle.json.lock').unlink()
-                for conn_file in runtime_dir.glob('kernel-*.json'):
-                    try:
-                        conn_file.unlink()
-                    except FileNotFoundError:
-                        pass
-            except FileNotFoundError:
-                pass
+            self._cleanup_runtime_dir()
+            self.exit(1)
+
+    def _cleanup_runtime_dir(self):
+        """
+        Cleans up the runtime directory.
+        """
+        runtime_dir = Path(self.runtime_dir)
+        print('Cleaning up the runtime directory: {}'.format(self.runtime_dir))
+        self._unlink(runtime_dir / 'jaffle.json')
+        self._unlink(runtime_dir / 'jaffle.json.lock')
+        for conn_file in runtime_dir.glob('kernel-*.json'):
+            self._unlink(conn_file)
+
+    def _unlink(self, file_path):
+        """
+        Unlinks a file without raising ``FileNotFoundError``.
+
+        Parameters
+        ----------
+        file_path : pathlib.Path
+            File path.
+        """
+        try:
+            file_path.unlink()
+        except FileNotFoundError:
+            pass
