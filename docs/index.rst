@@ -17,7 +17,7 @@ Jaffle |version|
    commands/index
    config/index
    apps/index
-   examples/index
+   cookbook/index
    troubleshooting
    related_work
 

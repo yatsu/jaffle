@@ -36,6 +36,7 @@ app "watchdog" {
 
         jobs = [
           "sphinx",
+          "chrome_refresh",
         ]
       },
     ]
@@ -66,4 +67,8 @@ app "pytest" {
 
 job "sphinx" {
   command = "sphinx-build -M html docs docs/_build"
+}
+
+job "chrome_refresh" {
+  command = "osascript chrome_refresh.scpt"
 }
