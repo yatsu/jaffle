@@ -7,7 +7,7 @@ import pytest
 import re
 from setuptools import find_packages
 from ..base import BaseJaffleApp, capture_method_output, invalidate_module_cache_once
-from .collect import collect_test_items
+from .collect import collect_test_items as _collect_test_items
 from .completer import PyTestCompleter
 from .lexer import PyTestLexer
 
@@ -129,7 +129,7 @@ class PyTestRunnerApp(BaseJaffleApp):
                                           re.sub(r'(?<!\\)\*\*\/?', r'(.*?)', glob)))
 
     @capture_method_output
-    def collect(self):
+    def collect_test_items(self):
         """
         Collects test modules.
 
@@ -138,7 +138,7 @@ class PyTestRunnerApp(BaseJaffleApp):
         test_items : list[str]
             Test items (e.g. ['example/tests/test_example.py::test_example'])
         """
-        return collect_test_items()
+        return _collect_test_items()
 
     @classmethod
     def command_to_code(self, app_name, command):

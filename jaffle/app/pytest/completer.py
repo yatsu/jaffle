@@ -49,7 +49,7 @@ class PyTestCompleter(Completer):
                 sys.exit(1)
 
         self.client.execute_interactive(
-            r"','.join({}.collect())".format(self.app_name),
+            r"','.join({}.collect_test_items())".format(self.app_name),
             store_history=False,
             output_hook=output_hook
         )
