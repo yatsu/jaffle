@@ -1,0 +1,10 @@
+{
+  "turret_tornado_spa_example/tests/**/test_*.py": {
+    "type": "test",
+    "alternate": "turret_tornado_spa_example/{dirname}/{basename}.py"
+  },
+  "turret_tornado_spa_example/*.py": {
+    "type": "src",
+    "alternate": "turret_tornado_spa_example/tests/test_{basename}.py"
+  }
+}
