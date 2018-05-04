@@ -64,6 +64,11 @@ You can also use the interactive shell which attaches the session to the running
 
 When you hit ``t`` ``TAB`` ``/``, test cases are auto-completed.
 
+Screenshot
+==========
+
+.. figure:: pytest_example.gif
+
 .. note::
 
    The source package of Jaffle contains example projects in ``examples`` directory.

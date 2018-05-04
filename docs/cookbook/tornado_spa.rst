@@ -98,6 +98,11 @@ jaffle.hcl:
       tty     = true
     }
 
+Screenshot
+==========
+
+.. figure:: tornado_example.gif
+
 .. note::
 
    The source package of Jaffle contains example projects in ``examples`` directory.
