@@ -69,3 +69,6 @@ When you hit ``t`` ``TAB`` ``/``, test cases are auto-completed.
    The source package of Jaffle contains example projects in ``examples`` directory.
    You can see the latest version of them here:
    https://github.com/yatsu/jaffle/tree/master/examples
+
+   A pytest example is here:
+   https://github.com/yatsu/jaffle/tree/master/examples/pytest

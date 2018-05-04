@@ -98,3 +98,6 @@ You also need the AppleScript file ``chrome_refresh.scpt`` in the current direct
    The source package of Jaffle contains example projects in ``examples`` directory.
    You can see the latest version of them here:
    https://github.com/yatsu/jaffle/tree/master/examples
+
+   Jaffle uses the above configuration to generate this Sphinx document:
+   https://github.com/yatsu/jaffle/tree/master/jaffle.hcl
