@@ -11,7 +11,7 @@ app "watchdog" {
         patterns           = ["*.py"]
         ignore_patterns    = ["*/tests/*.py"]
         ignore_directories = true
-        invalidate_modules = ["tornado_spa"]
+        clear_cache        = ["tornado_spa"]
 
         code_blocks = [
           "tornado_app.handle_watchdog_event({event})",
@@ -22,7 +22,7 @@ app "watchdog" {
         watch_path         = "tornado_spa/tests"
         patterns           = ["*/test_*.py"]
         ignore_directories = true
-        invalidate_modules = ["tornado_spa.tests"]
+        clear_cache        = ["tornado_spa.tests"]
 
         code_blocks = [
           "pytest.handle_watchdog_event({event})",
@@ -38,9 +38,9 @@ app "tornado_app" {
   start  = "tornado_app.start()"
 
   options {
-    app_class          = "tornado_spa.app.ExampleApp"
-    args               = ["--port=9999"]
-    invalidate_modules = []
+    app_class   = "tornado_spa.app.ExampleApp"
+    args        = ["--port=9999"]
+    clear_cache = []
   }
 }
 
@@ -59,7 +59,7 @@ app "pytest" {
       "tornado_spa/**/*.py" = "tornado_spa/tests/{}/test_{}.py"
     }
 
-    invalidate_modules = []
+    clear_cache = []
   }
 }
 

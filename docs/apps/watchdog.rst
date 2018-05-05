@@ -81,7 +81,7 @@ Handler dict Format
 
     The jobs to be executed by the handler. Jobs must be defined in :doc:`/config/job` blocks.
 
-- **invalidate_modules** (list[str] | optional | default: <modules found under the current directory>)
+- **clear_cache** (list[str] | optional | default: <modules found under the current directory>)
 
     The module names which will be removed from the module cache (``sys.modules``) before executing handler code blocks.
 

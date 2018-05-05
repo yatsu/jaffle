@@ -43,7 +43,7 @@ class TornadoBridgeApp(BaseJaffleApp):
     """
 
     def __init__(self, app_name, jaffle_conf, jaffle_port, jaffle_status,
-                 app_class, args=[], invalidate_modules=None, threaded=False):
+                 app_class, args=[], clear_cache=None, threaded=False):
         """
         Initializes JaffleApp.
 
@@ -61,8 +61,8 @@ class TornadoBridgeApp(BaseJaffleApp):
             Tornado application class.
         args : list[str]
             Command line arguments for Tornado app.
-        invalidate_modules : list[str] or None
-            Module names to be invalidated.
+        clear_cache : list[str] or None
+            Module names to be cleared from cache.
         threaded : bool
             Whether to launch the app in an independent thread.
         """
@@ -70,8 +70,7 @@ class TornadoBridgeApp(BaseJaffleApp):
 
         self.app_class = app_class
         self.args = args
-        self.invalidate_modules = (invalidate_modules if invalidate_modules is not None
-                                   else find_packages())
+        self.clear_cache = (clear_cache if clear_cache is not None else find_packages())
         self.threaded = threaded
         self.thread = None
         self.main_io_loop = None
@@ -146,7 +145,7 @@ class TornadoBridgeApp(BaseJaffleApp):
         """
         Restarts the tornado app.
         """
-        self.invalidate_module_cache(self.invalidate_modules)
+        self.clear_module_cache(self.clear_cache)
         self.stop()
         ioloop.IOLoop.current().add_callback(self.start)
 

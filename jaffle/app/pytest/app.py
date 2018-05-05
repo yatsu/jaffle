@@ -6,7 +6,7 @@ import pkg_resources
 import pytest
 import re
 from setuptools import find_packages
-from ..base import BaseJaffleApp, capture_method_output, invalidate_module_cache_once
+from ..base import BaseJaffleApp, capture_method_output, clear_module_cache_once
 from .collect import collect_test_items as _collect_test_items
 from .completer import PyTestCompleter
 from .lexer import PyTestLexer
@@ -22,7 +22,7 @@ class PyTestRunnerApp(BaseJaffleApp):
 
     def __init__(self, app_name, jaffle_conf, jaffle_port, jaffle_status,
                  args=['-s', '-v'], plugins=[], auto_test=[], auto_test_map={},
-                 invalidate_modules=None):
+                 clear_cache=None):
         """
         Initializes PyTestRunnerApp.
 
@@ -44,8 +44,8 @@ class PyTestRunnerApp(BaseJaffleApp):
             Test file names which should be executed when it is updated.
         auto_test_map : dict{str: str}
             Map from .py file patterns to test file patterns.
-        invalidate_modules : list[str] or None
-            Module names to be invalidated.
+        clear_cache : list[str] or None
+            Module names to be cleared from cache.
         """
         super().__init__(app_name, jaffle_conf, jaffle_port, jaffle_status)
 
@@ -53,8 +53,7 @@ class PyTestRunnerApp(BaseJaffleApp):
         self.plugins = plugins
         self.auto_test = auto_test
         self.auto_test_map = auto_test_map
-        self.invalidate_modules = (invalidate_modules if invalidate_modules is not None
-                                   else find_packages())
+        self.clear_cache = (clear_cache if clear_cache is not None else find_packages())
 
         # Suppress pytest warning for plugin: 'Module already imported'
         for plugin in pkg_resources.iter_entry_points('pytest11'):
@@ -62,7 +61,7 @@ class PyTestRunnerApp(BaseJaffleApp):
             mod.__doc__ = 'PYTEST_DONT_REWRITE'
 
     @capture_method_output
-    @invalidate_module_cache_once
+    @clear_module_cache_once
     def handle_watchdog_event(self, event):
         """
         WatchdogApp callback to be executed on filessystem update.
@@ -81,7 +80,7 @@ class PyTestRunnerApp(BaseJaffleApp):
             self.log.debug('auto_test glob: %s regex: %s src_path: %s match: %s',
                            glob, regex, src_path, match.groups() if match else None)
             if match:
-                self.invalidate_module_cache(self.invalidate_modules)
+                self.clear_module_cache(self.clear_cache)
                 self.test(src_path)
 
         for glob, target in self.auto_test_map.items():
@@ -92,7 +91,7 @@ class PyTestRunnerApp(BaseJaffleApp):
             if match:
                 target_path = Path(target.format(*match.groups()).replace('//', '/'))
                 if target_path.exists():
-                    self.invalidate_module_cache(self.invalidate_modules)
+                    self.clear_module_cache(self.clear_cache)
                     self.test(str(target_path))
 
     @capture_method_output

@@ -22,7 +22,7 @@ Example Configuration
         app_class          = "my_module.app.ExampleApp"
         argv               = ["--port=9999"]
         threaded           = true
-        invalidate_modules = ["my_module"]
+        clear_cache = ["my_module"]
       }
     }
 
@@ -41,9 +41,9 @@ Options
 
     Whether to launch the app in an independent IO loop thread. Tornado applications can basically be launched in the main thread and share the IO loop with other apps and the Jaffle itself. However, some apps cannot dispose all running functions from the IO loop and that makes troubles on calling ``start()`` and ``stop()`` several times, because the remaining functions may cause errors. When ``threaded`` is true, the app uses its own IO loop which will be stopped together with the app itself.
 
-- **invalidate_modules** (list[str] | optional | default: <modules found under the current directory>)
+- **clear_cache** (list[str] | optional | default: <modules found under the current directory>)
 
-    The module names which will be removed from the module cache (``sys.modules``) before restarting the app. If it is not provided, TornadoBridgeApp searches modules by calling ``setuptools.find_packages()``. Note that the root Python module must be in the current working directory to be found by TornadoBridgeApp. If it is included in a sub-directory, you must specify ``invalidate_modules`` manually.
+    The module names which will be removed from the module cache (``sys.modules``) before restarting the app. If it is not provided, TornadoBridgeApp searches modules by calling ``setuptools.find_packages()``. Note that the root Python module must be in the current working directory to be found by TornadoBridgeApp. If it is included in a sub-directory, you must specify ``clear_cache`` manually.
 
 Available Tornado Applications
 ==============================

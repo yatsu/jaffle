@@ -53,9 +53,9 @@ Optionns
 
        .. _vim-projectionist: https://github.com/tpope/vim-projectionist
 
-- **invalidate_modules** (list[str] | optional | default: <modules found under the current directory>)
+- **clear_cache** (list[str] | optional | default: <modules found under the current directory>)
 
-    The module names which will be removed from the module cache (``sys.modules``) before restarting the app. If it is not provided, TornadoBridgeApp searches modules by calling ``setuptools.find_packages()``. Note that the root Python module must be in the current working directory to be found by TornadoBridgeApp. If it is included in a sub-directory, you must specify ``invalidate_modules`` manually.
+    The module names which will be removed from the module cache (``sys.modules``) before restarting the app. If it is not provided, TornadoBridgeApp searches modules by calling ``setuptools.find_packages()``. Note that the root Python module must be in the current working directory to be found by TornadoBridgeApp. If it is included in a sub-directory, you must specify ``clear_cache`` manually.
 
 .. _interactive_shell:
 

@@ -36,7 +36,7 @@ jaffle.hcl:
             patterns           = ["*.py"]
             ignore_patterns    = ["*/tests/*.py"]
             ignore_directories = true
-            invalidate_modules = ["jupyter_myext"]
+            clear_cache        = ["jupyter_myext"]
 
             code_blocks = [
               "notebook.handle_watchdog_event({event})",
@@ -46,7 +46,7 @@ jaffle.hcl:
           {
             patterns           = ["*/tests/test_*.py"]
             ignore_directories = true
-            invalidate_modules = ["jupyter_myext.tests"]
+            clear_cache        = ["jupyter_myext.tests"]
 
             code_blocks = [
               "pytest.handle_watchdog_event({event})",
@@ -76,7 +76,7 @@ jaffle.hcl:
           "--NotebookApp.token=''",
         ]
 
-        invalidate_modules = []
+        clear_cache = []
       }
 
       start = "notebook.start()"
@@ -97,7 +97,7 @@ jaffle.hcl:
           "jupyter_myext/**/*.py" = "jupyter_myext/tests/{}/test_{}.py"
         }
 
-        invalidate_modules = []
+        clear_cache = []
       }
     }
 

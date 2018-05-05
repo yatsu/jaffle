@@ -135,7 +135,7 @@ class BaseJaffleApp(object):
         result = yield self.execute_command(job.command, logger=job.log)
         return result
 
-    def invalidate_module_cache(self, modules):
+    def clear_module_cache(self, modules):
         """
         Clears the module cache.
 
@@ -152,9 +152,9 @@ class BaseJaffleApp(object):
         def match(mod):
             return any([mod == m or mod.startswith('{}.'.format(m)) for m in modules])
 
-        self.log.debug('invalidating module cache: %s', modules)
+        self.log.debug('clearing module cache: %s', modules)
         for mod in [mod for mod in sys.modules if match(mod)]:
-            self.log.debug('  invalidate %s', mod)
+            self.log.debug('  clear: %s', mod)
             del sys.modules[mod]
 
     @classmethod
@@ -203,11 +203,11 @@ class BaseJaffleApp(object):
         return stream
 
 
-def invalidate_module_cache_once(method):
+def clear_module_cache_once(method):
     """
-    Decorator for an app method to ensure doing invalidate only once.
-    You can call ``BaseJaffleApp.invalidate_module_cache()`` multiple times without
-    worrying duplicated invalidation.
+    Decorator for a Jaffle app method to ensure clearing module cache only
+    once. You can call ``BaseJaffleApp.clear_module_cache()`` multiple times
+    without worrying about aduplicated cache clear.
 
     Parameters
     ----------
@@ -216,17 +216,17 @@ def invalidate_module_cache_once(method):
     """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
-        invalidated = False
-        __invalidate_module_cache = self.invalidate_module_cache
+        cleared = False
+        __clear_module_cache = self.clear_module_cache
 
-        def _invalidate_module_cache(modules):
-            nonlocal invalidated
-            if invalidated:
+        def _clear_module_cache(modules):
+            nonlocal cleared
+            if cleared:
                 return
-            __invalidate_module_cache(modules)
-            invalidated = True
+            __clear_module_cache(modules)
+            cleared = True
 
-        with patch.object(self, 'invalidate_module_cache', _invalidate_module_cache):
+        with patch.object(self, 'clear_module_cache', _clear_module_cache):
             return method(self, *args, **kwargs)
 
     return wrapper
