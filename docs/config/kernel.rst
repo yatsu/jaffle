@@ -24,6 +24,8 @@ Description
     .. _IPython kernel: https://github.com/ipython/ipykernel
     .. _Installing the IPython kernel: https://ipython.readthedocs.io/en/stable/install/kernel_install.html
 
+.. _pass_env:
+
 - **pass_env** ([str] | optional | default: [])
 
     ``pass_env`` defines environment variables which will be passed to the kernel. Jaffle itself has the environment variables defined in your environment, but the kernel will be launched as an independent process and the environment variables are not passed by default.

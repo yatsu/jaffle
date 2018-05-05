@@ -3,15 +3,17 @@
 [![Build Status](https://travis-ci.org/yatsu/jaffle.svg?branch=master)](https://travis-ci.org/yatsu/jaffle)
 [![Documentation Status](https://readthedocs.org/projects/jaffle/badge/?version=latest)](http://jaffle.readthedocs.io/en/latest/?badge=latest)
 
-Jaffle is a Python app and process orchestration tool for development
-environment leveraging [Jupyter](http://jupyter.org/) kernel and client
-technology.
+Jaffle is an automation tool for Python software development, which can do
 
-"Examples" section below shows what you can do with Jaffle.
-
-Although Jaffle is a generic framework, the project is now mainly focusing
-on providing auto-test, process management and unified logging for Python
-software development.
+- Create Python application instances in [Jupyter](http://jupyter.org/)
+  kernels
+    - The kernel can be attached from the interactive shell (``jaffle
+      console`` command)
+    - The Python application application can also be attached from its own
+      custom interactive shell (``jaffle attach`` command)
+- Launch external processes emulating TTY
+- Combine log messages of all Python applications and external processes
+    - Also supports filtering and reformatting
 
 ## Motivation
 
@@ -31,22 +33,36 @@ create a interactive client which connects to a running app using
 
 ## Warning
 
-- Jaffle is in a pre-alpha stage.
-    - Configurations and API may change without notice during this period.
-- Jaffle does not care much about security.
-    - Arbitrary Python code can be used in some part of ``jaffle.hcl``.
-    - You should not use it as a part of production environments.
+Jaffle is in a pre-alpha stage. The configurations and the API may change
+without notice during this period.
+
+Jaffle is intended to be a development tool and does not care much about
+security. Arbitrary Python code can be executed in ``jaffle.hcl`` and
+you should not use it as a part of production environment. ``jaffle.hcl``
+is like a Makefile or a shell script included in a source code repository.
+
+## Screenshot
+
+![tornado_spa example](https://github.com/yatsu/jaffle/blob/master/docs/cookbook/tornado_spa_example.gif)
+
+## Documentation
+
+[Jaffle documentation](http://jaffle.readthedocs.io )
 
 ## Examples
 
-### Simple Python project with auto-test
+[examples](https://github.com/yatsu/jaffle/tree/master/examples) directory
+includes some example projects and
+[Cookbook](http://jaffle.readthedocs.io/en/latest/cookbook/index.html)
+section of the document explains about them.
 
-[examples/pytest](https://github.com/yatsu/jaffle/tree/master/examples/pytest)
-is an example Python project which uses Jaffle to execute
-[pytest](https://docs.pytest.org/) automatically when a `.py` file is updated.
+Here is the simplest example.
 
-Here is the configuration file of Jaffle:
-[jaffle.hcl](https://github.com/yatsu/jaffle/blob/master/examples/pytest/jaffle.hcl).
+### Auto-testing with pytest
+
+Source code: [examples/pytest](https://github.com/yatsu/jaffle/tree/master/examples/pytest)
+
+jaffle.hcl
 
 ```hcl
 kernel "py_kernel" {}
@@ -72,19 +88,17 @@ app "pytest" {
     args = ["-s", "-v", "--color=yes"]
 
     auto_test = [
-      "jaffle_pytest_example/tests/test_*.py",
+      "pytest_example/tests/test_*.py",
     ]
 
     auto_test_map {
-      "jaffle_pytest_example/**/*.py" = "jaffle_pytest_example/tests/{}/test_{}.py"
+      "pytest_example/**/*.py" = "pytest_example/tests/{}/test_{}.py"
     }
   }
 }
 ```
 
-The file format of `jaffle.hcl` is
-[HCL](https://github.com/hashicorp/hc://github.com/hashicorp/hcl). If you
-prefer JSON, you can write it as JSON.
+The file format of `jaffle.hcl` is [HCL](https://github.com/hashicorp/hcl).
 
 `kernel "py_kernel" {}` creates a Jupyter kernel. "py_kernel" is a kernel
 instance name which is referred from apps.
@@ -105,119 +119,14 @@ by pytest.
 a file matches to the left-hand side, the right-hand side is executed by pytest
 replacing `{}`s with matched strings of `**` and `*`.
 
-The screen capture below shows how they work:
+[Here](http://jaffle.readthedocs.io/en/latest/cookbook/pytest.html) you
+can see the screenshot of this example.
 
-![pytest example](https://github.com/yatsu/jaffle/blob/master/assets/pytest_example.gif)
+Other examples are:
 
-- `jaffle start` starts a Jupyter kernel and instantiates apps in it.
-- When `jaffle_pytest_example/example.py` is updated, pytest executes
-  `jaffle_pytest_example/tests/test_example.py`.
-- `jaffle attach pytest` opens an interactive shell and attaches it into
-  `pytest` app.
-- The pytest interactive shell accepts a test target and executes it in
-  a Jupyter kernel of the app.
-
-### Tornado single-page web app
-
-[examples/tornado_spa](https://github.com/yatsu/jaffle/tree/master/examples/tornado_spa)
-is a single-page app (SPA) project using [Tornado](http://www.tornadoweb.org/).
-The front-end is created by [Create React
-App](https://github.com/facebook/create-react-app) (CRA).
-
-In the development environment, `yarn start` launches
-[webpack-dev-server](https://github.com/webpack/webpack-dev-server) which
-serves static contents. The Tornado web app only serves the back-end web API.
-
-This example runs the Tornado web app in a Jupyter kernel and manages
-webpack-dev-server as a separated process. You can start them all by just
-typing `jaffle start` and stop them by `Ctrl-C` as if they were one process.
-All log messages are unified in the console.
-
-Here is the `jaffle.hcl`:
-
-```hcl
-kernel "py_kernel" {}
-
-app "watchdog" {
-  class  = "jaffle.app.watchdog.WatchdogApp"
-  kernel = "py_kernel"
-
-  options {
-    handlers = [
-      {
-        patterns           = ["*.py"]
-        ignore_patterns    = ["*/tests/*.py"]
-        ignore_directories = true
-
-        code_blocks = [
-          "tornado_app.handle_watchdog_event({event})",
-          "pytest.handle_watchdog_event({event})",
-        ]
-      },
-      {
-        patterns           = ["*/tests/test_*.py"]
-        ignore_directories = true
-        code_blocks         = ["pytest.handle_watchdog_event({event})"]
-      },
-    ]
-  }
-}
-
-app "tornado_app" {
-  class  = "jaffle.app.tornado.TornadoApp"
-  kernel = "py_kernel"
-
-  options {
-    app_class = "jaffle_tornado_spa_example.app.ExampleApp"
-    args      = ["--port=9999"]
-  }
-
-  start = "tornado_app.start()"
-}
-
-app "pytest" {
-  class  = "jaffle.app.pytest.PyTestRunnerApp"
-  kernel = "py_kernel"
-
-  options {
-    args = ["-s", "-v", "--color=yes"]
-
-    auto_test = [
-      "jaffle_tornado_spa_example/tests/test_*.py",
-    ]
-
-    auto_test_map {
-      "jaffle_tornado_spa_example/**/*.py" = "jaffle_tornado_spa_example/tests/{}/test_{}.py"
-    }
-  }
-}
-
-process "frontend" {
-  command = "yarn start"
-
-  env {
-    BROWSER = "none"
-  }
-}
-```
-
-![tornado_spa example](https://github.com/yatsu/jaffle/blob/master/assets/tornado_spa_example.gif)
-
-- `jaffle start` instantiates apps in the Jupyter kernel and launches
-  `frontend` by executing `yarn start`
-- When `jaffle_tornado_spa_example/webapp.py` is updated, pytest executes
-  `jaffle_tornado_spa_example/tests/test_webapp.py` and the Tornado app
-  restarts.
-- When `src/App.js` is updated, webpack-dev-server recompiles the front-end
-  code (This is done outside of Jaffle).
-- `Ctrl-C` terminates the Jupyter kernel and the webpack-dev-server process.
-
-### Jupyter extension development
-
-[examples/jupyter_ext](https://github.com/yatsu/jaffle/tree/master/examples/jupyter_ext)
-is an example project that implements Jupyter serverextension and nbextension.
-Jaffle launches Jupyter Notebook server in a Jupyter kernel and manages server
-restart and reinstalling nbextension.
+- [Automatic Sphinx Document Build](http://jaffle.readthedocs.io/en/latest/cookbook/sphinx.html)
+- [Web Development with Tornado and React](http://jaffle.readthedocs.io/en/latest/cookbook/tornado_spa.html)
+- [Jupyter Extension Development](http://jaffle.readthedocs.io/en/latest/cookbook/jupyter_ext.html)
 
 ## Prerequisite
 

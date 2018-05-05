@@ -2,7 +2,34 @@
 Jaffle |version|
 ================
 
-.. note::
+Jaffle is an automation tool for Python software development, which can do
+
+- Create Python application instances in Jupyter_ kernels
+
+    - The kernel can be attached from the interactive shell (``jaffle console`` command)
+
+    - The Python application application can also be attached from its own custom interactive shell (``jaffle attach`` command)
+
+- Launch external processes
+
+- Combine log messages of all Python applications and external processes
+
+    - Also supports filtering and reformatting
+
+.. _Jupyter: https://jupyter.org/
+
+Screenshot
+==========
+
+.. figure:: cookbook/tornado_example.gif
+   :align: center
+
+   Developing a single-page web app using Tornado_ and React_
+
+.. _Tornado: http://www.tornadoweb.org/
+.. _React: https://reactjs.org/
+
+.. warning::
 
    Jaffle is in a pre-alpha stage.
    The configurations and the API may change without notice during this period.

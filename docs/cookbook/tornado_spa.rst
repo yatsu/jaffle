@@ -2,7 +2,7 @@
 Web Development with Tornado and React
 ======================================
 
-Here is an example Jaffle setup for the web development which uses Tornado and React to build the back-end API and the front-end web interface respectively.
+Here is an example Jaffle setup for the web development which uses Tornado_ and React_ to build the back-end API and the front-end web interface respectively.
 
 It does:
 
@@ -12,6 +12,8 @@ It does:
 - Restart the Tornado application when a related file is updated
 - Execute pytest_ when a related file is updated
 
+.. _Tornado: http://www.tornadoweb.org/
+.. _React: https://reactjs.org/
 .. _pytest: https://pytest.org/
 
 jaffle.hcl:
@@ -102,6 +104,7 @@ Screenshot
 ==========
 
 .. figure:: tornado_example.gif
+   :align: center
 
 .. note::
 

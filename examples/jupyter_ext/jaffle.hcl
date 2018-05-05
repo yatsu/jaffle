@@ -4,18 +4,13 @@ app "watchdog" {
   class  = "jaffle.app.watchdog.WatchdogApp"
   kernel = "py_kernel"
 
-  logger {
-    level = "info"
-  }
-
   options {
     handlers = [
       {
         patterns           = ["*.py"]
         ignore_patterns    = ["*/tests/*.py"]
         ignore_directories = true
-        invalidate         = ["jupyter_myext"]
-        throttle           = 0.5
+        invalidate_modules = ["jupyter_myext"]
 
         code_blocks = [
           "notebook.handle_watchdog_event({event})",
@@ -25,8 +20,7 @@ app "watchdog" {
       {
         patterns           = ["*/tests/test_*.py"]
         ignore_directories = true
-        invalidate         = ["jupyter_myext.tests"]
-        throttle           = 0.5
+        invalidate_modules = ["jupyter_myext.tests"]
 
         code_blocks = [
           "pytest.handle_watchdog_event({event})",
@@ -35,7 +29,6 @@ app "watchdog" {
       {
         patterns           = ["*.js"]
         ignore_directories = true
-        throttle           = 0.5
 
         code_blocks = [
           "nbext_install.handle_watchdog_event({event})",
@@ -49,10 +42,6 @@ app "notebook" {
   class  = "jaffle.app.tornado.TornadoBridgeApp"
   kernel = "py_kernel"
 
-  logger {
-    level = "info"
-  }
-
   options {
     app_class = "notebook.notebookapp.NotebookApp"
 
@@ -60,9 +49,9 @@ app "notebook" {
       "--port=9999",
       "--NotebookApp.token=''",
     ]
-  }
 
-  invalidate = []
+    invalidate_modules = []
+  }
 
   start = "notebook.start()"
 }
@@ -71,12 +60,8 @@ app "pytest" {
   class  = "jaffle.app.pytest.PyTestRunnerApp"
   kernel = "py_kernel"
 
-  logger {
-    level = "info"
-  }
-
   options {
-    args = ["-s", "-v", "--color=yes"]
+    args = ["-s", "--color=yes"]
 
     auto_test = [
       "jupyter_myext/tests/test_*.py",
@@ -85,16 +70,12 @@ app "pytest" {
     auto_test_map {
       "jupyter_myext/**/*.py" = "jupyter_myext/tests/{}/test_{}.py"
     }
-  }
 
-  invalidate = []
+    invalidate_modules = []
+  }
 }
 
 app "nbext_install" {
   class  = "jupyter_myext._devel.NBExtensionInstaller"
   kernel = "py_kernel"
-
-  logger {
-    level = "info"
-  }
 }

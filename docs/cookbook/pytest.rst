@@ -68,6 +68,7 @@ Screenshot
 ==========
 
 .. figure:: pytest_example.gif
+   :align: center
 
 .. note::
 
