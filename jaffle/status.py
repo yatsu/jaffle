@@ -158,7 +158,6 @@ class JaffleStatus(object):
         if file_path.exists():
             with filelock.FileLock(str(file_path) + '.lock').acquire(timeout=self._LOCK_TIMEOUT):
                 file_path.unlink()
-        Path(str(file_path) + '.lock').unlink()
 
 
 class JaffleSession(object):

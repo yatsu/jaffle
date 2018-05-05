@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from notebook.utils import check_pid
 import os
 from pathlib import Path
 import signal
 import sys
+import time
 from ...status import JaffleStatus
 from ..base import BaseJaffleCommand
 
@@ -30,30 +32,56 @@ jaffle stop
         """
         try:
             status = JaffleStatus.load(self.status_file_path)
-            print('Terminating process: {}'.format(status.pid))
+            print('Stopping Jaffle - PID: {}'.format(status.pid))
             os.kill(status.pid, signal.SIGTERM)
+
+            for _ in range(50000):
+                if check_pid(status. pid):
+                    print("PID {} has finished".format(status.pid))
+                    self._cleanup_runtime_dir(status)
+                    sys.exit(0)
+                time.sleep(0.1)
+
+            os.kill(status.pid, signal.SIGKILL)
+
+            for _ in range(50000):
+                if check_pid(status. pid):
+                    print("PID {} has finished".format(status.pid))
+                    self._cleanup_runtime_dir(status)
+                    sys.exit(0)
+                time.sleep(0.1)
+
+            print('Failed to stop Jaffle - PID: {}'.format(status.pid))
 
         except FileNotFoundError:
             print('Jaffle is not running - runtime_dir: {}' .format(self.runtime_dir),
                   file=sys.stderr)
-            self._cleanup_runtime_dir()
             self.exit(1)
 
         except ProcessLookupError:
             print('Jaffle has already stopped')
-            self._cleanup_runtime_dir()
+            self._cleanup_runtime_dir(status)
             self.exit(1)
 
-    def _cleanup_runtime_dir(self):
+    def _cleanup_runtime_dir(self, status):
         """
         Cleans up the runtime directory.
+
+        Parameters
+        ----------
+        status : JaffleStatus
+            Jaffle server status.
         """
         runtime_dir = Path(self.runtime_dir)
+        if not (runtime_dir / 'jaffle.json').exists():
+            return
         print('Cleaning up the runtime directory: {}'.format(self.runtime_dir))
-        self._unlink(runtime_dir / 'jaffle.json')
-        self._unlink(runtime_dir / 'jaffle.json.lock')
-        for conn_file in runtime_dir.glob('kernel-*.json'):
-            self._unlink(conn_file)
+        try:
+            for conn_file in runtime_dir.glob('kernel-*.json'):
+                self._unlink(conn_file)
+            status.destroy(runtime_dir / 'jaffle.json')
+        except FileNotFoundError:
+            pass
 
     def _unlink(self, file_path):
         """
