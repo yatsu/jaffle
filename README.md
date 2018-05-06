@@ -35,7 +35,7 @@ is like a Makefile or a shell script included in a source code repository.
 
 ## Screenshot
 
-![tornado_spa example](https://github.com/yatsu/jaffle/blob/master/docs/cookbook/tornado_spa_example.gif)
+![tornado_spa example](https://github.com/yatsu/jaffle/blob/master/docs/cookbook/tornado_example.gif)
 
 ## Documentation
 
