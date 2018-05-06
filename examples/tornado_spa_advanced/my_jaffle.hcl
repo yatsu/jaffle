@@ -1,3 +1,7 @@
+variable "watchdog_log_level" {
+  default = "debug"
+}
+
 variable "tornado_log_level" {
   default = "debug"
 }
@@ -8,6 +12,12 @@ variable "tornado_threaded" {
 
 variable "disable_jest" {
   default = true
+}
+
+app "watchdog" {
+  logger {
+    level = "${var.watchdog_log_level}"
+  }
 }
 
 app "tornado_app" {
@@ -27,8 +37,8 @@ process "jest" {
 logger {
   replace_regex = [
     {
-      from = "(invalidate|invalidating)"
-      to   = "\033[31m\\1\033[0m"
+      from = "^  clear: (.*)"
+      to   = "  clear: \033[31m\\1\033[0m"
     },
   ]
 }
