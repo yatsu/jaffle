@@ -62,10 +62,14 @@ Options
 
     Value assignments to the :doc:`variables </config/variable>`.
 
+.. _merging_multiple_configurations:
+
 Merging Multiple Configurations
 ===============================
 
-If multiple configuration files are provided, they are merged into the first configuration. Given that we have the following three configurations.
+If you provide multiple configuration files, Jaffle read the first file and then merges the rest one by one. Maps are merged deeply and other elements are overwritten.
+
+Given that we have the following three configurations.
 
 a.hcl:
 

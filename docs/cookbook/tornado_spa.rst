@@ -2,7 +2,7 @@
 Web Development with Tornado and React
 ======================================
 
-Here is an example Jaffle setup for the web development which uses Tornado_ and React_ to build the back-end API and the front-end web interface respectively.
+This is an example Jaffle configuration for the web development which uses Tornado_ and React_ to build the back-end API and the front-end web interface respectively.
 
 It does:
 
@@ -11,6 +11,8 @@ It does:
 - Launch Jest as an external process by executing ``yarn test``
 - Restart the Tornado application when a related file is updated
 - Execute pytest_ when a related file is updated
+
+This page assumes that you have already know the basic configuration for a pytest_. If not, please read the section :doc:`pytest`.
 
 .. _Tornado: http://www.tornadoweb.org/
 .. _React: https://reactjs.org/
@@ -99,6 +101,16 @@ jaffle.hcl:
       command = "yarn test"
       tty     = true
     }
+
+Clearing Module Cache
+=====================
+
+Since two applications ``tornado_app`` and ``pytest`` run in the same Jupyter kernel and share the same Python modules in memory, you should manually configure the cache clear. By default :doc:`/apps/tornado` and :doc:`/apps/pytest` clear the modules found under the current directory on receiving an Watchdog event. That causes duplicated cache clear on the same module. To prevent that, the configuration above has ``clear_cache = []`` in both ``tornado_app`` and ``pytest`` to disable cache clear and has ``clear_cache = ["tornado_spa"]`` in ``watchdog`` to let :doc:`/apps/watchdog` clear the module cache instead.
+
+.. note::
+
+    If ``clear_cache`` configuration is incorrect, :doc:`/apps/tornado` or :doc:`/apps/pytest` may not reload Python modules.
+
 
 Screenshot
 ==========

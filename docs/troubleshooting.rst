@@ -15,29 +15,29 @@ Each app has its own log-level setting. You can set it in ``jaffle.hcl``.
 
 .. code-block:: hcl
 
-  app "myapp" {
-    # ...
+    app "myapp" {
+      # ...
 
-    logger {
-      level = "debug"
+      logger {
+        level = "debug"
+      }
     }
-  }
 
 You can also set the log-level using a variable like this.
 
 .. code-block:: hcl
 
-  variable "myapp_log_level" {
-    default = "info"
-  }
-
-  app "myapp" {
-    # ...
-
-    logger {
-      level = "${var.myapp_log_level}"
+    variable "myapp_log_level" {
+      default = "info"
     }
-  }
+
+    app "myapp" {
+      # ...
+
+      logger {
+        level = "${var.myapp_log_level}"
+      }
+    }
 
 You can switch the log-level by providing the value as an environment variable.
 

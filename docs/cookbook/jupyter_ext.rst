@@ -109,7 +109,7 @@ jaffle.hcl:
 - L10-28: The handler configuration of pytest_ execution and Tornado restart, same as the example: :doc:`tornado_spa`.
 - L29-36: The handler configuration to install nbextension on detecting ``.js`` file update.
 - L41-57: Launch Jupyter notebook server via ``TornadoBridgeApp`` with the main IO loop of the kernel process.
-- L78-81: The definition of an app that installs nbextension.
+- L78-81: The definition of an app that installs the nbextension.
 
 .. _pytest: https://pytest.org/
 
