@@ -19,7 +19,7 @@ def jupyter_ext_example_dir():
     os.chdir(str(cwd_org))
 
 
-@pytest.mark.gen_test(timeout=10)
+@pytest.mark.gen_test(timeout=20)
 def test_jupyter_ext_example(jupyter_ext_example_dir):
     command = 'jaffle start --disable-color -y'
     proc = Subprocess(shlex.split(command), stdin=None, stderr=Subprocess.STREAM,
