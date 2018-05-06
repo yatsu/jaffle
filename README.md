@@ -89,12 +89,8 @@ exist in your environment. Tornado 5 is not yet supported.
 
 ## Installation
 
-Please install as follows until the first release:
-
 ```sh
-$ git clone https://github.com/yatsu/jaffle
-$ cd jaffle
-$ python setup.py install
+$ pip install jaffle
 ```
 
 You will also probably need pytest:
