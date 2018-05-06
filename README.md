@@ -18,25 +18,6 @@ Jaffle contains
 that can watch filesystem events and call arbitrary code or command.
 That allows you to automate testing, reloading applications, etc.
 
-## Examples
-
-- [Auto-testing with pytest](http://jaffle.readthedocs.io/en/latest/cookbook/pytest.html)
-- [Automatic Sphinx Document Build](http://jaffle.readthedocs.io/en/latest/cookbook/sphinx.html)
-- [Web Development with Tornado and React](http://jaffle.readthedocs.io/en/latest/cookbook/tornado_spa.html)
-- [Jupyter Extension Development](http://jaffle.readthedocs.io/en/latest/cookbook/jupyter_ext.html)
-
-
-# Warning
-
-Jaffle is intended to be a development tool and does not care much about
-security. Arbitrary Python code can be executed in ``jaffle.hcl`` and
-you should not use it as a part of production environment. ``jaffle.hcl``
-is like a Makefile or a shell script included in a source code repository.
-
-## Screenshot
-
-![tornado_spa example](https://github.com/yatsu/jaffle/blob/master/docs/cookbook/tornado_example.gif)
-
 ## PyPI Project
 
 [jaffle · PyPI](https://pypi.org/project/jaffle)
@@ -45,20 +26,21 @@ is like a Makefile or a shell script included in a source code repository.
 
 [Jaffle documentation](http://jaffle.readthedocs.io)
 
+## Screenshot
+
+![tornado_spa example](https://github.com/yatsu/jaffle/blob/master/docs/cookbook/tornado_example.gif)
+
 ## Examples
 
-[examples](https://github.com/yatsu/jaffle/tree/master/examples) directory
-includes some example projects and
-[Cookbook](http://jaffle.readthedocs.io/en/latest/cookbook/index.html)
-section of the document explains about them.
+- [Auto-testing with pytest](http://jaffle.readthedocs.io/en/latest/cookbook/pytest.html)
+- [Automatic Sphinx Document Build](http://jaffle.readthedocs.io/en/latest/cookbook/sphinx.html)
+- [Web Development with Tornado and React](http://jaffle.readthedocs.io/en/latest/cookbook/tornado_spa.html)
+- [Jupyter Extension Development](http://jaffle.readthedocs.io/en/latest/cookbook/jupyter_ext.html)
 
-Here is the simplest example.
+They are included in [examples](https://github.com/yatsu/jaffle/tree/master/examples) directory.
 
-### Auto-testing with pytest
-
-Source code: [examples/pytest](https://github.com/yatsu/jaffle/tree/master/examples/pytest)
-
-jaffle.hcl
+This is an example of ``jaffle.hcl`` for auto-testing.
+You can run it by ``jaffle start``.
 
 ```hcl
 kernel "py_kernel" {}
@@ -94,36 +76,6 @@ app "pytest" {
 }
 ```
 
-The file format of `jaffle.hcl` is [HCL](https://github.com/hashicorp/hcl).
-
-`kernel "py_kernel" {}` creates a Jupyter kernel. "py_kernel" is a kernel
-instance name which is referred from apps.
-
-"app" creates an app. In this example, `jaffle.app.watchdog.WatchdogApp` and
-`jaffle.app.pytest.PyTestRunnerApp` will be instantiated in the same Jupyter
-kernel `py_kernel`, and assigned to variable `watchdog` and `pytest`
-respectively.
-
-`WatchdogApp` can have multiple `handlers` which execute `code_blocks` on
-detecting filesystem update to a file that matches its `patterns`.
-
-`auto_test` option of `PyTestRunnerApp` includes test file patterns. When
-a file is updated which matches to these patterns, the file itself is executed
-by pytest.
-
-`auto_test_map` is a map from `.py` file patterns to test file patterns. When
-a file matches to the left-hand side, the right-hand side is executed by pytest
-replacing `{}`s with matched strings of `**` and `*`.
-
-[Here](http://jaffle.readthedocs.io/en/latest/cookbook/pytest.html) you
-can see the screenshot of this example.
-
-Other examples are:
-
-- [Automatic Sphinx Document Build](http://jaffle.readthedocs.io/en/latest/cookbook/sphinx.html)
-- [Web Development with Tornado and React](http://jaffle.readthedocs.io/en/latest/cookbook/tornado_spa.html)
-- [Jupyter Extension Development](http://jaffle.readthedocs.io/en/latest/cookbook/jupyter_ext.html)
-
 ## Prerequisite
 
 - UNIX-like OS
@@ -154,6 +106,13 @@ $ pip install pytest
 ## License
 
 BSD 3-Clause License
+
+## Warning
+
+Jaffle is intended to be a development tool and does not care much about
+security. Arbitrary Python code can be executed in ``jaffle.hcl`` and
+you should not use it as a part of production environment. ``jaffle.hcl``
+is like a Makefile or a shell script included in a source code repository.
 
 ## Related Work
 
