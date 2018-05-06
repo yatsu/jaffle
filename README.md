@@ -37,6 +37,10 @@ is like a Makefile or a shell script included in a source code repository.
 
 ![tornado_spa example](https://github.com/yatsu/jaffle/blob/master/docs/cookbook/tornado_example.gif)
 
+## PyPI Project
+
+[jaffle · PyPI](https://pypi.org/project/jaffle)
+
 ## Documentation
 
 [Jaffle documentation](http://jaffle.readthedocs.io)
