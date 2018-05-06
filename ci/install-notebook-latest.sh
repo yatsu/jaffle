@@ -1,6 +1,5 @@
 #!/bin/sh -eu
 
 pip install notebook pytest
-pip install -r $@
 
-pip install -e .
+pip install -e .[dev]

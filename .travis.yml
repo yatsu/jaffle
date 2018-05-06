@@ -29,7 +29,7 @@ matrix:
 
 before_install: pip install --upgrade pytest
 
-install: ./ci/install-${REQUIREMENTS}.sh requirements_dev.in
+install: ./ci/install-${REQUIREMENTS}.sh
 
 script: py.test
 
