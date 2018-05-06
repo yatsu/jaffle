@@ -2,8 +2,6 @@
 
 from codecs import open
 from os import path
-from pip.req import parse_requirements
-from pip.download import PipSession
 from setuptools import setup, find_packages
 from jaffle import __version__
 
@@ -11,11 +9,31 @@ from jaffle import __version__
 with open(path.join(path.dirname(__file__), 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-requirements = [str(r.req) for r in
-                parse_requirements('requirements.in', session=PipSession())]
-dev_requirements = [str(r.req) for r in
-                    parse_requirements('requirements_dev.in', session=PipSession())
-                    if r not in requirements]
+requirements = [
+    "filelock>=3.0.0,<4",
+    "ipython",
+    "jupyter-client",
+    "jupyter-console",
+    "jupyter-core",
+    "mako>=1.0.0",
+    "notebook>=5.0.0,<6",
+    "prompt-toolkit",
+    "pygments",
+    "pyhcl>=0.3.0",
+    "pyzmq",
+    "setuptools",
+    "tornado>=4.5,<5",
+    "traitlets",
+    "watchdog>=0.8.0"
+]
+
+dev_requirements = [
+    "flake8>=3.5.0",
+    "pip",
+    "pytest>=3.4.0",
+    "pytest-tornado>=0.4.0",
+    "watchdog>=0.8.0"
+]
 
 setup(
     name='jaffle',
@@ -25,7 +43,7 @@ setup(
     url='https://github.com/yatsu/jaffle',
     author='Jaffle Development Team',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
@@ -48,7 +66,6 @@ setup(
     install_requires=requirements,
     extras_require={
         'dev': dev_requirements,
-        'watchdog': ['watchdog>=0.8.0'],
         'pytest': ['pytest>=3.4.0']
     },
     test_require=['pytest', 'pytest-tornado'],

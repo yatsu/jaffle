@@ -3,6 +3,8 @@
 [![Build Status](https://travis-ci.org/yatsu/jaffle.svg?branch=master)](https://travis-ci.org/yatsu/jaffle)
 [![Documentation Status](https://readthedocs.org/projects/jaffle/badge/?version=latest)](http://jaffle.readthedocs.io/en/latest/?badge=latest)
 
+This project was renamed from 'Turret' to 'Jaffle'.
+
 Jaffle is an automation tool for Python software development, which can do
 
 - Create Python application instances in [Jupyter](http://jupyter.org/)
@@ -32,9 +34,6 @@ create a interactive client which connects to a running app using
 [prompt_toolkit](https://github.com/jonathanslenders/python-prompt-toolkit).
 
 ## Warning
-
-Jaffle is in a pre-alpha stage. The configurations and the API may change
-without notice during this period.
 
 Jaffle is intended to be a development tool and does not care much about
 security. Arbitrary Python code can be executed in ``jaffle.hcl`` and
@@ -133,10 +132,11 @@ Other examples are:
 - UNIX-like OS
     - Windows is not supported
 - Python >= 3.4
-- Jupyter Notebook >= 5.0
+- [Jupyter Notebook](https://jupyter.org/) >= 5.0
+- [Tornado](http://www.tornadoweb.org/) >= 4.5, < 5
 
-Jaffle also requires other libraries listed in `requirements.in`. They
-are automatically installed by the installer.
+Jupyter Notebook and Tornado will be installed automatically if they do not
+exist in your environment. Tornado 5 is not yet supported.
 
 ## Installation
 

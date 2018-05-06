@@ -31,9 +31,6 @@ Screenshot
 
 .. warning::
 
-   Jaffle is in a pre-alpha stage.
-   The configurations and the API may change without notice during this period.
-
    Jaffle is intended to be a development tool and does not care much about security. Arbitrary Python code can be executed in ``jaffle.hcl`` and you should not use it as a part of production environment. ``jaffle.hcl`` is like a Makefile or a shell script included in a source code repository.
 
 .. toctree::

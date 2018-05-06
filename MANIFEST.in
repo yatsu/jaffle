@@ -1,2 +1,9 @@
+include README.md
 include LICENSE
-include requirements*.in
+include requirements.txt
+graft jaffle
+graft examples
+global-exclude yarn.lock yarn-error.log *.py[co] tags
+recursive-exclude examples/*/node_modules *
+recursive-exclude examples/*/.pytest_cache *
+recursive-exclude examples/*/.jaffle *

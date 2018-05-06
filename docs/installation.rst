@@ -8,9 +8,13 @@ Prerequisite
 - UNIX-like OS
     - Windows is not supported
 - Python >= 3.4
-- Jupyter Notebook >= 5.0
+- `Jupyter Notebook`_ >= 5.0
+- Tornado_ >= 4.5, < 5
 
-Jaffle also requires other libraries listed in `requirements.in`. They are automatically installed by the installer.
+Jupyter Notebook and Tornado will be installed automatically if they do not exist in your environment. Tornado 5 is not yet supported.
+
+.. _`Jupyter Notebook`: https://jupyter.org/
+.. _`Tornado`: http://www.tornadoweb.org/
 
 Installation
 ============
