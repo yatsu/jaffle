@@ -1,38 +1,39 @@
 dist: trusty
-
 sudo: false
-
 language: python
-
 cache: pip
-
 matrix:
   include:
-    - python: 3.4
-      env: REQUIREMENTS=notebook-5_0
-    - python: 3.4
-      env: REQUIREMENTS=notebook-latest
-    - python: 3.5
-      env: REQUIREMENTS=notebook-5_2
-    - python: 3.5
-      env: REQUIREMENTS=notebook-latest
-    - python: 3.6
-      env: REQUIREMENTS=notebook-5_0
-    - python: 3.6
-      env: REQUIREMENTS=notebook-5_1
-    - python: 3.6
-      env: REQUIREMENTS=notebook-5_2
-    - python: 3.6
-      env: REQUIREMENTS=notebook-5_3
-    - python: 3.6
-      env: REQUIREMENTS=notebook-latest
-
+  - python: 3.4
+    env: REQUIREMENTS=notebook-5_0
+  - python: 3.4
+    env: REQUIREMENTS=notebook-latest
+  - python: 3.5
+    env: REQUIREMENTS=notebook-5_2
+  - python: 3.5
+    env: REQUIREMENTS=notebook-latest
+  - python: 3.6
+    env: REQUIREMENTS=notebook-5_0
+  - python: 3.6
+    env: REQUIREMENTS=notebook-5_1
+  - python: 3.6
+    env: REQUIREMENTS=notebook-5_2
+  - python: 3.6
+    env: REQUIREMENTS=notebook-5_3
+  - python: 3.6
+    env: REQUIREMENTS=notebook-latest
 before_install: pip install --upgrade pytest
-
-install: ./ci/install-${REQUIREMENTS}.sh
-
+install: "./ci/install-${REQUIREMENTS}.sh"
 script: py.test
-
+deploy:
+  provider: pypi
+  user: yatsu
+  password:
+    secure: AIJ7o1zISBLQcK1gIYQLUby/GApCTWEUMRDXHn+wDvBxz9G5SMegFWyEoGAgvlyFJ5rhBBNWmbAowK/0LZSXA12gqRXof/lqwGUuGSEEz7biubpxf8Om5+6vemt1t2xUEFQJhu/G6FnZAH3bG15AKKWO2zEe5OCXW4YHYx8S80lp75T5vlq7gUIZpeRzqjRa6LNTk01wf3Fo3NYa6NYy/JCM7jtXEJiEjAB8gIR2MzWeXeIhYTet/e28XkBXLRMsBkncZdiWYzgi5rHpu6NuDLlj2V0DTNx9pJOQTtu6PTYqnq7gI3c7QPnf2iXgI8RRoQq5ILJZjlRq9NWgeBMZkkWA+OaIDBba5MEA/FehRRIjAEgETLMhDTa83FBYynEJxonJcVAPS28uCgFM39XYYBaQ7+Mi5a7b+xcIkJgBPl1vavOkB8VlaFV0vWocL5PSA3Zq2q8oswhuqPr7jiE016akmGMsOLuiM1v/8oYYeKS0HIfjRO+N0zphhZ04Qo3S1qhPA6GLz/4l3ibepjWAjy65V3jU3y1nTjfWr7I5UuHgXV1Xhp4lDL68Osk8IXu5DrBFe9C+Cn0ih0fv9A1chBOAq0ecfTA7EGGcmKAqRhIiTOt5PpTpZhQTgepaCxXrZv0Q1uPhfFyezTu75zVacPLp68SG6FZ3B9/3H9degEU=
+  distributions: sdist bdist_wheel
+  on:
+    tags: true
+    branch: master
 notifications:
   email:
     on_success: never
