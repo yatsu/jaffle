@@ -22,7 +22,7 @@ matrix:
     env: REQUIREMENTS=notebook-5_3
   - python: 3.6
     env: REQUIREMENTS=notebook-latest
-before_install: pip install --upgrade pytest
+before_install: pip install --upgrade pip setuptools disttools pytest
 install: "./ci/install-${REQUIREMENTS}.sh"
 script: py.test
 deploy:
