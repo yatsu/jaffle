@@ -30,7 +30,7 @@ app "watchdog" {
           "*/docs/*.*",
         ]
 
-        ignore_patterns    = ["*/_build/*"]
+        ignore_patterns    = ["*/_build/*", "*/dist/*"]
         ignore_directories = true
         throttle           = 0.5
 
