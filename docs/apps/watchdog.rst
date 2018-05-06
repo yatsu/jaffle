@@ -18,14 +18,12 @@ Example Configuration
       kernel = "py_kernel"
 
       options {
-        handlers = [
-          {
-            patterns           = ["*.py"]
-            ignore_patterns    = ["*/tests/*.py"]
-            ignore_directories = true
-            functions          = ["pytest.handle_watchdog_event({event})"]
-          },
-        ]
+        handlers = [{
+          patterns           = ["*.py"]
+          ignore_patterns    = ["*/tests/*.py"]
+          ignore_directories = true
+          functions          = ["pytest.handle_watchdog_event({event})"]
+        }]
       }
     }
 

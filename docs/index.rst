@@ -2,19 +2,14 @@
 Jaffle |version|
 ================
 
-Jaffle is an automation tool for Python software development, which can do
+Jaffle is an automation tool for Python software development, which does:
 
-- Create Python application instances in Jupyter_ kernels
-
-    - The kernel can be attached from the interactive shell (``jaffle console`` command)
-
-    - The Python application application can also be attached from its own custom interactive shell (``jaffle attach`` command)
-
+- Instantiate Python applications in a Jupyter_ kernel and allows them to call each other
 - Launch external processes
-
 - Combine log messages of all Python applications and external processes
+  enabling filtering and reformatting
 
-    - Also supports filtering and reformatting
+Jaffle contains :doc:`WatchdogApp </apps/watchdlog>` that can watch filesystem events and call arbitrary code or command. That allows you to automate testing, reloading applications, etc.
 
 .. _Jupyter: https://jupyter.org/
 

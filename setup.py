@@ -1,13 +1,50 @@
 # -*- coding: utf-8 -*-
+# flake8: noqa
 
-from codecs import open
-from os import path
 from setuptools import setup, find_packages
 from jaffle import __version__
 
 
-with open(path.join(path.dirname(__file__), 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
+long_description = '''
+Jaffle is an automation tool for Python software development, which does:
+
+- Instantiate Python applications in a Jupyter kernel and allows them to call
+  each other
+- Launch external processes
+- Combine log messages of all Python applications and external processes
+  enabling filtering and reformatting
+
+Jaffle contains WatchdogApp that can watch filesystem events and call
+arbitrary code or command. That allows you to automate testing, reloading
+applications, etc.
+
+Examples
+========
+
+- `Auto-testing with pytest`_
+- `Automatic Sphinx Document Build`_
+- `Web Development with Tornado and React`_
+- `Jupyter Extension Development`_
+
+.. _`Auto-testing with pytest`: http://jaffle.readthedocs.io/en/latest/cookbook/pytest.html
+.. _`Automatic Sphinx Document Build`: http://jaffle.readthedocs.io/en/latest/cookbook/sphinx.html
+.. _`Web Development with Tornado and React`: http://jaffle.readthedocs.io/en/latest/cookbook/tornado_spa.html
+.. _`Jupyter Extension Development`: http://jaffle.readthedocs.io/en/latest/cookbook/jupyter_ext.html
+
+GitHub Respository
+==================
+
+`yatsu/jaffle`_
+
+.. _`yatsu/jaffle`: https://github.com/yatsu/jaffle
+
+Documentation
+=============
+
+`Jaffle documentation`_
+
+.. _`Jaffle documentation`: http://jaffle.readthedocs.io
+'''.strip()
 
 requirements = [
     "filelock>=3.0.0,<4",

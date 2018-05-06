@@ -5,35 +5,28 @@
 
 This project was renamed from 'Turret' to 'Jaffle'.
 
-Jaffle is an automation tool for Python software development, which can do
+Jaffle is an automation tool for Python software development, which does:
 
-- Create Python application instances in [Jupyter](http://jupyter.org/)
-  kernels
-    - The kernel can be attached from the interactive shell (``jaffle
-      console`` command)
-    - The Python application application can also be attached from its own
-      custom interactive shell (``jaffle attach`` command)
-- Launch external processes emulating TTY
+- Instantiate Python applications in a [Jupyter](http://jupyter.org/) kernel
+  and allows them to call each other
+- Launch external processes
 - Combine log messages of all Python applications and external processes
-    - Also supports filtering and reformatting
+  enabling filtering and reformatting
 
-## Motivation
+Jaffle contains
+[WatchdogApp](http://jaffle.readthedocs.io/en/latest/apps/watchdog.html)
+that can watch filesystem events and call arbitrary code or command.
+That allows you to automate testing, reloading applications, etc.
 
-Recent applications consist of multiple processes. Containers and orchestration
-tools for them are great fit for production services, but in a development
-environment, process management in a single machine is still important because
-developers need to write code and test faster.
-[Foreman](https://github.com/ddollar/foreman) and [its
-ports](https://github.com/ddollar/foreman#ports) accomplish that.
+## Examples
 
-Jaffle takes this one step further. What if we can launch multiple apps and
-developing tools in one Jupyter kernel instance? They can share imported
-modules and communicate with each other easily. Also it makes possible to
-create a interactive client which connects to a running app using
-[jupyter-client](https://github.com/jupyter/jupyter_client) and
-[prompt_toolkit](https://github.com/jonathanslenders/python-prompt-toolkit).
+- [Auto-testing with pytest](http://jaffle.readthedocs.io/en/latest/cookbook/pytest.html)
+- [Automatic Sphinx Document Build](http://jaffle.readthedocs.io/en/latest/cookbook/sphinx.html)
+- [Web Development with Tornado and React](http://jaffle.readthedocs.io/en/latest/cookbook/tornado_spa.html)
+- [Jupyter Extension Development](http://jaffle.readthedocs.io/en/latest/cookbook/jupyter_ext.html)
 
-## Warning
+
+# Warning
 
 Jaffle is intended to be a development tool and does not care much about
 security. Arbitrary Python code can be executed in ``jaffle.hcl`` and
@@ -46,7 +39,7 @@ is like a Makefile or a shell script included in a source code repository.
 
 ## Documentation
 
-[Jaffle documentation](http://jaffle.readthedocs.io )
+[Jaffle documentation](http://jaffle.readthedocs.io)
 
 ## Examples
 
@@ -173,6 +166,6 @@ BSD 3-Clause License
       executes pytest as a subprocess.
 - [Foreman](https://github.com/ddollar/foreman)
     - Procfile-based process manager.
-- [coloredlogcat.py](http://jsharkey.org/logcat/) and [PID
-  Cat](https://github.com/JakeWharton/pidcat)
+- [coloredlogcat.py](http://jsharkey.org/logcat/) and
+  [PID Cat](https://github.com/JakeWharton/pidcat)
     - Android logcat modifier. Jaffle's log formatter was inspired by them.
