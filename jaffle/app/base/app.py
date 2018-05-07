@@ -202,6 +202,15 @@ class BaseJaffleApp(object):
         )
         return stream
 
+    def close_jaffle_streams(self):
+        """
+        Closes Jaffle ZeroMQ streams opened in threads.
+        """
+        for thread_id, stream in [(i, s) for i, s in self._jaffle_streams.items()
+                                  if i != threading.main_thread().ident]:
+            stream.close()
+            del self._jaffle_streams[thread_id]
+
 
 def clear_module_cache_once(method):
     """

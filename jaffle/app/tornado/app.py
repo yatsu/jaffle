@@ -126,8 +126,19 @@ class TornadoBridgeApp(BaseJaffleApp):
         self.log.info('Stopping %s', type(self.app).__name__)
 
         if self.threaded:
-            self.app.stop()
-            self.thread = None
+            __add_callback = self.main_io_loop.add_callback
+
+            def _add_callback(callback):
+                def new_callback():
+                    with patch.object(self.main_io_loop, 'stop'):
+                        callback()
+                        self.thread.close()
+                        self.thread = None
+
+                __add_callback(new_callback)
+
+            with patch.object(self.main_io_loop, 'add_callback', _add_callback):
+                self.app.stop()
         else:
             __add_callback = self.main_io_loop.add_callback
 
@@ -145,8 +156,9 @@ class TornadoBridgeApp(BaseJaffleApp):
         """
         Restarts the tornado app.
         """
-        self.clear_module_cache(self.clear_cache)
         self.stop()
+        self.clear_module_cache(self.clear_cache)
+        self.close_jaffle_streams()
         ioloop.IOLoop.current().add_callback(self.start)
 
     def handle_watchdog_event(self, event):
