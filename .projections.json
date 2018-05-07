@@ -1,10 +1,10 @@
 {
-  "turret/tests/unit/**/test_*.py": {
+  "jaffle/tests/unit/**/test_*.py": {
     "type": "unittest",
-    "alternate": "turret/{dirname}/{basename}.py"
+    "alternate": "jaffle/{dirname}/{basename}.py"
   },
-  "turret/*.py": {
+  "jaffle/*.py": {
     "type": "src",
-    "alternate": "turret/tests/unit/{dirname}/test_{basename}.py"
+    "alternate": "jaffle/tests/unit/{dirname}/test_{basename}.py"
   }
 }
