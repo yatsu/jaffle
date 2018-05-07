@@ -38,7 +38,7 @@ logger {
   replace_regex = [
     {
       from = "^  clear: (.*)"
-      to   = "  clear: \033[31m\\1\033[0m"
+      to   = "  clear: ${fg('blue')}\\1${reset()}"
     },
   ]
 }

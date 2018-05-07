@@ -62,6 +62,21 @@ exec()
 
 .. autofunction:: exec
 
+fg()
+----
+
+.. autofunction:: fg
+
+bg()
+----
+
+.. autofunction:: bg
+
+reset()
+-------
+
+.. autofunction:: reset
+
 Filters
 =======
 
