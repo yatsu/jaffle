@@ -119,47 +119,56 @@ class TornadoBridgeApp(BaseJaffleApp):
                 self.app.start()
 
     @capture_method_output
-    def stop(self):
+    def stop(self, stop_callback=None):
         """
         Stops the Tornado app.
+
+        Parameters
+        ----------
+        stop_callback : function
+            Callback to be called after ``app.stop()``.
         """
         self.log.info('Stopping %s', type(self.app).__name__)
 
         if self.threaded:
-            __add_callback = self.main_io_loop.add_callback
-
-            def _add_callback(callback):
-                def new_callback():
-                    with patch.object(self.main_io_loop, 'stop'):
-                        callback()
-                        self.thread.close()
-                        self.thread = None
-
-                __add_callback(new_callback)
-
-            with patch.object(self.main_io_loop, 'add_callback', _add_callback):
-                self.app.stop()
+            app_io_loop = self.thread.ioloop
         else:
-            __add_callback = self.main_io_loop.add_callback
+            app_io_loop = self.main_io_loop
 
-            def _add_callback(callback):
-                def new_callback():
-                    with patch.object(self.main_io_loop, 'stop'):
-                        callback()
+        add_callback_org = app_io_loop.add_callback
 
-                __add_callback(new_callback)
+        def add_callback(callback_org):
+            def new_callback():
+                with patch.object(app_io_loop, 'stop'):
+                    callback_org()
+                    self.app = None
 
-            with patch.object(self.main_io_loop, 'add_callback', _add_callback):
-                self.app.stop()
+                    if self.threaded:
+                        def stop_thread():
+                            self.thread.stop()
+                            self.thread = None
+                            if stop_callback():
+                                stop_callback()
+
+                        self.main_io_loop.add_callback(stop_thread)
+                    else:
+                        if stop_callback():
+                            stop_callback()
+
+            add_callback_org(new_callback)
+
+        with patch.object(app_io_loop, 'add_callback', add_callback):
+            self.app.stop()
 
     def restart(self):
         """
         Restarts the tornado app.
         """
-        self.stop()
-        self.clear_module_cache(self.clear_cache)
-        self.close_jaffle_streams()
-        ioloop.IOLoop.current().add_callback(self.start)
+        def stop_callback():
+            self.clear_module_cache(self.clear_cache)
+            self.start()
+
+        self.stop(stop_callback)
 
     def handle_watchdog_event(self, event):
         """

@@ -4,14 +4,11 @@ from functools import wraps
 import logging
 import shlex
 import sys
-import threading
-from tornado import gen, ioloop
+from tornado import gen
 from tornado.escape import to_unicode
 from tornado.iostream import StreamClosedError
 from tornado.process import Subprocess
 from unittest.mock import patch
-import zmq
-from zmq.eventloop import zmqstream
 from ...job import Job
 from ...status import JaffleStatus
 from .logging import JaffleAppLogHandler
@@ -52,7 +49,7 @@ class BaseJaffleApp(object):
         self.log = logging.getLogger(app_name)
         level = jaffle_conf.get('app', {})[app_name].get('logger', {}).get('level', 'info')
         self.log.setLevel(getattr(logging, level.upper()))
-        self.log.handlers = [JaffleAppLogHandler(app_name, self.jaffle_stream)]
+        self.log.handlers = [JaffleAppLogHandler(app_name, self.jaffle_port)]
         self.log.propagate = False
 
         self.jobs = {}
@@ -61,8 +58,6 @@ class BaseJaffleApp(object):
             logger.parent = self.log
             logger.setLevel(self.log.level)
             self.jobs[job_name] = Job(logger, job_name, job_data.get('command'))
-
-        self._jaffle_streams = {}
 
     def execute_code(self, code, *args, **kwargs):
         """
@@ -178,38 +173,6 @@ class BaseJaffleApp(object):
             Code to be executed.
         """
         raise NotImplementedError('Must be implemented to support attaching')
-
-    def jaffle_stream(self):
-        """
-        Returns the Jaffle ZeroMQ stream for the current thread.
-        Each thread must have its own ZeroMQ stream.
-
-        Returns
-        -------
-        stream : zmq.eventloop.zmqstream.ZMQStream
-            Jaffle ZeroMQ stream for the current thread.
-        """
-        current_thread_id = threading.current_thread().ident
-
-        if current_thread_id in self._jaffle_streams:
-            return self._jaffle_streams[current_thread_id]
-
-        ctx = zmq.Context.instance()
-        socket = ctx.socket(zmq.PUSH)
-        socket.connect('tcp://127.0.0.1:{0}'.format(self.jaffle_port))
-        stream = self._jaffle_streams[current_thread_id] = (
-            zmqstream.ZMQStream(socket, ioloop.IOLoop.current())
-        )
-        return stream
-
-    def close_jaffle_streams(self):
-        """
-        Closes Jaffle ZeroMQ streams opened in threads.
-        """
-        for thread_id, stream in [(i, s) for i, s in self._jaffle_streams.items()
-                                  if i != threading.main_thread().ident]:
-            stream.close()
-            del self._jaffle_streams[thread_id]
 
 
 def clear_module_cache_once(method):
