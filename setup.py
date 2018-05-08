@@ -77,6 +77,8 @@ setup(
     version=__version__,
     description='Python app and process orchestration tool for development environment',
     long_description=long_description,
+    author='Jaffle Development Team',
+    author_email='jaffle@yatsu.info',
     url='https://github.com/yatsu/jaffle',
     author='Jaffle Development Team',
     classifiers=[
@@ -105,7 +107,6 @@ setup(
         'dev': dev_requirements,
         'pytest': ['pytest>=3.4.0']
     },
-    test_require=['pytest', 'pytest-tornado'],
     include_package_data=True,
     entry_points={
         'console_scripts': [
