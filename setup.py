@@ -80,7 +80,6 @@ setup(
     author='Jaffle Development Team',
     author_email='jaffle@yatsu.info',
     url='https://github.com/yatsu/jaffle',
-    author='Jaffle Development Team',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
