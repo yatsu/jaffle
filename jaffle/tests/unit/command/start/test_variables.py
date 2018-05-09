@@ -33,7 +33,7 @@ def test_get_hcl_value_default():
     vn = VariablesNamespace()
     with patch.object(vn, '_get_python_type', return_value=str):
         value = vn._get_hcl_value('foo', {'default': 'hello'}, NOT_FOUND)
-        assert value == '"hello"'
+        assert value == 'hello'
         value = vn._get_hcl_value('foo', {'default': None}, NOT_FOUND)
         assert value == 'null'
         value = vn._get_hcl_value('foo', {'default': True}, NOT_FOUND)
@@ -58,9 +58,9 @@ def test_get_hcl_value_env_var_str():
     vn = VariablesNamespace()
     with patch.object(vn, '_get_python_type', return_value=str):
         value = vn._get_hcl_value('foo', {'default': None}, 'hello')
-        assert value == '"hello"'
+        assert value == 'hello'
         value = vn._get_hcl_value('foo', {'default': None}, 'true')
-        assert value == '"true"'
+        assert value == 'true'
 
 
 def test_get_hcl_value_env_var_bool():

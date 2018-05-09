@@ -14,26 +14,6 @@ variable "disable_jest" {
   default = true
 }
 
-app "watchdog" {
-  logger {
-    level = "${var.watchdog_log_level}"
-  }
-}
-
-app "tornado_app" {
-  logger {
-    level = "${var.tornado_log_level}"
-  }
-
-  options {
-    threaded = "${var.tornado_threaded}"
-  }
-}
-
-process "jest" {
-  disabled = "${var.disable_jest}"
-}
-
 logger {
   replace_regex = [
     {

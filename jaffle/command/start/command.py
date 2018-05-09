@@ -12,7 +12,7 @@ try:
     from notebook.transutils import _  # noqa: required to import notebook classes
 except ImportError:
     pass
-from functools import partial
+from functools import partial, reduce
 import hcl
 import json
 from jupyter_client.kernelspec import KernelSpecManager
@@ -37,7 +37,7 @@ from ...kernel_client import JaffleKernelClient
 from ...process import Process
 from ...session import JaffleSessionManager
 from ...status import JaffleStatus
-from ...utils import deep_merge
+from ...utils import deep_merge, bool_value
 from ..base import BaseJaffleCommand
 from ..functions import functions
 from .variables import VariablesNamespace
@@ -184,7 +184,7 @@ class JaffleStartCommand(BaseJaffleCommand):
 
     def load_conf(self):
         """
-        Loads config from ``jaffle.hcl``.
+        Loads the configuration.
         """
         try:
             vars = {k[len(self._VAR_PREFIX):]: v for k, v in os.environ.items()
@@ -193,7 +193,8 @@ class JaffleStartCommand(BaseJaffleCommand):
             ns = {k: v for k, v in os.environ.items()
                   if self._ENV_PATTERN.search(k) and not self._VAR_PATTERN.search(k)}
             ns.update({f.__name__: f for f in functions})
-            self.conf = deep_merge(*(self._load_conf_file(f, vars, ns)
+            vars_conf = reduce(partial(self._load_variable_conf, ns), self.conf_files, {})
+            self.conf = deep_merge(*(self._load_conf_file(f, vars_conf, vars, ns)
                                      for f in self.conf_files))
 
         except ValueError as e:
@@ -284,7 +285,33 @@ class JaffleStartCommand(BaseJaffleCommand):
 
         self.io_loop.stop()
 
-    def _load_conf_file(self, conf_file_path, vars, namespace):
+    def _load_variable_conf(self, namespace, vars_conf, conf_file_path):
+        """
+        Loads variable configurations from a file and merges into ``vars_conf``.
+
+        Parameters
+        ----------
+        namespace : dict
+            Namespace for the configuration template.
+            It will be updated in this method.
+        vars_conf : dict
+            Variable configurations.
+        conf_file_path : pathlib.Path
+            Configuration file path.
+
+        Returns
+        -------
+        vars_conf : dict
+            Merged variable configurations.
+        """
+        template = Template(filename=str(conf_file_path))
+        # Use the dummy ``var`` to load variables
+        ns = dict(namespace, var=VariablesNamespace(keep_undefined_vars=True))
+        rendered = template.render(**ns)
+        conf = hcl.loads(rendered)
+        return deep_merge(vars_conf, conf.get('variable', {}))
+
+    def _load_conf_file(self, conf_file_path, vars_conf, vars, namespace):
         """
         Loads config from a configuration file.
 
@@ -292,6 +319,8 @@ class JaffleStartCommand(BaseJaffleCommand):
         ----------
         conf_file_path : pathlib.Path
             Configuration file path.
+        vars_conf : dict
+            Variable configurations.
         vars : dict
             Environment variables.
         namespace : dict
@@ -305,22 +334,11 @@ class JaffleStartCommand(BaseJaffleCommand):
         """
         template = Template(filename=str(conf_file_path))
 
-        # Use the dummy ``var`` to load variables
-        old_var = namespace.get('var', VariablesNamespace({}))
-        namespace['var'] = VariablesNamespace(keep_undefined_vars=True)
-        first_rendered = template.render(**namespace)
-        conf_for_vars = hcl.loads(first_rendered)
-
-        # Convert "${var.foo}" to ${var.foo}
-        template = Template(re.sub(r'"(\$\{.*\})"', r'\1', first_rendered))
-
-        # Insert the real variables to ``var`` and load the config again
-        namespace['var'] = VariablesNamespace(
-            deep_merge(old_var.var_defs, conf_for_vars.get('variable', {})),
-            vars=vars
-        )
-        self.log.debug('variables: %s', namespace['var'])
-        return hcl.loads(template.render(**namespace))
+        ns = dict(namespace, var=VariablesNamespace(vars_conf, vars=vars))
+        self.log.debug('variables: %s', ns['var'])
+        rendered = template.render(**ns)
+        # self.log.debug('rendered config: %s', rendered)
+        return hcl.loads(rendered)
 
     @gen.coroutine
     def _start_sessions(self):
@@ -367,7 +385,7 @@ class JaffleStartCommand(BaseJaffleCommand):
                                                  for k, v in env.items()]))
 
                 for app_name, app_data in apps.items():
-                    if app_data.get('disabled', False):
+                    if bool_value(app_data.get('disabled', False)):
                         continue
                     logger = logging.getLogger(app_name)
                     logger.parent = self.log
@@ -441,7 +459,7 @@ class JaffleStartCommand(BaseJaffleCommand):
         """
         processes = []
         for proc_name, proc_data in self.conf.get('process', {}).items():
-            if proc_data.get('disabled', False):
+            if bool_value(proc_data.get('disabled', False)):
                 continue
             logger = logging.getLogger(proc_name)
             logger.parent = self.log
@@ -498,8 +516,7 @@ class JaffleStartCommand(BaseJaffleCommand):
         """
         # register more forceful signal handler for ^C^C case
         signal.signal(signal.SIGINT, self._signal_stop)
-        # request confirmation dialog in bg thread, to avoid
-        # blocking the App
+        # request confirmation dialog in bg thread, to avoid blocking the App
         thread = threading.Thread(target=self._confirm_exit)
         thread.daemon = True
         thread.start()

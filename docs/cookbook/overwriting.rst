@@ -48,13 +48,7 @@ And this ``my_jaffle.hcl``.
       default = "debug" # overwrite "info" => "debug"
     }
 
-    app "watchdog" {
-      logger {
-        level = "${var.watchdog_log_level}" # this line is required
-      }
-    }
-
-The configuration will be as follows. Note that the lines 5-9 of ``my_jaffle.hcl`` are required because the variables of the same lines of ``jaffle.hcl`` are already resolved by real values.
+The configuration will be merged as follows.
 
 .. code-block:: hcl
     :linenos:

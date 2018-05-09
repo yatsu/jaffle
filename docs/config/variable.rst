@@ -50,7 +50,10 @@ It cannot be used outside of a string even though the target attribute requires 
 
     disabled = ${var.disable_frontend} # NG
 
-Jaffle replaces the pattern ``"${...}"`` with ``${...}``. If the whole string is the embedding a variable, the quotation marks are removed. So the above example will be recognized by Jaffle as follows at runtime:
+In Jaffle, the following strings can be treated as boolean values:
+
+- ``'true'`` and ``'1'`` => ``true``
+- ``'false'`` and ``'0'`` => ``false``
 
 .. code-block:: hcl
 

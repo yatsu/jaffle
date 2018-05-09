@@ -149,19 +149,24 @@ b.hcl:
 
     process "server" {
       command  = "${var.server_command} --debug"
-      disabled = "${var.disable_server}" # this line is required to set true
     }
 
-The merged configuration will be:
+The configurations will be merged as follows:
 
 .. code-block:: hcl
 
-    process "server" {
-      command  = "server_start --debug"
-      disabled = true
+    variable "server_command" {
+      default = "start_server"
     }
 
-Note that the line ``disabled = "${var.disable_server}"`` in b.hcl is required because the same line in a.hcl is already resolved as ``disabled = false`` before evaluating b.hcl.
+    variable "disable_server" {
+      default = true
+    }
+
+    process "server" {
+      command  = "${var.server_command} --debug"
+      disabled = "${var.disable_server}"
+    }
 
 .. tip::
 

@@ -27,11 +27,11 @@ def test_deep_merge():
     assert a == {'a': [1, 2]}
     assert b == {'a': [3, 4]}
 
-    a = {'a': {'b': 1, 'd': {'e': 3, 'f': 4}}}
+    a = {'a': {'b': 1, 'd': {'e': [3], 'f': 4}}}
     b = {'a': {'c': 2, 'd': {'e': [1, 2], 'g': 5}}}
     result = deep_merge(a, b)
     assert result == {'a': {'b': 1, 'c': 2, 'd': {'e': [1, 2], 'f': 4, 'g': 5}}}
-    assert a == {'a': {'b': 1, 'd': {'e': 3, 'f': 4}}}
+    assert a == {'a': {'b': 1, 'd': {'e': [3], 'f': 4}}}
     assert b == {'a': {'c': 2, 'd': {'e': [1, 2], 'g': 5}}}
 
 

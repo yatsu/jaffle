@@ -285,7 +285,37 @@ def test_start_sessions(command):
     assert exec_args[1] == {'silent': True}
 
 
-def test_load_conf(tmpdir):
+def test_load_conf(command):
+    conf = {'kernel': {'foo': {}}}
+
+    def my_func():
+        return 'my_func'
+
+    functions = [my_func]
+
+    vars_conf = {}
+    vars = {}
+
+    with patch('jaffle.command.start.command.os.environ', {'FOO': 'foo', 'BAR': 'bar'}):
+        with patch('jaffle.command.start.command.functions', functions):
+            with patch.object(command, '_load_variable_conf', return_value=vars_conf) \
+                    as load_variable_conf:
+                with patch.object(command, '_load_conf_file', return_value=conf) \
+                        as load_conf_file:
+                    command.load_conf()
+
+    assert command.conf == {'kernel': {'foo': {}}}
+
+    load_variable_conf.assert_called_once_with(
+        {'FOO': 'foo', 'BAR': 'bar', 'my_func': my_func}, {}, Path('jaffle.hcl')
+    )
+    load_conf_file.assert_called_once_with(
+        Path('jaffle.hcl'), vars_conf, vars,
+        {'FOO': 'foo', 'BAR': 'bar', 'my_func': my_func}
+    )
+
+
+def test_load_conf_file(tmpdir, command):
     conf_file = tmpdir.join('jaffle.hcl')
     conf_file.write('''
 kernel "${FOO}" {
@@ -295,16 +325,16 @@ kernel "${FOO}" {
     "${exec('echo -n \"hello\"')}",
   ]
 }
-    ''')
+    '''.strip())
 
-    with patch('jaffle.command.start.command.os.environ', {'FOO': 'foo', 'BAR': 'bar'}):
-        command = JaffleStartCommand()
-        command.conf_files = [Path(str(conf_file))]
-        command.load_conf()
+    def exec(command):
+        return 'hello'
 
-    assert 'kernel' in command.conf
-    assert 'foo' in command.conf['kernel']
-    assert 'pass_env' in command.conf['kernel']['foo']
-    assert command.conf['kernel']['foo']['pass_env'] == [
-        'bar', 'not_found', 'hello'
-    ]
+    def env(key, default=None):
+        return '${key}'
+
+    vars_conf = {}
+    vars = {}
+    namespace = {'FOO': 'foo', 'BAR': 'bar', 'exec': exec, 'env': env}
+
+    command._load_conf_file(Path(str(conf_file)), vars_conf, vars, namespace)

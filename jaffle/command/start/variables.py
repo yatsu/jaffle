@@ -99,7 +99,7 @@ class VariablesNamespace(object):
                         raise ValueError('{!r} is not {}'.format(value, var_type))
                     return json.dumps(json.dumps(obj))
                 elif var_type is str:
-                    return json.dumps(value)
+                    return value
                 else:
                     return str(var_type(value))
             elif value in [self._NOT_FOUND, None]:

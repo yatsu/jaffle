@@ -32,3 +32,27 @@ def deep_merge(*dicts, update=False):
         return reduce(merge_into, dicts[1:], dicts[0])
     else:
         return reduce(merge_into, dicts, {})
+
+
+def bool_value(value):
+    """
+    Converts the given object to bool if it is possible.
+
+    Parameters
+    ----------
+    value : object
+        Object to be converted to bool.
+
+    Raises
+    ------
+    ValueError
+        If the object cannot be converted to bool.
+    """
+    if isinstance(value, bool):
+        return value
+    elif isinstance(value, str):
+        if value in ['true', '1']:
+            return True
+        elif value in ['false', '0']:
+            return False
+    raise ValueError('Invalid bool value: {!r}'.format(value))

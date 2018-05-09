@@ -9,6 +9,7 @@ from setuptools import find_packages
 from tornado import ioloop
 from unittest.mock import patch
 from ..base import BaseJaffleApp, capture_method_output
+from ...utils import bool_value
 
 
 class TornadoBridgeApp(BaseJaffleApp):
@@ -63,7 +64,7 @@ class TornadoBridgeApp(BaseJaffleApp):
             Command line arguments for Tornado app.
         clear_cache : list[str] or None
             Module names to be cleared from cache.
-        threaded : bool
+        threaded : bool or str
             Whether to launch the app in an independent thread.
         """
         super().__init__(app_name, jaffle_conf, jaffle_port, jaffle_status)
@@ -71,7 +72,7 @@ class TornadoBridgeApp(BaseJaffleApp):
         self.app_class = app_class
         self.args = args
         self.clear_cache = (clear_cache if clear_cache is not None else find_packages())
-        self.threaded = threaded
+        self.threaded = bool_value(threaded)
         self.thread = None
         self.main_io_loop = None
 
