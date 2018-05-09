@@ -80,13 +80,6 @@ class TornadoBridgeApp(BaseJaffleApp):
         """
         Starts the Tornado app.
         """
-        mod_name, cls_name = self.app_class.rsplit('.', 1)
-        cls = getattr(import_module(mod_name), cls_name)
-        self.app = cls()
-        self.app.log = self.log
-
-        self.app.initialize(self.args)
-
         from tornado.log import app_log, access_log, gen_log
         for log in app_log, access_log, gen_log:
             log.name = self.log.name
@@ -98,25 +91,43 @@ class TornadoBridgeApp(BaseJaffleApp):
         logger.parent = self.log
         logger.setLevel(self.log.level)
 
-        self.main_io_loop = ioloop.IOLoop.current()
-        if self.threaded:
-            io_loop = ioloop.IOLoop()
-            if StrictVersion(jupyter_client.__version__) < StrictVersion('5.2.3'):
-                self.thread = IOLoopThread(io_loop)
+        try:
+            mod_name, cls_name = self.app_class.rsplit('.', 1)
+            cls = getattr(import_module(mod_name), cls_name)
+            self.app = cls()
+            self.app.log = self.log
+
+            self.app.initialize(self.args)
+
+            self.main_io_loop = ioloop.IOLoop.current()
+            if self.threaded:
+                io_loop = ioloop.IOLoop()
+                if StrictVersion(jupyter_client.__version__) < StrictVersion('5.2.3'):
+                    self.thread = IOLoopThread(io_loop)
+                else:
+                    self.thread = IOLoopThread()
+                self.log.info('Starting %s %s %s',
+                              type(self.app).__name__, ' '.join(self.args), self.thread)
+                io_loop.make_current()
+                with patch.object(io_loop, 'start'):
+                    self.app.start()
+                self.main_io_loop.make_current()
+                with patch('jupyter_client.threaded.ioloop.IOLoop', return_value=io_loop):
+                    self.thread.start()
             else:
-                self.thread = IOLoopThread()
-            self.log.info('Starting %s %s %s',
-                          type(self.app).__name__, ' '.join(self.args), self.thread)
-            io_loop.make_current()
-            with patch.object(io_loop, 'start'):
-                self.app.start()
-            self.main_io_loop.make_current()
-            with patch('jupyter_client.threaded.ioloop.IOLoop', return_value=io_loop):
-                self.thread.start()
-        else:
-            self.log.info('Starting %s %s', type(self.app).__name__, ' '.join(self.args))
-            with patch.object(self.main_io_loop, 'start'):
-                self.app.start()
+                self.log.info('Starting %s %s', type(self.app).__name__, ' '.join(self.args))
+                with patch.object(self.main_io_loop, 'start'):
+                    self.app.start()
+
+        except Exception:  # probably `app.start()` failed
+            if self.thread and self.thread:
+                try:
+                    self.thread.stop()
+                except Exception:
+                    pass
+            self.thread = None
+            self.app = None
+            raise
 
     @capture_method_output
     def stop(self, stop_callback=None):
@@ -164,11 +175,14 @@ class TornadoBridgeApp(BaseJaffleApp):
         """
         Restarts the tornado app.
         """
-        def stop_callback():
+        def _restart():
             self.clear_module_cache(self.clear_cache)
             self.start()
 
-        self.stop(stop_callback)
+        if self.app:  # the last `app.start()` succeeded
+            self.stop(_restart)
+        else:
+            _restart()
 
     def handle_watchdog_event(self, event):
         """
