@@ -110,9 +110,11 @@ class TornadoBridgeApp(BaseJaffleApp):
                 self.log.info('Starting %s %s %s',
                               type(self.app).__name__, ' '.join(self.args), self.thread)
                 io_loop.make_current()
-                with patch.object(io_loop, 'start'):
-                    self.app.start()
-                self.main_io_loop.make_current()
+                try:
+                    with patch.object(io_loop, 'start'):
+                        self.app.start()
+                finally:
+                    self.main_io_loop.make_current()
                 with patch('jupyter_client.threaded.ioloop.IOLoop', return_value=io_loop):
                     self.thread.start()
             else:
@@ -159,12 +161,12 @@ class TornadoBridgeApp(BaseJaffleApp):
                         def stop_thread():
                             self.thread.stop()
                             self.thread = None
-                            if stop_callback():
+                            if stop_callback:
                                 stop_callback()
 
                         self.main_io_loop.add_callback(stop_thread)
                     else:
-                        if stop_callback():
+                        if stop_callback:
                             stop_callback()
 
             add_callback_org(new_callback)
