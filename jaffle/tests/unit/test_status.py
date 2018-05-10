@@ -48,7 +48,7 @@ def test_status_add_session():
     status.add_session('1', 'foo')
     status.add_session('2', 'bar')
 
-    assert list(status.sessions.keys()) == ['foo', 'bar']
+    assert set(status.sessions.keys()) == set(['foo', 'bar'])
 
     foo = status.sessions['foo']
     assert foo.id == '1'
