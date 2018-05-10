@@ -23,7 +23,7 @@ class JaffleInteractiveShell(ZMQTerminalInteractiveShell):
 
         This is not required on jupyter_console >= 5.2
         """
-        if StrictVersion(jupyter_console.__version__) < StrictVersion('5.2.0'):
+        if StrictVersion(jupyter_console.__version__) < StrictVersion('5.2.0'):  # pragma: nocover
             # self.keepkernel = True
             self.keepkernel = not self.own_kernel  # keep kernel alive on Ctrl-D exit
             # An extra layer of protection in case someone mashing Ctrl-C breaks

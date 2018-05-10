@@ -68,6 +68,7 @@ dev_requirements = [
     "flake8>=3.5.0",
     "pip",
     "pytest>=3.4.0",
+    "pytest-cov>=2.5.0",
     "pytest-tornado>=0.4.0",
     "watchdog>=0.8.0"
 ]

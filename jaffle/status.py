@@ -19,9 +19,9 @@ class JaffleStatus(object):
         ----------
         pid : int
             Process ID.
-        sessions : dict{src: dict}
+        sessions : dict{src: JaffleSession}
             Jaffle sessions.
-        apps : dict
+        apps : dict{src: JaffleAppData}
             Current running apps data.
         conf : dict
             Jaffle configuration.
@@ -180,8 +180,7 @@ class JaffleSession(object):
         """
         self.id = id
         self.name = name
-        if kernel:
-            self.kernel = JaffleKernelData.from_dict(kernel)
+        self.kernel = JaffleKernelData.from_dict(kernel) if kernel else None
 
     def __repr__(self):
         """

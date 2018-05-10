@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from jaffle.utils import deep_merge
+import pytest
+from jaffle.utils import deep_merge, bool_value
 
 
 def test_deep_merge():
@@ -65,3 +66,18 @@ def test_deep_merge_update():
     assert result == {'a': {'b': 1, 'c': 2, 'd': {'e': [1, 2], 'f': 4, 'g': 5}}}
     assert a == {'a': {'b': 1, 'c': 2, 'd': {'e': [1, 2], 'f': 4, 'g': 5}}}
     assert b == {'a': {'c': 2, 'd': {'e': [1, 2], 'g': 5}}}
+
+
+def test_bool_value():
+    assert bool_value(True) is True
+    assert bool_value(False) is False
+
+    assert bool_value('true') is True
+    assert bool_value('1') is True
+
+    assert bool_value('false') is False
+    assert bool_value('0') is False
+
+    with pytest.raises(ValueError) as e:
+        bool_value('2')
+    assert 'Invalid bool value' in str(e)

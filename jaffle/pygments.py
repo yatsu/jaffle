@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from pygments.lexer import RegexLexer, words, bygroups, include
-from pygments.token import (
+from pygments.lexer import RegexLexer, words, bygroups, include  # pragma: no cover
+from pygments.token import (  # pragma: no cover
     Text, Comment, Operator, Keyword, Name, String, Number, Punctuation
 )
 
@@ -17,7 +17,7 @@ from pygments.token import (
 #     :license: BSD, see LICENSE for details.
 
 
-class JaffleHCLLexer(RegexLexer):
+class JaffleHCLLexer(RegexLexer):  # pragma: no cover
     """
     Lexer for Jaffle HCL file.
     """
