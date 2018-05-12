@@ -1,0 +1,5 @@
+#!/bin/bash -eu
+
+flake8
+
+py.test --cov=jaffle --cov-report=term-missing:skip-covered
