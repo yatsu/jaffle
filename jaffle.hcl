@@ -1,3 +1,11 @@
+variable "watchdog_log_level" {
+  default = "info"
+}
+
+variable "pytest_log_level" {
+  default = "info"
+}
+
 kernel "py_kernel" {
   pass_env = ["PATH"] # required to run sphinx-build in virtualenv
 }
@@ -7,7 +15,7 @@ app "watchdog" {
   kernel = "py_kernel"
 
   logger {
-    level = "info"
+    level = "${var.watchdog_log_level}"
   }
 
   options {
@@ -48,8 +56,14 @@ app "pytest" {
   kernel = "py_kernel"
 
   logger {
-    level          = "info"
-    suppress_regex = ["^platform "]
+    level = "${var.pytest_log_level}"
+
+    suppress_regex = [
+      "^platform ",
+      "^cachedir:",
+      "^rootdir:",
+      "^plugins:",
+    ]
   }
 
   options {

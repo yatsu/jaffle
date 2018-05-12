@@ -6,6 +6,7 @@ import signal
 from subprocess import TimeoutExpired
 from tornado import gen
 from tornado.escape import to_unicode
+from tornado.iostream import StreamClosedError
 from tornado.process import Subprocess
 from .logger import ProcessLogger
 
@@ -57,7 +58,7 @@ class Process(object):
         repr : str
             String representation of Process.
         """
-        return '<%s {proc_name: %s command: %s tty: %s env=%s}>' % (
+        return '<%s {proc_name: %r command: %r tty: %s env=%s}>' % (
             self.__class__.__name__, self.proc_name, self.command, self.tty, self.env
         )
 
@@ -66,7 +67,7 @@ class Process(object):
         """
         Starts the process.
         """
-        self.log.info("Starting %s: '%s'", self.proc_name, self.command)
+        self.log.info('Starting %s: %r', self.proc_name, self.command)
 
         env = os.environ.copy()
         env.update(**self.env)
@@ -89,6 +90,8 @@ class Process(object):
                 line_bytes = yield self.proc.stdout.read_until(b'\n')
                 line = to_unicode(line_bytes).strip('\r\n')
                 self.log.info(line)
+        except StreamClosedError:
+            self.log.warning('Process %s finished', self.proc_name)
         except Exception as e:
             self.log.error(str(e))
 
@@ -101,11 +104,11 @@ class Process(object):
             os.killpg(os.getpgid(self.proc.proc.pid), signal.SIGTERM)
         except OSError:
             pass  # already dead
-
-        try:
-            self.proc.proc.wait(5)
-        except TimeoutExpired:
-            self.log.warning("Failed to terminate %s, killing it with SIGKILL", self.proc_name)
-            os.killpg(os.getpgid(self.proc.proc.pid), signal.SIGKILL)
+        else:
+            try:
+                self.proc.proc.wait(5)
+            except TimeoutExpired:
+                self.log.warning("Failed to terminate %s, killing it with SIGKILL", self.proc_name)
+                os.killpg(os.getpgid(self.proc.proc.pid), signal.SIGKILL)
 
         self.proc = None

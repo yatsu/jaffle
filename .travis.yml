@@ -24,7 +24,7 @@ matrix:
     env: REQUIREMENTS=notebook-latest
 before_install: pip install --upgrade pip setuptools disttools pytest
 install: "./ci/install-${REQUIREMENTS}.sh"
-script: py.test
+script: py.test --cov=jaffle --cov-report=term-missing:skip-covered
 deploy:
   provider: pypi
   user: yatsu
