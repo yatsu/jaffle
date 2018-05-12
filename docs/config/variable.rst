@@ -2,7 +2,7 @@
 variable
 ========
 
-The ``variable`` block defines a variable which will be used in another blocks. The variables can be set from environment variables (``T_VAR_name=value``) or the command argument (``--variables='["name=value"]'``).
+The ``variable`` block defines a variable which will be used in another blocks. The variables can be set from environment variables (``J_VAR_name=value``) or the command argument (``--variables='["name=value"]'``).
 
 Example
 =======
@@ -62,13 +62,13 @@ In Jaffle, the following strings can be treated as boolean values:
 Setting Variables
 =================
 
-Your can set values to the variables from environment variables (``T_VAR_name=value``) or the command argument (``--variables='["name=value"]'``).
+Your can set values to the variables from environment variables (``J_VAR_name=value``) or the command argument (``--variables='["name=value"]'``).
 
 Example: Setting ``true`` to ``disable_frontend`` from an environment variable:
 
 .. code-block:: sh
 
-    $ T_VAR_disable_frontend=true jaffle start
+    $ J_VAR_disable_frontend=true jaffle start
 
 Example: Setting ``true`` to ``disable_frontend`` from the command-line argument:
 

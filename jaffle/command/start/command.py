@@ -49,8 +49,8 @@ class JaffleStartCommand(BaseJaffleCommand):
     """
 
     _ENV_PATTERN = re.compile(r'^[A-Za-z0-9_]+')
-    _VAR_PATTERN = re.compile(r'^T_VAR_[A-Za-z0-9_]+')
-    _VAR_PREFIX = 'T_VAR_'
+    _VAR_PATTERN = re.compile(r'^J_VAR_[A-Za-z0-9_]+')
+    _VAR_PREFIX = 'J_VAR_'
 
     description = __doc__
 

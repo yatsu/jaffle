@@ -74,7 +74,7 @@ You can provide :doc:`variables </config/variable>` from command-line. The examp
 
 .. code-block:: sh
 
-    $ T_VAR_watchdog_log_level=debug jaffle start
+    $ J_VAR_watchdog_log_level=debug jaffle start
 
 You can also set it by ``--variables`` option.
 

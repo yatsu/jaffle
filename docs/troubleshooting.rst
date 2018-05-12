@@ -43,7 +43,7 @@ You can switch the log-level by providing the value as an environment variable.
 
 .. code-block:: sh
 
-    $ T_VAR_myapp_log_level=debug jaffle start
+    $ J_VAR_myapp_log_level=debug jaffle start
 
 The command-line argument ``--variables`` is also avilable to do the same thing.
 
