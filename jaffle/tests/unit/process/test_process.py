@@ -3,32 +3,8 @@
 import pytest
 import signal
 from subprocess import TimeoutExpired
-from tornado import gen
-from tornado.iostream import StreamClosedError
 from unittest.mock import call, patch, Mock
 from jaffle.process.process import Process
-
-
-@pytest.fixture(scope='function')
-def subprocess_mock():
-    stdout = '''
-aaa
-bbb
-ccc
-'''.strip().split('\n')
-
-    lineno = 0
-
-    @gen.coroutine
-    def read_until(end):
-        nonlocal lineno
-        yield gen.sleep(0.01)
-        if lineno == len(stdout):
-            raise StreamClosedError()
-        lineno += 1
-        return '{}\n'.format(stdout[lineno - 1])
-
-    return Mock(stdout=Mock(read_until=read_until))
 
 
 def test_init():
