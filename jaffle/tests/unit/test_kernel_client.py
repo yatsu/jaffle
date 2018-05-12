@@ -24,7 +24,7 @@ def test_zmq_socket_channel():
     msg = Mock()
     channel.call_handlers(msg)
 
-    assert io_loop.add_callback.call_args_list[-1] == call(handler, msg)
+    io_loop.add_callback.assert_called_with(handler, msg)
 
     channel.remove_handler(handler)
 
