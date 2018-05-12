@@ -90,9 +90,13 @@ class PyTestRunnerApp(BaseJaffleApp):
                            glob, regex, src_path, match.groups() if match else None)
             if match:
                 target_path = Path(target.format(*match.groups()).replace('//', '/'))
+                self.log.debug('match: %s target_path: %s', src_path, target_path)
                 if target_path.exists():
+                    self.log.debug('target file exists: %s', target_path)
                     self.clear_module_cache(self.clear_cache)
                     self.test(str(target_path))
+                else:
+                    self.log.debug('target file des not exist: %s', target_path)
 
     @capture_method_output
     def test(self, target):
