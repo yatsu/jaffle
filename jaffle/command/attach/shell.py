@@ -7,7 +7,7 @@ from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop
 from prompt_toolkit.styles import PygmentsStyle
 from pygments.styles import get_style_by_name
 from pygments.token import Token
-from traitlets import Dict, Instance, Unicode, Type
+from traitlets import Instance, Unicode, Type
 from ...shell import JaffleInteractiveShell
 from ...app.base import BaseJaffleApp
 
@@ -28,7 +28,7 @@ class JaffleAppShell(JaffleInteractiveShell):
 
     app_class = Type(BaseJaffleApp)
     app_name = Unicode()
-    app_conf = Dict()
+    app_data = Instance('jaffle.status.JaffleAppData')
 
     _completer = None
     _lexer = None
@@ -44,12 +44,12 @@ class JaffleAppShell(JaffleInteractiveShell):
         """
         Initializes the completer if it exists.
         """
-        mod_name, cls_name = self.app_conf['class'].rsplit('.', 1)
+        mod_name, cls_name = self.app_data.class_name.rsplit('.', 1)
         self.app_class = getattr(import_module(mod_name), cls_name)
 
         comp_cls = self.app_class.completer_class
         if comp_cls:
-            self._completer = comp_cls(self.app_name, self.app_conf, self.client)
+            self._completer = comp_cls(self.app_name, self.app_data, self.client)
 
     def init_lexer(self):
         """

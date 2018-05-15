@@ -10,6 +10,7 @@ from unittest.mock import call, patch, Mock
 import zmq
 from zmq.eventloop import zmqstream
 from jaffle.command.start import JaffleStartCommand
+from jaffle.config import JaffleConfig, ConfigValue
 from jaffle.process import Process
 from jaffle.session import JaffleSessionManager
 from jaffle.status import JaffleStatus, JaffleSession
@@ -194,13 +195,18 @@ def test_start_sessions(command):
         future.set_result({'id': 'sess-id', 'kernel': 'sess_kernel'})
         return future
 
-    command.conf = {
-        'kernel': {
-            'sess_name': {
-                'kernel_name': 'my_kernel'
-            }
-        }
-    }
+    namespace = {}
+
+    command.conf = Mock(
+        JaffleConfig,
+        namespace=namespace,
+        variable=ConfigValue.create({}, namespace),
+        kernel=ConfigValue.create({'sess_name': {'kernel_name': 'my_kernel'}}, namespace),
+        app=ConfigValue.create({}, namespace),
+        process=ConfigValue.create({}, namespace),
+        job=ConfigValue.create({}, namespace),
+        logger=ConfigValue.create({}, namespace)
+    )
     command.session_manager = Mock(JaffleSessionManager, create_session=create_session)
     session = Mock(JaffleSession, kernel=Mock(id='kernel-1'))
     session.name = 'sess_name'  # `name` must be set after Mock()
@@ -266,8 +272,8 @@ def test_start_sessions(command):
     logger.setLevel.assert_has_calls([call(logging.DEBUG), call(logging.DEBUG)])
 
     command.status.add_app.assert_has_calls([
-        call(name=name, session_name='sess_name')
-        for name in apps.keys()
+        call('app1', 'sess_name', 'foo.Foo', 'app1.start()', {'opt1': True}),
+        call('app2', 'sess_name', 'bar.Bar', None, {})
     ])
 
     command.status.save.assert_called_once_with(command.status_file_path)
@@ -283,58 +289,3 @@ def test_start_sessions(command):
     "app2 = Bar('app2', " in exec_args[0]
     "**{}" in exec_args[0]
     assert exec_args[1] == {'silent': True}
-
-
-def test_load_conf(command):
-    conf = {'kernel': {'foo': {}}}
-
-    def my_func():
-        return 'my_func'
-
-    functions = [my_func]
-
-    vars_conf = {}
-    vars = {}
-
-    with patch('jaffle.command.start.command.os.environ', {'FOO': 'foo', 'BAR': 'bar'}):
-        with patch('jaffle.command.start.command.functions', functions):
-            with patch.object(command, '_load_variable_conf', return_value=vars_conf) \
-                    as load_variable_conf:
-                with patch.object(command, '_load_conf_file', return_value=conf) \
-                        as load_conf_file:
-                    command.load_conf()
-
-    assert command.conf == {'kernel': {'foo': {}}}
-
-    load_variable_conf.assert_called_once_with(
-        {'FOO': 'foo', 'BAR': 'bar', 'my_func': my_func}, {}, Path('jaffle.hcl')
-    )
-    load_conf_file.assert_called_once_with(
-        Path('jaffle.hcl'), vars_conf, vars,
-        {'FOO': 'foo', 'BAR': 'bar', 'my_func': my_func}
-    )
-
-
-def test_load_conf_file(tmpdir, command):
-    conf_file = tmpdir.join('jaffle.hcl')
-    conf_file.write('''
-kernel "${FOO}" {
-  pass_env = [
-    "${env('BAR', 'not_found')}",
-    "${env('BAZ', 'not_found')}",
-    "${exec('echo -n \"hello\"')}",
-  ]
-}
-    '''.strip())
-
-    def exec(command):
-        return 'hello'
-
-    def env(key, default=None):
-        return '${key}'
-
-    vars_conf = {}
-    vars = {}
-    namespace = {'FOO': 'foo', 'BAR': 'bar', 'exec': exec, 'env': env}
-
-    command._load_conf_file(Path(str(conf_file)), vars_conf, vars, namespace)

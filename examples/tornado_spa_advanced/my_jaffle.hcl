@@ -20,5 +20,9 @@ logger {
       from = "^  clear: (.*)"
       to   = "  clear: ${fg('blue')}\\1${reset()}"
     },
+    {
+      from = "^APIExampleHandler.get: (.*)"
+      to   = "example: ${fg('yellow')}${jqf('.Host', '\\1')}${reset()}"
+    },
   ]
 }

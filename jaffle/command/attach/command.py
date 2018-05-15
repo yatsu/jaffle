@@ -54,7 +54,6 @@ jaffle attach pytest
 
         try:
             self.app = self.status.apps[self.app_name]
-            self.app_conf = self.status.conf['app'][self.app_name]
 
         except KeyError:
             print('App {!r} is not running'.format(self.app_name), file=sys.stderr)
@@ -89,7 +88,7 @@ jaffle attach pytest
         signal.signal(signal.SIGINT, self._handle_sigint)
         self.shell = JaffleAppShell.instance(
             parent=self, manager=self.kernel_manager, client=self.kernel_client,
-            app_name=self.app.name, app_conf=self.app_conf
+            app_name=self.app.name, app_data=self.app
         )
 
     def start(self):

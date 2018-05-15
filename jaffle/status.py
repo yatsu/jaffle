@@ -11,7 +11,7 @@ class JaffleStatus(object):
     """
     _LOCK_TIMEOUT = 5
 
-    def __init__(self, pid=None, sessions=None, apps=None, conf=None):
+    def __init__(self, pid, raw_namespace, runtime_variables, sessions=None, apps=None):
         """
         Initializes JaffleStatus.
 
@@ -19,17 +19,12 @@ class JaffleStatus(object):
         ----------
         pid : int
             Process ID.
-        sessions : dict{src: JaffleSession}
-            Jaffle sessions.
-        apps : dict{src: JaffleAppData}
-            Current running apps data.
-        conf : dict
-            Jaffle configuration.
         """
         self.pid = pid
+        self.raw_namespace = raw_namespace
+        self.runtime_variables = runtime_variables
         self.sessions = sessions or {}
         self.apps = apps or {}
-        self.conf = conf or {}
 
     def __repr__(self):
         """
@@ -60,11 +55,12 @@ class JaffleStatus(object):
         """
         return cls(
             pid=status_dict.get('pid'),
+            raw_namespace=status_dict.get('raw_namespace', {}),
+            runtime_variables=status_dict.get('runtime_variables', {}),
             sessions={n: JaffleSession.from_dict(s)
                       for n, s in status_dict.get('sessions', {}).items()},
             apps={n: JaffleAppData.from_dict(a)
-                  for n, a in status_dict.get('apps', {}).items()},
-            conf=status_dict.get('conf')
+                  for n, a in status_dict.get('apps', {}).items()}
         )
 
     def add_session(self, id, name, kernel=None):
@@ -83,7 +79,7 @@ class JaffleStatus(object):
         session = JaffleSession(id, name, kernel)
         self.sessions[session.name] = session
 
-    def add_app(self, name, session_name):
+    def add_app(self, name, session_name, class_name, start, options):
         """
         Creates a Jaffle app data and registers it to a JaffleStatus.
 
@@ -93,8 +89,14 @@ class JaffleStatus(object):
             App name.
         session_name : str
             Jaffle session name (= kernel instance name defined in jaffle.hcl).
+        class_name : str
+            Class name of the app.
+        start : str or None
+            Start code of the app.
+        options : dict
+            Options for the app.
         """
-        app = JaffleAppData(name, session_name)
+        app = JaffleAppData(name, session_name, class_name, start, options)
         self.apps[app.name] = app
 
     def to_dict(self):
@@ -108,9 +110,10 @@ class JaffleStatus(object):
         """
         return {
             'pid': self.pid,
+            'raw_namespace': self.raw_namespace,
+            'runtime_variables': self.runtime_variables,
             'sessions': {n: s.to_dict() for n, s in self.sessions.items()},
-            'apps': {n: a.to_dict() for n, a in self.apps.items()},
-            'conf': self.conf
+            'apps': {n: a.to_dict() for n, a in self.apps.items()}
         }
 
     @classmethod
@@ -295,7 +298,7 @@ class JaffleAppData(object):
     Jaffle app data.
     """
 
-    def __init__(self, name, session_name=None):
+    def __init__(self, name, session_name, class_name, start, options):
         """
         Initializes JaffleAppData.
 
@@ -305,9 +308,18 @@ class JaffleAppData(object):
             App name.
         session_name : str
             Jaffle session name (= kernel instance name defined in jaffle.hcl).
+        class_name : str
+            Class name of the app.
+        start : str or None
+            Start code of the app.
+        options : dict
+            Options for the app.
         """
         self.name = name
         self.session_name = session_name
+        self.class_name = class_name
+        self.start = start
+        self.options = options
 
     def __repr__(self):
         """
@@ -318,8 +330,8 @@ class JaffleAppData(object):
         repr : str
             String representation of a JaffleAppData.
         """
-        return '<%s {name: %s session_name: %s}>' % (
-            self.__class__.__name__, self.name, self.session_name)
+        return '<%s {name: %s session_name: %s class_name: %s start: %s}>' % (
+            type(self).__name__, self.name, self.session_name, self.class_name, self.start)
 
     @classmethod
     def from_dict(cls, data):
@@ -336,7 +348,9 @@ class JaffleAppData(object):
         app_data : JaffleAppData.
             App data.
         """
-        return cls(**{a: data.get(a) for a in ['name', 'session_name']})
+        return cls(**{a: data.get(a) for a in [
+            'name', 'session_name', 'class_name', 'start', 'options'
+        ]})
 
     def to_dict(self):
         """
@@ -349,5 +363,8 @@ class JaffleAppData(object):
         """
         return {
             'name': self.name,
-            'session_name': self.session_name
+            'session_name': self.session_name,
+            'class_name': self.class_name,
+            'start': self.start,
+            'options': self.options
         }

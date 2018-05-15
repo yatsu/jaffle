@@ -20,40 +20,22 @@ class PyTestRunnerApp(BaseJaffleApp):
 
     lexer_class = PyTestLexer
 
-    def __init__(self, app_name, jaffle_conf, jaffle_port, jaffle_status,
-                 args=['-s', '-v'], plugins=[], auto_test=[], auto_test_map={},
-                 clear_cache=None):
+    def __init__(self, app_conf_data):
         """
         Initializes PyTestRunnerApp.
 
         Parameters
         ----------
-        app_name : str
-            App name defined in jaffle.hcl.
-        jaffle_conf : dict
-            Jaffle conf constructed from jaffle.hcl.
-        jaffle_port : int
-            TCP port for Jaffle ZMQ channel.
-        jaffle_status : dict
-            Jaffle status.
-        args : list[str]
-            pytest arguments.
-        plugins : list[str]
-            pytest plugins.
-        auto_test : list[list]
-            Test file names which should be executed when it is updated.
-        auto_test_map : dict{str: str}
-            Map from .py file patterns to test file patterns.
-        clear_cache : list[str] or None
-            Module names to be cleared from cache.
+        app_conf_data : dict
+            App configuration data.
         """
-        super().__init__(app_name, jaffle_conf, jaffle_port, jaffle_status)
+        super().__init__(app_conf_data)
 
-        self.args = args
-        self.plugins = plugins
-        self.auto_test = auto_test
-        self.auto_test_map = auto_test_map
-        self.clear_cache = (clear_cache if clear_cache is not None else find_packages())
+        self.args = self.options.get('args', ['-s', '-v'])
+        self.plugins = self.options.get('plugins', [])
+        self.auto_test = self.options.get('auto_test', [])
+        self.auto_test_map = self.options.get('auto_test_map', [])
+        self.clear_cache = self.options.get('clear_cache', find_packages())
 
         # Suppress pytest warning for plugin: 'Module already imported'
         for plugin in pkg_resources.iter_entry_points('pytest11'):

@@ -57,6 +57,8 @@ requirements = [
     "prompt-toolkit",
     "pygments",
     "pyhcl>=0.3.0",
+    "pyjq>=2.1.0",
+    "pyyaml",
     "pyzmq",
     "setuptools",
     "tornado>=4.5,<5",

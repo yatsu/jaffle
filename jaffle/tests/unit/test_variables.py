@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import patch, Mock
-from jaffle.command.start.variables import VariablesNamespace
+from jaffle.variables import VariablesNamespace
 
 NOT_FOUND = VariablesNamespace._NOT_FOUND
 

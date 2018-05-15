@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import json
+import os
+import re
+
+
+VAR_PATTERN = re.compile(r'^J_VAR_[A-Za-z0-9_]+')
+VAR_PREFIX = 'J_VAR_'
 
 
 class NotFound(object):
@@ -202,3 +208,14 @@ class VariablesNamespace(object):
             Variable value.
         """
         return self._variables.get(name, default)
+
+
+def get_runtime_variables(command_line_variables):
+    runtime_variables = {
+        k[len(VAR_PREFIX):]: v for k, v in os.environ.items()
+        if VAR_PATTERN.search(k)
+    }
+    runtime_variables.update(
+        dict(tuple(v.split('=', 1)) for v in command_line_variables).items()
+    )
+    return runtime_variables

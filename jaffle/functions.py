@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import json
+from json import JSONDecodeError
 import os
+import pyjq
 import shlex
 import subprocess
 from tornado.escape import to_unicode
-from ..display import Color, foreground_color, background_color, display_reset
+import yaml
+from .display import Color, foreground_color, background_color, display_reset
 
 
 _COLOR_MAP = {c.name.lower(): c for c in Color}
@@ -118,4 +122,60 @@ def reset():
     return display_reset()
 
 
-functions = [env, exec, fg, bg, reset]
+def jq_all(query, data_str, *args, **kwargs):
+    """
+    Queries the nested data and returns all results as a list.
+
+    Parameters
+    ----------
+    data_str : str
+        Nested data in Python dict's representation format.
+        If must be loadable by ``yaml.safe_load()``.
+
+    Returns
+    -------
+    result : str
+        String representation of the result list.
+    """
+    try:
+        return json.dumps(pyjq.all(query, yaml.loads(data_str)), *args, **kwargs)
+    except JSONDecodeError:
+        return 'jq error - query: {!r} str: {!r}'.format(query, data_str)
+
+
+def jq_first(query, data_str, *args, **kwargs):
+    """
+    Queries the nested data and returns the first result.
+
+    Parameters
+    ----------
+    data_str : str
+        Nested data in Python dict's representation format.
+        If must be loadable by ``yaml.safe_load()``.
+
+    Returns
+    -------
+    result : str
+        String representation of the result object.
+    """
+    try:
+        return json.dumps(pyjq.first(query, yaml.safe_load(data_str)), *args, **kwargs)
+    except JSONDecodeError as e:
+        return 'jq error - query: {!r} str: {!r}'.format(query, data_str)
+
+
+def jq(query, data_str, *args, **kwargs):
+    return jq_all(query, data_str, *args, **kwargs)
+
+
+jq.__doc__ = jq_all.__doc__
+
+
+def jqf(query, data_str, *args, **kwargs):
+    return jq_first(query, data_str, *args, **kwargs)
+
+
+jqf.__doc__ = jq_first.__doc__
+
+
+functions = [env, exec, fg, bg, reset, jq_all, jq_first, jq, jqf]

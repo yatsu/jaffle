@@ -5,45 +5,36 @@ from jaffle.status import JaffleStatus, JaffleSession
 
 
 def test_status_init():
-    status = JaffleStatus()
-    assert status.pid is None
+    status = JaffleStatus(1, {'foo': 2}, {'bar': 3})
+    assert status.pid == 1
+    assert status.raw_namespace == {'foo': 2}
+    assert status.runtime_variables == {'bar': 3}
     assert status.sessions == {}
     assert status.apps == {}
-    assert status.conf == {}
-
-    status = JaffleStatus(1, {'foo': 2}, {'bar': 3}, {'baz': 4})
-    assert status.pid == 1
-    assert status.sessions == {'foo': 2}
-    assert status.apps == {'bar': 3}
-    assert status.conf == {'baz': 4}
 
 
 def test_status_from_dict():
-    status = JaffleStatus.from_dict({})
-    assert status.pid is None
-    assert status.sessions == {}
-    assert status.apps == {}
-    assert status.conf == {}
-
     with patch('jaffle.status.JaffleSession') as session:
         with patch('jaffle.status.JaffleAppData') as app:
             status = JaffleStatus.from_dict({
                 'pid': 1,
+                'raw_namespace': {'aaa': 'AAA'},
+                'runtime_variables': {'bbb': 'BBB'},
                 'sessions': {'foo': {'foo': 2}},
-                'apps': {'bar': {'bar': 3}},
-                'conf': {'baz': {'baz': 4}}
+                'apps': {'bar': {'bar': 3}}
             })
     assert status.pid == 1
+    assert status.raw_namespace == {'aaa': 'AAA'}
+    assert status.runtime_variables == {'bbb': 'BBB'}
     assert status.sessions == {'foo': session.from_dict.return_value}
     assert status.apps == {'bar': app.from_dict.return_value}
-    assert status.conf == {'baz': {'baz': 4}}
 
     session.from_dict.assert_called_once_with({'foo': 2})
     app.from_dict.assert_called_once_with({'bar': 3})
 
 
 def test_status_add_session():
-    status = JaffleStatus()
+    status = JaffleStatus(1, {}, {})
 
     status.add_session('1', 'foo')
     status.add_session('2', 'bar')

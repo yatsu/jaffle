@@ -2,11 +2,14 @@
 
 from IPython.core import ultratb
 import logging
+import os
 from pathlib import Path
+import re
 import sys
 from traitlets.config.application import Application, catch_config_error
-from traitlets import Bool, Unicode, default
+from traitlets import Bool, Dict, List, Unicode, default
 from ..logging import LogFormatter
+from ..variables import get_runtime_variables, VAR_PATTERN
 
 
 aliases = {
@@ -36,6 +39,8 @@ class BaseJaffleCommand(Application):
     """
     Base class for Jaffle commands.
     """
+    _ENV_PATTERN = re.compile(r'^[A-Za-z0-9_]+')
+
     name = 'jaffle'
     description = 'Jaffle'
 
@@ -82,6 +87,12 @@ class BaseJaffleCommand(Application):
 
     runtime_dir = Unicode('.jaffle', config=True, help='Runtime directory path.')
 
+    variables = List(Unicode(), default_value=[], config=True)
+
+    raw_namespace = Dict({})
+
+    runtime_variables = Dict({})
+
     @property
     def status_file_path(self):
         return Path(self.runtime_dir) / 'jaffle.json'
@@ -103,6 +114,8 @@ class BaseJaffleCommand(Application):
 
         sys.excepthook = ultratb.ColorTB()
 
+        self.raw_namespace = {k: v for k, v in os.environ.items()
+                              if self._ENV_PATTERN.search(k)
+                              and not VAR_PATTERN.search(k)}
 
-class JaffleConfError(Exception):
-    pass
+        self.runtime_variables = get_runtime_variables(self.variables)

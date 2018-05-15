@@ -8,10 +8,28 @@ from jaffle.app.base import app as base_app
 from jaffle.app.base.app import BaseJaffleApp
 
 
-@pytest.mark.gen_test
-def test_base_app(subprocess_mock):
-    status = Mock()
+@pytest.fixture(scope='module')
+def app_config1():
+    return Mock(
+        app_name='my_app',
+        conf={'logger': {'level': 'debug'}},
+        jaffle_port=123,
+        jobs_conf={'my_job': {'command': 'my_job --debug'}}
+    )
 
+
+@pytest.fixture(scope='module')
+def app_config2():
+    return Mock(
+        app_name='my_app',
+        conf={},
+        jaffle_port=123,
+        jobs_conf={}
+    )
+
+
+@pytest.mark.gen_test
+def test_base_app(subprocess_mock, app_config1):
     conf = {
         'app': {
             'my_app': {
@@ -40,15 +58,13 @@ def test_base_app(subprocess_mock):
         return loggers[name]
 
     with patch('jaffle.app.base.app.logging.getLogger', get_logger):
-        with patch('jaffle.app.base.app.JaffleStatus') as jf:
-            with patch('jaffle.app.base.app.JaffleAppLogHandler') as log_handler:
-                with patch('jaffle.app.base.app.Job') as job:
-                    app = BaseJaffleApp('my_app', conf, 123, status)
+        with patch('jaffle.app.base.app.JaffleAppLogHandler') as log_handler:
+            with patch('jaffle.app.base.app.Job') as job:
+                with patch('jaffle.app.base.app.AppConfig.from_dict', return_value=app_config1):
+                    app = BaseJaffleApp(conf)
 
     assert app.app_name == 'my_app'
     assert app.jaffle_port == 123
-    assert app.jaffle_conf is conf
-    assert app.jaffle_status is jf.from_dict.return_value
     assert app.ipython is base_app.get_ipython.return_value
 
     app_logger = get_logger('my_app')
@@ -110,9 +126,7 @@ def test_base_app(subprocess_mock):
 
 
 @pytest.mark.gen_test
-def test_default_log_and_job(subprocess_mock):
-    status = Mock()
-
+def test_default_log_and_job(subprocess_mock, app_config2):
     conf = {
         'app': {
             'my_app': {}
@@ -132,14 +146,12 @@ def test_default_log_and_job(subprocess_mock):
         return loggers[name]
 
     with patch('jaffle.app.base.app.logging.getLogger', get_logger):
-        with patch('jaffle.app.base.app.JaffleStatus') as jf:
-            with patch('jaffle.app.base.app.JaffleAppLogHandler') as log_handler:
-                app = BaseJaffleApp('my_app', conf, 123, status)
+        with patch('jaffle.app.base.app.JaffleAppLogHandler') as log_handler:
+            with patch('jaffle.app.base.app.AppConfig.from_dict', return_value=app_config2):
+                app = BaseJaffleApp(conf)
 
     assert app.app_name == 'my_app'
     assert app.jaffle_port == 123
-    assert app.jaffle_conf is conf
-    assert app.jaffle_status is jf.from_dict.return_value
     assert app.ipython is base_app.get_ipython.return_value
 
     app_logger = get_logger('my_app')

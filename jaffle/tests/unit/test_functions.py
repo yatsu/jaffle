@@ -2,19 +2,21 @@
 
 from unittest.mock import patch
 from jaffle.display import Color
-from jaffle.command.functions import _COLOR_MAP, env, exec, fg, bg, reset, functions
+from jaffle.functions import (
+    _COLOR_MAP, env, exec, fg, bg, reset, jq_all, jq_first, jq, jqf, functions
+)
 
 
 def test_evn():
-    with patch('jaffle.command.functions.os.environ', {'FOO': 'foo', 'BAR': 'bar'}):
+    with patch('jaffle.functions.os.environ', {'FOO': 'foo', 'BAR': 'bar'}):
         assert env('FOO') == 'foo'
         assert env('BAR', 'default') == 'bar'
         assert env('BAZ', 'default') == 'default'
 
 
 def test_exec():
-    with patch('jaffle.command.functions.to_unicode') as to_unicode:
-        with patch('jaffle.command.functions.subprocess.check_output')as check_output:
+    with patch('jaffle.functions.to_unicode') as to_unicode:
+        with patch('jaffle.functions.subprocess.check_output')as check_output:
             result = exec('hello --world')
 
     assert result is to_unicode.return_value
@@ -86,4 +88,6 @@ def test_reset():
 
 
 def test_functions():
-    assert functions == [env, exec, fg, bg, reset]
+    assert functions == [
+        env, exec, fg, bg, reset, jq_all, jq_first, jq, jqf
+    ]

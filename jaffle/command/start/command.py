@@ -12,35 +12,32 @@ try:
     from notebook.transutils import _  # noqa: required to import notebook classes
 except ImportError:
     pass
-from functools import partial, reduce
-import hcl
+from functools import partial
 import json
 from jupyter_client.kernelspec import KernelSpecManager
 import logging
-from mako.template import Template
 from notebook.services.contents.manager import ContentsManager
 from notebook.services.kernels.kernelmanager import MappingKernelManager
 import os
 from pathlib import Path
-import re
 import select
 import signal
 import sys
 import threading
 from tornado import gen, ioloop
 from tornado.escape import to_unicode
-from traitlets import default, Dict, Instance, Int, List, Unicode
+from traitlets import default, Dict, Instance, Int, List
 from traitlets.config.application import catch_config_error
 import zmq
 from zmq.eventloop import zmqstream
+from ...app.base.config import AppConfig
+from ...config import JaffleConfig
 from ...kernel_client import JaffleKernelClient
 from ...process import Process
 from ...session import JaffleSessionManager
 from ...status import JaffleStatus
-from ...utils import deep_merge, bool_value
+from ...utils import bool_value, str_value
 from ..base import BaseJaffleCommand
-from ..functions import functions
-from .variables import VariablesNamespace
 
 
 class JaffleStartCommand(BaseJaffleCommand):
@@ -48,14 +45,10 @@ class JaffleStartCommand(BaseJaffleCommand):
     Starts jaffle server.
     """
 
-    _ENV_PATTERN = re.compile(r'^[A-Za-z0-9_]+')
-    _VAR_PATTERN = re.compile(r'^J_VAR_[A-Za-z0-9_]+')
-    _VAR_PREFIX = 'J_VAR_'
-
     description = __doc__
 
     aliases = dict(BaseJaffleCommand.aliases,
-                   variables='JaffleStartCommand.variables')
+                   variables='BaseJaffleCommand.variables')
 
     @default('log_format')
     def _log_format_default(self):
@@ -64,10 +57,9 @@ class JaffleStartCommand(BaseJaffleCommand):
                 '%(level_color)s %(levelname)1.1s %(level_color_end)s %(message)s')
 
     conf_files = List(Instance(Path))
-    variables = List(Unicode(), default_value=[], config=True)
 
     parsed_variables = Dict(default_value={})
-    conf = Dict(default_value={})
+    conf = Instance(JaffleConfig, allow_none=True)
     status = Instance(JaffleStatus, allow_none=True)
     clients = Dict(default_value={})
     procs = Dict(default_value={})
@@ -149,7 +141,7 @@ class JaffleStartCommand(BaseJaffleCommand):
 
         self.load_conf()
 
-        self.status = JaffleStatus(pid=os.getpid(), conf=self.conf)
+        self.status = JaffleStatus(os.getpid(), self.raw_namespace, self.runtime_variables)
 
     def check_running(self):
         """
@@ -187,37 +179,12 @@ class JaffleStartCommand(BaseJaffleCommand):
         Loads the configuration.
         """
         try:
-            vars = {k[len(self._VAR_PREFIX):]: v for k, v in os.environ.items()
-                    if self._VAR_PATTERN.search(k)}
-            vars.update(dict(tuple(var.split('=', 1)) for var in self.variables).items())
-            ns = {k: v for k, v in os.environ.items()
-                  if self._ENV_PATTERN.search(k) and not self._VAR_PATTERN.search(k)}
-            ns.update({f.__name__: f for f in functions})
-            vars_conf = reduce(partial(self._load_variable_conf, ns), self.conf_files, {})
-            self.conf = deep_merge(*(self._load_conf_file(f, vars_conf, vars, ns)
-                                     for f in self.conf_files))
-
+            self.conf = JaffleConfig.load(
+                self.conf_files, self.raw_namespace, self.runtime_variables
+            )
         except ValueError as e:
             print('Configuration error: {}'.format(e), file=sys.stderr)
             sys.exit(1)
-
-        self.app_log_suppress_patterns = {
-            app_name: [re.compile(r) for r in app_data.get('logger', {}).get('suppress_regex', [])]
-            for app_name, app_data in self.conf.get('app', {}).items()
-        }
-        self.app_log_replace_patterns = {
-            app_name: [(re.compile(r['from']), r['to'])
-                       for r in app_data.get('logger', {}).get('replace_regex', [])]
-            for app_name, app_data in self.conf.get('app', {}).items()
-        }
-        self.global_log_suppress_patterns = [
-            re.compile(r)
-            for r in self.conf.get('logger', {}).get('suppress_regex', [])
-        ]
-        self.global_log_replace_patterns = [
-            (re.compile(r['from']), r['to'])
-            for r in self.conf.get('logger', {}).get('replace_regex', [])
-        ]
 
     def start(self):
         """
@@ -285,61 +252,6 @@ class JaffleStartCommand(BaseJaffleCommand):
 
         self.io_loop.stop()
 
-    def _load_variable_conf(self, namespace, vars_conf, conf_file_path):
-        """
-        Loads variable configurations from a file and merges into ``vars_conf``.
-
-        Parameters
-        ----------
-        namespace : dict
-            Namespace for the configuration template.
-            It will be updated in this method.
-        vars_conf : dict
-            Variable configurations.
-        conf_file_path : pathlib.Path
-            Configuration file path.
-
-        Returns
-        -------
-        vars_conf : dict
-            Merged variable configurations.
-        """
-        template = Template(filename=str(conf_file_path))
-        # Use the dummy ``var`` to load variables
-        ns = dict(namespace, var=VariablesNamespace(keep_undefined_vars=True))
-        rendered = template.render(**ns)
-        conf = hcl.loads(rendered)
-        return deep_merge(vars_conf, conf.get('variable', {}))
-
-    def _load_conf_file(self, conf_file_path, vars_conf, vars, namespace):
-        """
-        Loads config from a configuration file.
-
-        Parameters
-        ----------
-        conf_file_path : pathlib.Path
-            Configuration file path.
-        vars_conf : dict
-            Variable configurations.
-        vars : dict
-            Environment variables.
-        namespace : dict
-            Namespace for the configuration template.
-            It will be updated in this method.
-
-        Returns
-        -------
-        conf : dict
-            Jaffle configuration.
-        """
-        template = Template(filename=str(conf_file_path))
-
-        ns = dict(namespace, var=VariablesNamespace(vars_conf, vars=vars))
-        self.log.debug('variables: %s', ns['var'])
-        rendered = template.render(**ns)
-        # self.log.debug('rendered config: %s', rendered)
-        return hcl.loads(rendered)
-
     @gen.coroutine
     def _start_sessions(self):
         """
@@ -351,8 +263,8 @@ class JaffleStartCommand(BaseJaffleCommand):
             Future of starting all sessions.
         """
         try:
-            kernels = self.conf.get('kernel', {})
-            for session_name, data in kernels.items():  # session_name == kernel instance name
+            # session_name == kernel instance name
+            for session_name, data in self.conf.kernel.items():
                 self.log.info('Starting kernel: %s', session_name)
                 startup = str(Path(__file__).parent.parent.parent / 'startup.py')
                 session_model = yield self.session_manager.create_session(
@@ -378,7 +290,8 @@ class JaffleStartCommand(BaseJaffleCommand):
 
                 code_lines = []
 
-                env = {e: os.getenv(e, '') for e in kernels[session.name].get('pass_env', [])}
+                env = {e: os.getenv(e, '') for e in
+                       self.conf.kernel.get(session.name, {}).get('pass_env', [])}
                 if len(env) > 0:
                     code_lines.append('import os')
                     code_lines.append('\n'.join(['os.environ[{!r}] = {!r}'.format(k, v)
@@ -396,19 +309,20 @@ class JaffleStartCommand(BaseJaffleCommand):
 
                     if 'class' in app_data:
                         mod, cls = app_data['class'].rsplit('.', 1)
-                        opts = app_data.get('options', {})
+                        app_conf = AppConfig(app_name, app_data, self.raw_namespace,
+                                             self.runtime_variables, self.conf.variable,
+                                             self.port, self.conf.job.raw())
                         self.log.info('Initializing %s.%s on %s', mod, cls, session.name)
-                        self.log.debug('options for %s: %s', cls, opts)
                         code_lines.append('from {} import {}'.format(mod, cls))
                         code_lines.append(
-                            '{app} = {cls}({app!r}, {conf}, {port}, {status}, **{opts})'
-                            .format(cls=cls, app=app_name, conf=self.conf, port=self.port,
-                                    status=self.status.to_dict(), opts=opts)
+                            '{app_name} = {cls}({app_conf})'
+                            .format(cls=cls, app_name=app_name, app_conf=app_conf)
                         )
                         if 'start' in app_data:
                             code_lines.append(app_data['start'])
 
-                    self.status.add_app(name=app_name, session_name=session.name)
+                    self.status.add_app(app_name, session_name, app_data['class'],
+                                        app_data.get('start'), app_data.get('options', {}))
 
                 client.execute('\n'.join(code_lines), silent=True)
 
@@ -436,16 +350,37 @@ class JaffleStartCommand(BaseJaffleCommand):
             app_name = data['app_name']
             payload = data['payload']
             logger_name = payload.get('logger') or app_name
-            level = getattr(logging, payload['levelname'].upper())
-            msg = payload.get('message', '')
-            if not any([r.search(msg) for r in
-                        self.app_log_suppress_patterns.get(app_name, []) +
-                        self.global_log_suppress_patterns]):
-                for pattern, replace in (
-                        self.app_log_replace_patterns.get(app_name, []) +
-                        self.global_log_replace_patterns):
-                    msg = pattern.sub(replace, msg)
-                logging.getLogger(logger_name).log(level, msg)
+            self._log(logger_name, payload['levelname'], payload.get('message', ''))
+
+    def _log(self, name, level_name, msg):
+        """
+        Emits the received log record in the main command.
+
+        Parameters
+        ----------
+        name : str
+            Logger name.
+        level_name : str
+            Log level name.
+        msg : str
+            Log message.
+        """
+        if any([r.search(msg) for r in
+                self.conf.app_log_suppress_patterns.get(name, [])
+                + self.conf.global_log_suppress_patterns]):
+            return
+
+        for pattern, replace in (self.conf.app_log_replace_patterns.get(name, [])
+                                 + self.conf.global_log_replace_patterns):
+            def subtract(match):
+                # Replace '\\1' in the interpolation by calling TemplateString.render()
+                rendered = str_value(replace, match=match)
+                # Replace '\\1' in the string itself
+                return pattern.sub(rendered, msg)
+
+            msg = pattern.sub(subtract, msg)
+
+        logging.getLogger(name).log(getattr(logging, level_name.upper()), msg)
 
     @gen.coroutine
     def _start_processes(self):
@@ -458,7 +393,7 @@ class JaffleStartCommand(BaseJaffleCommand):
             Future of starting all external processes.
         """
         processes = []
-        for proc_name, proc_data in self.conf.get('process', {}).items():
+        for proc_name, proc_data in self.conf.process.items():
             if bool_value(proc_data.get('disabled', False)):
                 continue
             logger = logging.getLogger(proc_name)
@@ -467,7 +402,8 @@ class JaffleStartCommand(BaseJaffleCommand):
             logger.setLevel(getattr(logging, logger_data.get('level', 'info').upper()))
             proc = self.procs[proc_name] = Process(
                 logger, proc_name, proc_data.get('command'),
-                proc_data.get('tty', False), proc_data.get('env', {}),
+                bool_value(proc_data.get('tty', False)),
+                proc_data.get('env', {}),
                 logger_data.get('suppress_regex', []),
                 logger_data.get('replace_regex', []),
                 self.color
@@ -479,7 +415,7 @@ class JaffleStartCommand(BaseJaffleCommand):
         """
         Initializes job loggers.
         """
-        for job_name, job_data in self.conf.get('job', {}).items():
+        for job_name, job_data in self.conf.job.items():
             logger_data = job_data.get('logger', {})
             logger_name = logger_data.get('name', job_name)
             logger = logging.getLogger(logger_name)
@@ -500,7 +436,7 @@ class JaffleStartCommand(BaseJaffleCommand):
         apps : dict{str: dict}
             App data.
         """
-        return {name: data for name, data in self.conf.get('app', {}).items()
+        return {name: data for name, data in self.conf.app.raw().items()
                 if data.get('kernel') == session_name}
 
     def _handle_sigint(self, sig, frame):

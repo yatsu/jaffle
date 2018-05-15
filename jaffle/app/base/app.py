@@ -8,7 +8,8 @@ from tornado.escape import to_unicode
 from tornado.iostream import StreamClosedError
 from tornado.process import Subprocess
 from ...job import Job
-from ...status import JaffleStatus
+from ...utils import str_value
+from .config import AppConfig
 from .logging import JaffleAppLogHandler
 
 
@@ -19,43 +20,120 @@ class BaseJaffleApp(object):
 
     completer_class = None
     lexer_class = None
+    app_conf = None
     jobs = None
 
-    def __init__(self, app_name, jaffle_conf, jaffle_port, jaffle_status):
+    def __init__(self, app_conf_data):
         """
         Initializes BaseJaffleApp.
 
         Parameters
         ----------
-        app_name : str
-            App name defined in jaffle.hcl.
-        jaffle_conf : dict
-            Jaffle conf constructed from jaffle.hcl.
-        jaffle_port : int
-            TCP port for Jaffle ZMQ channel.
-        jaffle_status : dict
-            Jaffle status.
+        app_conf_data : dict
+            App configuration data.
         """
-        self.app_name = app_name
-        self.jaffle_port = jaffle_port
-        self.jaffle_conf = jaffle_conf
-        self.jaffle_status = JaffleStatus.from_dict(jaffle_status)
+        self.app_conf = AppConfig.from_dict(app_conf_data)
         self.ipython = get_ipython()  # noqa
 
         logging.getLogger().handlers = []
 
-        self.log = logging.getLogger(app_name)
-        level = jaffle_conf.get('app', {})[app_name].get('logger', {}).get('level', 'info')
+        self.log = logging.getLogger(self.app_name)
+        level = str_value(self.conf.get('logger', {}).get('level', 'info'))
         self.log.setLevel(getattr(logging, level.upper()))
-        self.log.handlers = [JaffleAppLogHandler(app_name, self.jaffle_port)]
+        self.log.handlers = [JaffleAppLogHandler(self.app_name, self.jaffle_port)]
         self.log.propagate = False
 
         self.jobs = {}
-        for job_name, job_data in jaffle_conf.get('job', {}).items():
+        for job_name, job_data in self.jobs_conf.items():
             logger = logging.getLogger(job_name)
             logger.parent = self.log
             logger.setLevel(self.log.level)
             self.jobs[job_name] = Job(logger, job_name, job_data.get('command'))
+
+    @property
+    def app_name(self):
+        """
+        Returns the app name.
+
+        Returns
+        -------
+        app_name : str
+            App name.
+        """
+        return self.app_conf.app_name
+
+    @property
+    def conf(self):
+        """
+        Returns the app-specific config.
+
+        Returns
+        -------
+        conf : ConfigDict
+            App-specific config.
+        """
+        return self.app_conf.conf
+
+    @property
+    def options(self):
+        """
+        Retruns options for the app.
+
+        Returns
+        -------
+        options : dict
+            Options for the app.
+        """
+        return self.app_conf.conf.get('options', {})
+
+    @property
+    def raw_namespace(self):
+        """
+        Returns the raw namespace for string interpolation which does not
+        include functions and variables.
+
+        Returns
+        -------
+        raw_namespace : dict
+            Raw namespace for string interpolation.
+        """
+        return self.app_conf.raw_namespace
+
+    @property
+    def runtime_variables(self):
+        """
+        Returns runtime variables.
+
+        Returns
+        -------
+        runtime_variables : dict
+            Runtime variables.
+        """
+        return self.app_conf.runtime_variables
+
+    @property
+    def jaffle_port(self):
+        """
+        Returns the Jaffle port.
+
+        Returns
+        -------
+        jaffle_port : int
+            Jaffle port.
+        """
+        return self.app_conf.jaffle_port
+
+    @property
+    def jobs_conf(self):
+        """
+        Returns jobs config.
+
+        Returns
+        -------
+        jobs_conf : ConfigDict
+            Jobs config.
+        """
+        return self.app_conf.jobs_conf
 
     def execute_code(self, code, *args, **kwargs):
         """

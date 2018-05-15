@@ -30,7 +30,7 @@ class APIExampleHandler(web.RequestHandler):
         """
         Handles ``GET /api/example``.
         """
-        self.log.info('APIExampleHandler.get')
+        self.log.info('APIExampleHandler.get: %s', dict(self.request.headers.items()))
         self.finish({'result': 'ok'})
 
     def finish(self, *args, **kwargs):

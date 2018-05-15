@@ -36,12 +36,17 @@ def deep_merge(*dicts, update=False):
 
 def bool_value(value):
     """
-    Converts the given object to bool if it is possible.
+    Converts the given object to a bool if it is possible.
 
     Parameters
     ----------
     value : object
         Object to be converted to bool.
+
+    Returns
+    -------
+    value : bool
+        Bool value.
 
     Raises
     ------
@@ -50,9 +55,33 @@ def bool_value(value):
     """
     if isinstance(value, bool):
         return value
-    elif isinstance(value, str):
-        if value in ['true', '1']:
-            return True
-        elif value in ['false', '0']:
-            return False
+
+    if hasattr(value, 'render'):
+        value = value.render()
+
+    if value in ['true', '1']:
+        return True
+    elif value in ['false', '0']:
+        return False
+
     raise ValueError('Invalid bool value: {!r}'.format(value))
+
+
+def str_value(value, match=None):
+    """
+    Converts the given object to a string with processing interpolation and
+    matched pattern expansion (``\\1``, ``\\g<1>``, etc.)>
+
+    Parameters
+    ----------
+    match : re.Match or None
+        Matched pattern.
+
+    Returns
+    -------
+    value : str
+        String value.
+    """
+    if hasattr(value, 'render'):
+        return value.render(match=match)
+    return str(value)

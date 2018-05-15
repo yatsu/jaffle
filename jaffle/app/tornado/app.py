@@ -43,36 +43,22 @@ class TornadoBridgeApp(BaseJaffleApp):
         - and call ``IOLoop.stop()`` from it.
     """
 
-    def __init__(self, app_name, jaffle_conf, jaffle_port, jaffle_status,
-                 app_class, args=[], clear_cache=None, threaded=False):
+    def __init__(self, app_conf_data):
         """
         Initializes JaffleApp.
 
         Parameters
         ----------
-        app_name : str
-            App name defined in jaffle.hcl.
-        jaffle_conf : dict
-            Jaffle conf constructed from jaffle.hcl.
-        jaffle_port : int
-            TCP port for Jaffle ZMQ channel.
-        jaffle_status : dict
-            Jaffle status.
-        app_class : str
-            Tornado application class.
-        args : list[str]
-            Command line arguments for Tornado app.
-        clear_cache : list[str] or None
-            Module names to be cleared from cache.
-        threaded : bool or str
-            Whether to launch the app in an independent thread.
+        app_conf_data : dict
+            App configuration data.
         """
-        super().__init__(app_name, jaffle_conf, jaffle_port, jaffle_status)
+        super().__init__(app_conf_data)
 
-        self.app_class = app_class
-        self.args = args
-        self.clear_cache = (clear_cache if clear_cache is not None else find_packages())
-        self.threaded = bool_value(threaded)
+        self.app_class = self.options.get('app_class')
+        self.args = self.options.get('args', [])
+        self.clear_cache = self.options.get('clear_cache', find_packages())
+        self.threaded = bool_value(self.options.get('threaded', False))
+
         self.thread = None
         self.main_io_loop = None
 
