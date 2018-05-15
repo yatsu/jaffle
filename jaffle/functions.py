@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import json
-from json import JSONDecodeError
 import os
 import pyjq
 import shlex
@@ -139,8 +138,8 @@ def jq_all(query, data_str, *args, **kwargs):
     """
     try:
         return json.dumps(pyjq.all(query, yaml.loads(data_str)), *args, **kwargs)
-    except JSONDecodeError:
-        return 'jq error - query: {!r} str: {!r}'.format(query, data_str)
+    except Exception as e:
+        return 'jq error: {} query: {!r} str: {!r}'.format(e, query, data_str)
 
 
 def jq_first(query, data_str, *args, **kwargs):
@@ -160,8 +159,8 @@ def jq_first(query, data_str, *args, **kwargs):
     """
     try:
         return json.dumps(pyjq.first(query, yaml.safe_load(data_str)), *args, **kwargs)
-    except JSONDecodeError as e:
-        return 'jq error - query: {!r} str: {!r}'.format(query, data_str)
+    except Exception as e:
+        return 'jq error: {} query: {!r} str: {!r}'.format(e, query, data_str)
 
 
 def jq(query, data_str, *args, **kwargs):
