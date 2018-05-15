@@ -3,7 +3,10 @@ include LICENSE
 include requirements.txt
 graft jaffle
 graft examples
+graft docs
 global-exclude yarn.lock yarn-error.log *.py[co] tags
 recursive-exclude examples/*/node_modules *
 recursive-exclude examples/*/.pytest_cache *
 recursive-exclude examples/*/.jaffle *
+recursive-exclude docs/_build *
+recursive-exclude docs/cookbook *.gif
