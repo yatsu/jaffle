@@ -271,10 +271,12 @@ def test_start_sessions(command):
     assert logger.parent is command.log
     logger.setLevel.assert_has_calls([call(logging.DEBUG), call(logging.DEBUG)])
 
-    command.status.add_app.assert_has_calls([
-        call('app1', 'sess_name', 'foo.Foo', 'app1.start()', {'opt1': True}),
-        call('app2', 'sess_name', 'bar.Bar', None, {})
-    ])
+    command.status.add_app.assert_any_call(
+        'app1', 'sess_name', 'foo.Foo', 'app1.start()', {'opt1': True}
+    )
+    command.status.add_app.assert_any_call(
+        'app2', 'sess_name', 'bar.Bar', None, {}
+    )
 
     command.status.save.assert_called_once_with(command.status_file_path)
 

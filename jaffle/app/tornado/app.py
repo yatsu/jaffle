@@ -70,6 +70,11 @@ class TornadoBridgeApp(BaseJaffleApp):
         from tornado.log import app_log, access_log, gen_log
         for log in app_log, access_log, gen_log:
             log.name = self.log.name
+            if log.parent:
+                log.handlers = []  # prevent duplicated logging
+            log.propagate = True
+            log.parent = self.log
+            log.setLevel(self.log.level)
 
         logger = logging.getLogger('tornado')
         if logger.parent:
