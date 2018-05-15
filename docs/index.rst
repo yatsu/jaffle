@@ -38,6 +38,7 @@ Screenshot
    apps/index
    cookbook/index
    troubleshooting
+   version_history
    related_work
 
 .. toctree::

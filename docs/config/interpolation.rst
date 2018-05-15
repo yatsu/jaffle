@@ -48,7 +48,7 @@ See :doc:`variable` section for details.
 Functions
 =========
 
-.. currentmodule:: jaffle.command.functions
+.. currentmodule:: jaffle.functions
 
 .. _env:
 
@@ -76,6 +76,24 @@ reset()
 -------
 
 .. autofunction:: reset
+
+jq_all()
+--------
+
+.. autofunction:: jq_all
+
+pyjq_ processes the query.
+``jq()`` is an alias to ``jq_all()``.
+
+jq_first()
+----------
+
+.. autofunction:: jq_first
+
+pyjq_ processes the query.
+``jqf()`` is an alias to ``jq_first()``.
+
+.. _pyjq: https://github.com/doloopwhile/pyjq
 
 Filters
 =======
