@@ -16,5 +16,5 @@ traitlets
 watchdog>=0.8.0
 
 # The following packages are not available on Read the Docs
-pyhcl>=0.3.0
-pyjq>=2.1.0
+# pyhcl>=0.3.0
+# pyjq>=2.1.0
