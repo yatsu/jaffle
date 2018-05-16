@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
 
+import os
 from setuptools import setup, find_packages
 from jaffle import __version__
 
@@ -56,8 +57,6 @@ requirements = [
     "notebook>=5.0.0,<6",
     "prompt-toolkit",
     "pygments",
-    "pyhcl>=0.3.0",
-    "pyjq>=2.1.0",
     "pyyaml",
     "pyzmq",
     "setuptools",
@@ -65,6 +64,12 @@ requirements = [
     "traitlets",
     "watchdog>=0.8.0"
 ]
+
+if os.getenv('READTHEDOCS') != 'True':
+    requirements += [
+        "pyhcl>=0.3.0",
+        "pyjq>=2.1.0"
+    ]
 
 dev_requirements = [
     "flake8>=3.5.0",
