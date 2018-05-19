@@ -5,18 +5,17 @@
 
 This project was renamed from 'Turret' to 'Jaffle'.
 
-Jaffle is an automation tool for Python software development, which does:
+Jaffle is an automation tool for Python software development, which has the
+following features:
 
 - Instantiate Python applications in a [Jupyter](http://jupyter.org/) kernel
-  and allows them to call each other
+  and allows them to interact each other
 - Launch external processes
-- Combine log messages of all Python applications and external processes
-  enabling filtering and reformatting
-
-Jaffle contains
-[WatchdogApp](http://jaffle.readthedocs.io/en/latest/apps/watchdog.html)
-that can watch filesystem events and call arbitrary code or command.
-That allows you to automate testing, reloading applications, etc.
+- Combine all log messages and allows filtering and reformatting by regular
+  expressions and functions
+- Built-in [WatchdogApp](http://jaffle.readthedocs.io/en/latest/apps/watchdog.html)
+  watches filesystem events and triggers another app, arbitrary code, and
+  functions, which make it possible to setup various automations.
 
 ## PyPI Project
 

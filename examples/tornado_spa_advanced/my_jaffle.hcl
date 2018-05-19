@@ -14,6 +14,14 @@ variable "disable_jest" {
   default = true
 }
 
+app "tornado_app" {
+  options {
+    args = ["--ip=ymbp.local", "--port=9999"]
+
+    # args = ["--ip=${exec('hostname') | trim}", "--port=9999"]
+  }
+}
+
 logger {
   replace_regex = [
     {
