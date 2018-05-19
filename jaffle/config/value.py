@@ -147,19 +147,16 @@ class ConfigCollection(ConfigValue):
         item : object
             Raw item corresponding to the given index or key.
         """
+        if raw:
+            return self.get_raw(index_or_key, default=default, render=render)
         try:
-            if raw:
-                return self.get_raw(index_or_key, default=default, render=render)
             value = self.value[index_or_key]
             if isinstance(value, str):
                 ts = TemplateString(value, self.namespace)
                 return ts.render() if render else ts
             else:
                 return value
-
         except (IndexError, KeyError):
-            if default is _NO_DEFAULT:
-                raise
             return default
 
     def get_raw(self, index_or_key, default=_NO_DEFAULT, render=True):
@@ -267,7 +264,18 @@ class ConfigDict(ConfigCollection):
                       for k, v in (value or {}).items()}
 
     def __getattr__(self, attr):
-        return self.get(attr)
+        """
+        Accesses a value like an attribute (``obj.dict_key``).
+
+        Parameters
+        ----------
+        attr : object
+            Dict key.
+        """
+        if attr not in self.value:
+            raise AttributeError('{!r} object has no attribute {!r}'
+                                 .format(type(self).__name__, attr))
+        return self.value[attr]
 
     def keys(self):
         """
