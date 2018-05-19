@@ -35,6 +35,18 @@ class ConfigValue(object):
         """
         return repr(self.value)
 
+    def __eq__(self, other):
+        """
+        Checks if two values are equal.
+
+        Parameters
+        ----------
+        other : object
+            Another value.
+        """
+        return (isinstance(other, ConfigValue) and
+                other.value == self.value and other.namespace == self.namespace)
+
     @classmethod
     def create(self, value, namespace=None):
         """
@@ -52,10 +64,10 @@ class ConfigValue(object):
         value : ConfigDict, ConfigList or object
             Concrete config value.
         """
-        if isinstance(value, dict):
-            return ConfigDict(value, namespace=namespace)
-        elif isinstance(value, list):
+        if isinstance(value, list):
             return ConfigList(value, namespace=namespace)
+        elif isinstance(value, dict):
+            return ConfigDict(value, namespace=namespace)
         else:
             return value
 
@@ -277,7 +289,7 @@ class ConfigDict(ConfigCollection):
         values : generator
             Values of the dict.
         """
-        return (self.get(k) for k in self.value)
+        return self.value.values()
 
     def items(self):
         """
@@ -288,7 +300,7 @@ class ConfigDict(ConfigCollection):
         items : generator
             Paris of key and value.
         """
-        return ((k, self.get(k)) for k in self.value)
+        return self.value.items()
 
     def raw(self, render=False):
         """
