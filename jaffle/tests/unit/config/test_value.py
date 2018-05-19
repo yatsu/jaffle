@@ -98,16 +98,16 @@ def test_config_dct():
     assert value.raw() == {'hello': '${name}!', 'no': ['warries', 'problem']}
     assert value.raw(render=True) == {'hello': 'bar!', 'no': ['warries', 'problem']}
 
-    assert [v for v in value] == list(value.value.keys())
-    assert list(value.keys()) == ['hello', 'no']
-    assert list(value.values()) == [
-        '${name}!',
-        ConfigList(['warries', 'problem'], namespace={'name': 'bar'})
-    ]
-    assert list(value.items()) == [
-        ('hello', '${name}!'),
-        ('no', ConfigList(['warries', 'problem'], namespace={'name': 'bar'}))
-    ]
+    assert set([v for v in value]) == set(value.value.keys())
+    assert set(value.keys()) == set(['hello', 'no'])
+    values = list(value.values())
+    assert len(values) == 2
+    assert '${name}!' in values
+    assert ConfigList(['warries', 'problem'], namespace={'name': 'bar'}) in values
+    items = list(value.items())
+    assert len(items) == 2
+    assert ('hello', '${name}!') in items
+    assert ('no', ConfigList(['warries', 'problem'], namespace={'name': 'bar'})) in items
 
     assert value['hello'] == '${name}!'
     assert value['no'] == ConfigList(['warries', 'problem'], namespace={'name': 'bar'})
