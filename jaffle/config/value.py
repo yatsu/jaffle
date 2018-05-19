@@ -114,7 +114,7 @@ class ConfigCollection(ConfigValue):
         """
         return self.value[index_or_key]
 
-    def get(self, key, default=_NO_DEFAULT):
+    def get(self, index_or_key, default=None, raw=False, render=False):
         """
         Returns the raw value from the collection. If the value is str, returns
         TemplateString which is bound to a namespace and can be rendered later.
@@ -125,6 +125,10 @@ class ConfigCollection(ConfigValue):
             Index or key to the collection.
         default : object
             Default value.
+        raw :True
+            Whether to get row collection or ``ConfigCollection``.
+        render : bool
+            Whether to render template strings with the bound namespace.
 
         Returns
         -------
@@ -132,13 +136,21 @@ class ConfigCollection(ConfigValue):
             Raw item corresponding to the given index or key.
         """
         try:
-            return self._get_raw(key)
+            if raw:
+                return self.get_raw(index_or_key, default=default, render=render)
+            value = self.value[index_or_key]
+            if isinstance(value, str):
+                ts = TemplateString(value, self.namespace)
+                return ts.render() if render else ts
+            else:
+                return value
+
         except (IndexError, KeyError):
             if default is _NO_DEFAULT:
                 raise
             return default
 
-    def _get_raw(self, index_or_key):
+    def get_raw(self, index_or_key, default=_NO_DEFAULT, render=True):
         """
         Returns the raw value from the collection. If the value is str, returns
         TemplateString which is bound to a namespace and can be rendered later.
@@ -147,23 +159,33 @@ class ConfigCollection(ConfigValue):
         ----------
         index_or_key : int or str
             Index or key to the collection.
+        default : object
+            Default value.
+        render : bool
+            Whethere to render template strings with the bound namespace.
 
         Returns
         -------
         item : object
             Raw item corresponding to the given index or key.
         """
-        value = self.value[index_or_key]
-        if isinstance(value, ConfigDict):
-            return {k: value.get(k) for k in value}
-        elif isinstance(value, ConfigList):
-            return [value.get(i) for i in range(len(value))]
-        elif isinstance(value, str):
-            return TemplateString(value, self.namespace)
-        else:
-            return value
+        try:
+            value = self.value[index_or_key]
+            if isinstance(value, ConfigDict):
+                return {k: value.get_raw(k, render=render) for k in value}
+            elif isinstance(value, ConfigList):
+                return [value.get_raw(i, render=render) for i in range(len(value))]
+            elif isinstance(value, str):
+                ts = TemplateString(value, self.namespace)
+                return ts.render() if render else ts
+            else:
+                return value
+        except (IndexError, KeyError):
+            if default is _NO_DEFAULT:
+                raise
+            return default
 
-    def raw(self):
+    def raw(self, render=False):
         """
         Returns the raw contents of the collection.
 
@@ -171,6 +193,8 @@ class ConfigCollection(ConfigValue):
         -------
         raw : list or dict
             Raw contents.
+        render : bool
+            Whethere to render template strings with the bound namespace.
         """
         raise NotImplementedError()
 
@@ -180,7 +204,7 @@ class ConfigList(ConfigCollection):
     Configuration value as a list.
     """
 
-    def __init__(self, value, namespace=None):
+    def __init__(self, value=None, namespace=None):
         """
         Initializes ConfigList.
 
@@ -193,9 +217,9 @@ class ConfigList(ConfigCollection):
         """
         super().__init__(namespace)
 
-        self.value = [ConfigValue.create(v, namespace=namespace) for v in value]
+        self.value = [ConfigValue.create(v, namespace=namespace) for v in value or []]
 
-    def raw(self):
+    def raw(self, render=False):
         """
         Returns the raw contents of the collection.
 
@@ -203,8 +227,10 @@ class ConfigList(ConfigCollection):
         -------
         raw : list
             Raw contents.
+        render : bool
+            Whethere to render template strings with the bound namespace.
         """
-        return [self._get_raw(i) for i in range(len(self.value))]
+        return [self.get_raw(i, render=render) for i in range(len(self.value))]
 
 
 class ConfigDict(ConfigCollection):
@@ -212,7 +238,7 @@ class ConfigDict(ConfigCollection):
     Configuration value as a dict.
     """
 
-    def __init__(self, value, namespace=None):
+    def __init__(self, value=None, namespace=None):
         """
         Initializes ConfigList.
 
@@ -226,7 +252,7 @@ class ConfigDict(ConfigCollection):
         super().__init__(namespace)
 
         self.value = {k: ConfigValue.create(v, namespace=namespace)
-                      for k, v in value.items()}
+                      for k, v in (value or {}).items()}
 
     def __getattr__(self, attr):
         return self.get(attr)
@@ -264,7 +290,7 @@ class ConfigDict(ConfigCollection):
         """
         return ((k, self.get(k)) for k in self.value)
 
-    def raw(self):
+    def raw(self, render=False):
         """
         Returns the raw contents of the collection.
 
@@ -272,5 +298,7 @@ class ConfigDict(ConfigCollection):
         -------
         raw : dict
             Raw contents.
+        render : bool
+            Whethere to render template strings with the bound namespace.
         """
-        return {k: self._get_raw(k) for k in self.value}
+        return {k: self.get_raw(k, render=render) for k in self.value}

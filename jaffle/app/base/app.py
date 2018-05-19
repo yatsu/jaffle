@@ -7,6 +7,7 @@ from tornado import gen
 from tornado.escape import to_unicode
 from tornado.iostream import StreamClosedError
 from tornado.process import Subprocess
+from ...config import ConfigDict
 from ...job import Job
 from ...utils import str_value
 from .config import AppConfig
@@ -84,7 +85,7 @@ class BaseJaffleApp(object):
         options : dict
             Options for the app.
         """
-        return self.app_conf.conf.get('options', {})
+        return self.app_conf.conf.get('options', ConfigDict())
 
     @property
     def raw_namespace(self):

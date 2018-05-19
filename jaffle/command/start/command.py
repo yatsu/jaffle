@@ -31,7 +31,7 @@ from traitlets.config.application import catch_config_error
 import zmq
 from zmq.eventloop import zmqstream
 from ...app.base.config import AppConfig
-from ...config import JaffleConfig
+from ...config import JaffleConfig, ConfigDict
 from ...kernel_client import JaffleKernelClient
 from ...process import Process
 from ...session import JaffleSessionManager
@@ -266,6 +266,7 @@ class JaffleStartCommand(BaseJaffleCommand):
             # session_name == kernel instance name
             for session_name, data in self.conf.kernel.items():
                 self.log.info('Starting kernel: %s', session_name)
+                self.log.debug('data: %s %s', data, type(data))
                 startup = str(Path(__file__).parent.parent.parent / 'startup.py')
                 session_model = yield self.session_manager.create_session(
                     name=session_name,
@@ -394,11 +395,11 @@ class JaffleStartCommand(BaseJaffleCommand):
         """
         processes = []
         for proc_name, proc_data in self.conf.process.items():
-            if bool_value(proc_data.get('disabled', False)):
+            if bool_value(proc_data.get_raw('disabled', False)):
                 continue
             logger = logging.getLogger(proc_name)
             logger.parent = self.log
-            logger_data = proc_data.get('logger', {})
+            logger_data = proc_data.get('logger', ConfigDict())
             logger.setLevel(getattr(logging, logger_data.get('level', 'info').upper()))
             proc = self.procs[proc_name] = Process(
                 logger, proc_name, proc_data.get('command'),

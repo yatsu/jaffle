@@ -27,7 +27,7 @@ class WatchdogApp(BaseJaffleApp):
 
         self.observer = Observer()
 
-        for handler in self.options.get('handlers', []):
+        for handler in self.options.get_raw('handlers', []):
             wh = WatchdogHandler(
                 ioloop.IOLoop.current(),
                 self.execute_code,

@@ -31,11 +31,11 @@ class PyTestRunnerApp(BaseJaffleApp):
         """
         super().__init__(app_conf_data)
 
-        self.args = self.options.get('args', ['-s', '-v'])
-        self.plugins = self.options.get('plugins', [])
-        self.auto_test = self.options.get('auto_test', [])
-        self.auto_test_map = self.options.get('auto_test_map', [])
-        self.clear_cache = self.options.get('clear_cache', find_packages())
+        self.args = self.options.get_raw('args', ['-s', '-v'])
+        self.plugins = self.options.get_raw('plugins', [])
+        self.auto_test = self.options.get_raw('auto_test', [])
+        self.auto_test_map = self.options.get_raw('auto_test_map', [])
+        self.clear_cache = self.options.get_raw('clear_cache', find_packages())
 
         # Suppress pytest warning for plugin: 'Module already imported'
         for plugin in pkg_resources.iter_entry_points('pytest11'):

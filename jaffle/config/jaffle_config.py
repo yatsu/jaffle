@@ -6,7 +6,7 @@ import re
 from ..functions import functions
 from ..utils import deep_merge
 from ..variables import VariablesNamespace
-from .config_value import ConfigValue
+from .value import ConfigValue
 
 
 class JaffleConfig(object):

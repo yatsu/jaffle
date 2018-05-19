@@ -54,10 +54,10 @@ class TornadoBridgeApp(BaseJaffleApp):
         """
         super().__init__(app_conf_data)
 
-        self.app_class = self.options.get('app_class')
-        self.args = self.options.get('args', [])
-        self.clear_cache = self.options.get('clear_cache', find_packages())
-        self.threaded = bool_value(self.options.get('threaded', False))
+        self.app_class = self.options.get_raw('app_class')
+        self.args = self.options.get_raw('args', [])
+        self.clear_cache = self.options.get_raw('clear_cache', find_packages())
+        self.threaded = bool_value(self.options.get_raw('threaded', False))
 
         self.thread = None
         self.main_io_loop = None
