@@ -21,7 +21,7 @@ class JaffleKernelManager(IOLoopKernelManager):
     def _client_class_default(self):
         return 'jaffle.kernel_client.JaffleKernelClient'
 
-    def get_connection_info(self, session=False):
+    def get_connection_info(self, session=False):  # pragma: no cover
         """
         Gets the connection info as a dict
 
@@ -51,7 +51,7 @@ class JaffleKernelManager(IOLoopKernelManager):
 
         return info
 
-    def _session_clone(self, session):
+    def _session_clone(self, session):  # pragma: no cover
         """
         Clones the Jupyter client session.
 
@@ -73,6 +73,3 @@ class JaffleKernelManager(IOLoopKernelManager):
         new_session.digest_history = set()
         new_session.digest_history.update(session.digest_history)
         return new_session
-
-    def update_status(self, kernel_id, ready):
-        pass

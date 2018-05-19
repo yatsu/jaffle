@@ -5,7 +5,7 @@ import jupyter_console
 from jupyter_console.ptshell import ZMQTerminalInteractiveShell
 
 
-class JaffleInteractiveShell(ZMQTerminalInteractiveShell):
+class JaffleInteractiveShell(ZMQTerminalInteractiveShell):  # pragma: no cover
     """
     Base interactive shell class for Jaffle.
 
