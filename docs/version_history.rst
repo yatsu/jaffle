@@ -2,6 +2,11 @@
 Version History
 ===============
 
+0.2.1 (May 20, 2018)
+====================
+
+- Fix: String interpolations in app options are not evaluated
+
 0.2.0 (May 16, 2018)
 ====================
 
