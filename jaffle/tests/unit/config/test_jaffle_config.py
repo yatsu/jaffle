@@ -133,7 +133,7 @@ def test_create():
 
 
 def test_load_file(tmpdir):
-    tmp_file = Path(tmpdir) / 'jaffle.hcl'
+    tmp_file = Path(str(tmpdir)) / 'jaffle.hcl'
     with tmp_file.open('w') as f:
         f.write(dedent('''
             kernel "my_kernel" {
