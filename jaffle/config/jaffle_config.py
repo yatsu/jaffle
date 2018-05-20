@@ -138,7 +138,7 @@ class JaffleConfig(object):
 
         Parameters
         ----------
-        file_path : pathlib.Path
+        file_path : pathlib.Path or str
             File path.
 
         Returns

@@ -16,9 +16,7 @@ variable "disable_jest" {
 
 app "tornado_app" {
   options {
-    args = ["--ip=ymbp.local", "--port=9999"]
-
-    # args = ["--ip=${exec('hostname') | trim}", "--port=9999"]
+    args = ["--ip=${exec('hostname') | trim}", "--port=9999"]
   }
 }
 
