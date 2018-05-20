@@ -19,7 +19,7 @@ def pytest_example_dir():
     os.chdir(str(cwd_org))
 
 
-@pytest.mark.gen_test(timeout=20)
+@pytest.mark.gen_test(timeout=30)
 def test_pytest_example(pytest_example_dir):
     command = 'jaffle start --disable-color -y'
     proc = Subprocess(shlex.split(command), stdin=None, stderr=Subprocess.STREAM,
