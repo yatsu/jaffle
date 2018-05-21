@@ -2,6 +2,11 @@
 Version History
 ===============
 
+0.2.2 (May 21, 2018)
+====================
+
+- Fix: String interpolations in logger settings are not evaluated
+
 0.2.1 (May 20, 2018)
 ====================
 
