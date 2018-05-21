@@ -266,7 +266,6 @@ class JaffleStartCommand(BaseJaffleCommand):
             # session_name == kernel instance name
             for session_name, data in self.conf.kernel.items():
                 self.log.info('Starting kernel: %s', session_name)
-                self.log.debug('data: %s %s', data, type(data))
                 startup = str(Path(__file__).parent.parent.parent / 'startup.py')
                 session_model = yield self.session_manager.create_session(
                     name=session_name,

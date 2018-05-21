@@ -4,9 +4,9 @@ import hcl
 from pathlib import Path
 import re
 from ..functions import functions
-from ..utils import deep_merge
+from ..utils import deep_merge, str_value
 from ..variables import VariablesNamespace
-from .value import ConfigValue
+from .value import ConfigValue, ConfigList, ConfigDict
 
 
 class JaffleConfig(object):
@@ -45,22 +45,22 @@ class JaffleConfig(object):
         self.logger = ConfigValue.create(logger or {}, namespace)
 
         self.app_log_suppress_patterns = {
-            app_name: [re.compile(r) for r in
-                       app_data.get('logger', {}).get('suppress_regex', [])]
+            app_name: [re.compile(str_value(r)) for r in
+                       app_data.get('logger', ConfigDict()).get('suppress_regex', ConfigList())]
             for app_name, app_data in self.app.items()
         }
         self.app_log_replace_patterns = {
-            app_name: [(re.compile(r['from']), r['to']) for r in
-                       app_data.get('logger', {}).get('replace_regex', [])]
+            app_name: [(re.compile(str_value(r['from'])), r['to']) for r in
+                       app_data.get('logger', ConfigDict()).get('replace_regex', ConfigList())]
             for app_name, app_data in self.app.items()
         }
         self.global_log_suppress_patterns = [
-            re.compile(r)
-            for r in self.logger.get('suppress_regex', default=[])
+            re.compile(str_value(r))
+            for r in self.logger.get('suppress_regex', default=ConfigList())
         ]
         self.global_log_replace_patterns = [
-            (re.compile(r['from']), r['to'])
-            for r in self.logger.get('replace_regex', default=[])
+            (re.compile(str_value(r['from'])), r['to'])
+            for r in self.logger.get('replace_regex', default=ConfigList())
         ]
 
     def __repr__(self):

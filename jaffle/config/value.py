@@ -88,17 +88,6 @@ class ConfigCollection(ConfigValue):
         """
         return repr(self.raw())
 
-    def __iter__(self):
-        """
-        Iterates over the collection.
-
-        Returns
-        -------
-        iter : iterator
-            Iterator to the collection.
-        """
-        return iter(self.value)
-
     def __len__(self):
         """
         Returns the length of the collection.
@@ -124,7 +113,7 @@ class ConfigCollection(ConfigValue):
         item : object
             Item corresponding to the given index or key.
         """
-        return self.value[index_or_key]
+        return self.get(index_or_key, default=_NO_DEFAULT)
 
     def get(self, index_or_key, default=None, raw=False, render=False):
         """
@@ -157,6 +146,8 @@ class ConfigCollection(ConfigValue):
             else:
                 return value
         except (IndexError, KeyError):
+            if default is _NO_DEFAULT:
+                raise
             return default
 
     def get_raw(self, index_or_key, default=_NO_DEFAULT, render=True):
@@ -228,6 +219,17 @@ class ConfigList(ConfigCollection):
 
         self.value = [ConfigValue.create(v, namespace=namespace) for v in value or []]
 
+    def __iter__(self):
+        """
+        Iterates over the collection.
+
+        Returns
+        -------
+        iter : iterator
+            Iterator to the collection.
+        """
+        return (self[i] for i in range(len(self)))
+
     def raw(self, render=False):
         """
         Returns the raw contents of the collection.
@@ -276,6 +278,17 @@ class ConfigDict(ConfigCollection):
             raise AttributeError('{!r} object has no attribute {!r}'
                                  .format(type(self).__name__, attr))
         return self.value[attr]
+
+    def __iter__(self):
+        """
+        Iterates over the collection.
+
+        Returns
+        -------
+        iter : iterator
+            Iterator to the collection.
+        """
+        return iter(self.value)
 
     def keys(self):
         """

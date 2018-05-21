@@ -6,27 +6,28 @@ from textwrap import dedent
 from unittest.mock import call, patch
 from jaffle.config.value import ConfigDict
 from jaffle.config.jaffle_config import JaffleConfig
+from jaffle.config.template_string import TemplateString
 
 
 def test_jaffle_config():
     conf = JaffleConfig({})
     assert conf.namespace == {}
 
-    namespace = {'foo': 'FOO', 'bar:': 'BAR'}
+    namespace = {'foo': 'FOO', 'bar': 'BAR'}
     conf = JaffleConfig(
         namespace,
         variable={'baz': 'BAZ'},
         kernel={'my_kernel': {'kernel_name': 'python3'}},
         app={'my_app': {'class': 'my.app.MyApp', 'logger': {
-            'suppress_regex': ['pat1', 'pat2'],
-            'replace_regex': [{'from': 'pat_from', 'to': 'pat_to'}]
+            'suppress_regex': ['pat1 ${foo}', 'pat2'],
+            'replace_regex': [{'from': 'pat_from ${foo}', 'to': 'pat_to ${bar}'}]
         }}},
         process={'my_proc': {'command': 'my_proc'}},
         job={'my_job': {'command': 'my_job'}},
         logger={
             'level': 'debug',
-            'suppress_regex': ['global_pat1', 'global_pat2'],
-            'replace_regex': [{'from': 'global_pat_from', 'to': 'global_pat_to'}]
+            'suppress_regex': ['global_pat1', 'global_pat2 ${foo}'],
+            'replace_regex': [{'from': 'global_pat_from ${bar}', 'to': 'global_pat_to ${foo}'}]
         }
     )
 
@@ -34,30 +35,36 @@ def test_jaffle_config():
     assert conf.variable == ConfigDict({'baz': 'BAZ'}, namespace)
     assert conf.kernel == ConfigDict({'my_kernel': {'kernel_name': 'python3'}}, namespace)
     assert conf.app == ConfigDict({'my_app': {'class': 'my.app.MyApp', 'logger': {
-        'suppress_regex': ['pat1', 'pat2'],
-        'replace_regex': [{'from': 'pat_from', 'to': 'pat_to'}]
+        'suppress_regex': ['pat1 ${foo}', 'pat2'],
+        'replace_regex': [{'from': 'pat_from ${foo}', 'to': 'pat_to ${bar}'}]
     }}}, namespace)
     assert conf.process == ConfigDict({'my_proc': {'command': 'my_proc'}}, namespace)
     assert conf.job == ConfigDict({'my_job': {'command': 'my_job'}}, namespace)
     assert conf.logger == ConfigDict({
         'level': 'debug',
-        'suppress_regex': ['global_pat1', 'global_pat2'],
-        'replace_regex': [{'from': 'global_pat_from', 'to': 'global_pat_to'}]
+        'suppress_regex': ['global_pat1', 'global_pat2 ${foo}'],
+        'replace_regex': [{'from': 'global_pat_from ${bar}', 'to': 'global_pat_to ${foo}'}]
     }, namespace)
 
     assert conf.app_log_suppress_patterns == {'my_app': [
-        re.compile('pat1'), re.compile('pat2')
+        re.compile('pat1 FOO'), re.compile('pat2')
     ]}
     assert conf.app_log_replace_patterns == {'my_app': [
-        (re.compile('pat_from'), 'pat_to')
+        (re.compile('pat_from FOO'), 'pat_to ${bar}')
     ]}
+    pat_to = conf.app_log_replace_patterns['my_app'][0][1]
+    assert isinstance(pat_to, TemplateString)
+    assert pat_to.render() == 'pat_to BAR'
 
     assert conf.global_log_suppress_patterns == [
-        re.compile('global_pat1'), re.compile('global_pat2')
+        re.compile('global_pat1'), re.compile('global_pat2 FOO')
     ]
     assert conf.global_log_replace_patterns == [
-        (re.compile('global_pat_from'), 'global_pat_to')
+        (re.compile('global_pat_from BAR'), 'global_pat_to ${foo}')
     ]
+    pat_to = conf.global_log_replace_patterns[0][1]
+    assert isinstance(pat_to, TemplateString)
+    assert pat_to.render() == 'global_pat_to FOO'
 
 
 def test_load():
