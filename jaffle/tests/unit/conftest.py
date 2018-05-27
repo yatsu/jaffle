@@ -3,7 +3,13 @@
 import pytest
 from tornado import gen
 from tornado.iostream import StreamClosedError
+from tornado.platform.asyncio import AsyncIOMainLoop
 from unittest.mock import Mock
+
+
+@pytest.fixture
+def io_loop():
+    return AsyncIOMainLoop()
 
 
 @pytest.fixture(scope='function')

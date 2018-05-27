@@ -20,12 +20,10 @@ from notebook.services.contents.manager import ContentsManager
 from notebook.services.kernels.kernelmanager import MappingKernelManager
 import os
 from pathlib import Path
-import select
-import signal
 import sys
-import threading
 from tornado import gen, ioloop
 from tornado.escape import to_unicode
+from tornado.platform.asyncio import AsyncIOMainLoop
 from traitlets import default, Dict, Instance, Int, List
 from traitlets.config.application import catch_config_error
 import zmq
@@ -38,6 +36,7 @@ from ...session import JaffleSessionManager
 from ...status import JaffleStatus
 from ...utils import bool_value, str_value
 from ..base import BaseJaffleCommand
+from .shell import JaffleMainShell
 
 
 class JaffleStartCommand(BaseJaffleCommand):
@@ -67,6 +66,7 @@ class JaffleStartCommand(BaseJaffleCommand):
     socket = Instance('zmq.Socket', allow_none=True)
     port = Int(allow_none=True)
     io_loop = Instance(ioloop.IOLoop, allow_none=True)
+    shell = Instance(JaffleMainShell, allow_none=True)
 
     kernel_spec_manager = Instance(KernelSpecManager, allow_none=True)
     kernel_manager = Instance(MappingKernelManager, allow_none=True)
@@ -112,6 +112,9 @@ class JaffleStartCommand(BaseJaffleCommand):
         """
         super().initialize(argv)
 
+        if not AsyncIOMainLoop().initialized():
+            AsyncIOMainLoop().install()
+
         self.check_running()
 
         self.init_dir()
@@ -137,11 +140,11 @@ class JaffleStartCommand(BaseJaffleCommand):
             contents_manager=self.contents_manager
         )
 
-        self.init_signal()
-
         self.load_conf()
 
         self.status = JaffleStatus(os.getpid(), self.raw_namespace, self.runtime_variables)
+
+        self.init_shell()
 
     def check_running(self):
         """
@@ -164,16 +167,6 @@ class JaffleStartCommand(BaseJaffleCommand):
         if not runtime_dir.exists():
             runtime_dir.mkdir()
 
-    def init_signal(self):
-        """
-        Initializes signal handlers.
-        """
-        if self.answer_yes:
-            signal.signal(signal.SIGINT, self._signal_stop)
-        else:
-            signal.signal(signal.SIGINT, self._handle_sigint)
-        signal.signal(signal.SIGTERM, self._signal_stop)
-
     def load_conf(self):
         """
         Loads the configuration.
@@ -185,6 +178,9 @@ class JaffleStartCommand(BaseJaffleCommand):
         except ValueError as e:
             print('Configuration error: {}'.format(e), file=sys.stderr)
             sys.exit(1)
+
+    def init_shell(self):
+        self.shell = JaffleMainShell(parent=self, shutdown=self.shutdown)
 
     def start(self):
         """
@@ -208,10 +204,13 @@ class JaffleStartCommand(BaseJaffleCommand):
             stream = zmqstream.ZMQStream(self.socket, self.io_loop)
             stream.on_recv(self._on_recv_msg)
 
+            self.io_loop.add_callback(self.shell.mainloop)
+
             self.io_loop.start()
 
-        except KeyboardInterrupt:
+        except KeyboardInterrupt as e:
             self.log.info('Interrupted...')
+            self.log.exception(e)
 
         except Exception as e:
             if self.log_evel == logging.DEBUG:
@@ -438,77 +437,6 @@ class JaffleStartCommand(BaseJaffleCommand):
         """
         return {name: data for name, data in self.conf.app.raw().items()
                 if data.get('kernel') == session_name}
-
-    def _handle_sigint(self, sig, frame):
-        """
-        SIGINT handler spawns confirmation dialog
-
-        Parameters
-        ----------
-        sig : int
-            Signal number.
-        frame: frame
-            Interrupted stack frame.
-        """
-        # register more forceful signal handler for ^C^C case
-        signal.signal(signal.SIGINT, self._signal_stop)
-        # request confirmation dialog in bg thread, to avoid blocking the App
-        thread = threading.Thread(target=self._confirm_exit)
-        thread.daemon = True
-        thread.start()
-
-    def _signal_stop(self, sig, frame):
-        """
-        SIGINT handler for force shutdown by double ``Ctrl-C``.
-
-        Parameters
-        ----------
-        sig : int
-            Signal number.
-        frame: frame
-            Interrupted stack frame.
-        """
-        self.log.critical('Received signal %s, stopping', sig)
-        self.io_loop.add_callback_from_signal(self.shutdown)
-
-    def _restore_sigint_handler(self):
-        """
-        callback for restoring original SIGINT handler
-        """
-        signal.signal(signal.SIGINT, self._handle_sigint)
-
-    def _confirm_exit(self):
-        """
-        confirm shutdown on ^C
-
-        A second ^C, or answering 'y' within 5s will cause shutdown,
-        otherwise original SIGINT handler will be restored.
-
-        This doesn't work on Windows.
-        """
-        self.log.info('Interrupted')
-        yes = 'y'
-        no = 'n'
-        sys.stdout.write('Shutdown this jaffle (%s/[%s])? ' % (yes, no))
-        sys.stdout.flush()
-        r, w, x = select.select([sys.stdin], [], [], 5)
-        if r:
-            line = sys.stdin.readline()
-            if line.lower().startswith(yes) and no not in line.lower():
-                self.log.critical('Shutdown confirmed')
-                # schedule stop on the main thread,
-                # since this might be called from a signal handler
-                self.io_loop.add_callback_from_signal(self.shutdown)
-
-                return
-        else:
-            print('No answer for 5s:', end=' ')
-        print('resuming operation...')
-        # no answer, or answer is no:
-        # set it back to original SIGINT handler
-        # use IOLoop.add_callback because signal.signal must be called
-        # from main thread
-        self.io_loop.add_callback_from_signal(self._restore_sigint_handler)
 
     def _handle_shell_msg(self, session, kernel_manager, msg):
         """

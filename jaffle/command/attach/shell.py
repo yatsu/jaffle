@@ -8,11 +8,11 @@ from prompt_toolkit.styles import PygmentsStyle
 from pygments.styles import get_style_by_name
 from pygments.token import Token
 from traitlets import Instance, Unicode, Type
-from ...shell import JaffleInteractiveShell
+from ...shell import JaffleJupyterShell
 from ...app.base import BaseJaffleApp
 
 
-class JaffleAppShell(JaffleInteractiveShell):
+class JaffleAppShell(JaffleJupyterShell):
     """
     Interactive shell for ``jaffle attach``.
     """

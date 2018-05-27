@@ -6,7 +6,7 @@ from pathlib import Path
 import signal
 import sys
 from ..base import BaseJaffleCommand
-from ...shell import JaffleInteractiveShell
+from ...shell import JaffleJupyterShell
 from ...status import JaffleStatus
 
 
@@ -67,7 +67,7 @@ jaffle console py_kernel
         JupyterConsoleApp.initialize(self)
 
         signal.signal(signal.SIGINT, self.handle_sigint)
-        self.shell = JaffleInteractiveShell.instance(
+        self.shell = JaffleJupyterShell.instance(
             parent=self,
             manager=self.kernel_manager,
             client=self.kernel_client,
