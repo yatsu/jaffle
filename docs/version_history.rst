@@ -2,6 +2,12 @@
 Version History
 ===============
 
+0.2.3 (Jun 10, 2018)
+====================
+
+- Add config file validation
+- Fix: Log filters do not work for the root and process loggers
+
 0.2.2 (May 21, 2018)
 ====================
 
