@@ -182,7 +182,7 @@ class JaffleStartCommand(BaseJaffleCommand):
             self.conf = JaffleConfig.load(
                 self.conf_files, self.raw_namespace, self.runtime_variables
             )
-        except ValueError as e:
+        except Exception as e:
             print('Configuration error: {}'.format(e), file=sys.stderr)
             sys.exit(1)
 

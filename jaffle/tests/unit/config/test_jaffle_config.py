@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from jsonschema import ValidationError
 from pathlib import Path
+import pytest
 import re
 from textwrap import dedent
 from unittest.mock import call, patch
@@ -70,8 +72,7 @@ def test_jaffle_config():
 def test_load():
     data1 = {'kernel': {'my_kernel': {
         'kernel_name': 'python3',
-        'env_pass': [],
-        'foo': True
+        'pass_env': []
     }}}
     ns = {'HOME': '/home/foo'}
     variables = {'name': 'foo'}
@@ -88,8 +89,7 @@ def test_load():
         'kernel': {
             'my_kernel': {
                 'kernel_name': 'pyspark',
-                'env_pass': ['HOME'],
-                'bar': []
+                'pass_env': ['HOME']
             }
         },
         'app': {'my_app': True}
@@ -105,13 +105,22 @@ def test_load():
         'kernel': {
             'my_kernel': {
                 'kernel_name': 'pyspark',
-                'env_pass': ['HOME'],
-                'foo': True,
-                'bar': []
+                'pass_env': ['HOME']
             }
         },
         'app': {'my_app': True}
     }, ns, variables)
+
+    data1 = {'kernel': {'my_kernel': {
+        'kernel_name': 'python3',
+        'invalid_param': True
+    }}}
+
+    with patch.object(JaffleConfig, '_load_file', return_value=data1) as load_file:
+        with patch.object(JaffleConfig, 'create') as create:
+            with pytest.raises(ValidationError) as e:
+                JaffleConfig.load(['jaffle.hcl'], {}, {})
+            assert "'invalid_param' was unexpected" in str(e)
 
 
 def test_create():

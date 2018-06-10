@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import hcl
+import json
+import jsonschema
 from pathlib import Path
 import re
 from ..functions import functions
@@ -107,8 +109,13 @@ class JaffleConfig(object):
         runtime_variables : dict
             Runtime variables.
         """
-        return cls.create(deep_merge(*(cls._load_file(f) for f in file_paths)),
-                          raw_namespace, runtime_variables)
+        data = deep_merge(*(cls._load_file(f) for f in file_paths))
+
+        with (Path(__file__).parent.parent / 'schema' / 'config_schema.json').open() as sf:
+            schema = json.load(sf)
+        jsonschema.validate(data, schema)
+
+        return cls.create(data, raw_namespace, runtime_variables)
 
     @classmethod
     def create(cls, data_dict, raw_namespace, runtime_variables):
