@@ -131,6 +131,13 @@ process "frontend" {
       "^\\s*$",   # ignore empty message
       "yarn run",
     ]
+
+    replace_regex = [
+      {
+        from = "^(Compiling...)"
+        to   = "${fg('yellow')}\\1${reset()}"
+      },
+    ]
   }
 }
 

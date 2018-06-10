@@ -2,6 +2,7 @@
 
 import logging
 from .display import Color, foreground_color, background_color, display_reset
+from .utils import str_value
 
 
 class LogFormatter(logging.Formatter):
@@ -157,3 +158,52 @@ class LogFormatter(logging.Formatter):
             return display_reset()
         else:
             return ''
+
+
+class JaffleCommandLogHandler(logging.StreamHandler):
+    """
+    Log handler for Jaffle commands.
+    """
+
+    def __init__(self, conf):
+        """
+        Initializes JaffleCommandLogHandler.
+
+        Parameters
+        ----------
+        conf : JaffleConfig
+            Jaffle configuration.
+        """
+        super().__init__()
+
+        self.conf = conf
+
+    def emit(self, record):
+        """
+        Emits a log record.
+
+        Parameters
+        ----------
+        record : logging.LogRecord
+            Log record.
+        """
+        if any([r.search(record.msg) for r in
+                self.conf.app_log_suppress_patterns.get(record.name, [])
+                + self.conf.global_log_suppress_patterns]):
+            return
+
+        msg = record.msg
+
+        for pattern, replace in (self.conf.app_log_replace_patterns.get(record.name, [])
+                                 + self.conf.process_log_replace_patterns.get(record.name, [])
+                                 + self.conf.global_log_replace_patterns):
+            def subtract(match):
+                # Replace '\\1' in the interpolation by calling TemplateString.render()
+                rendered = str_value(replace, match=match)
+                # Replace '\\1' in the string itself
+                return pattern.sub(rendered, msg)
+
+            msg = pattern.sub(subtract, msg)
+
+        record.msg = msg
+        super().emit(record)

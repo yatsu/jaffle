@@ -56,6 +56,16 @@ class JaffleConfig(object):
                        app_data.get('logger', ConfigDict()).get('replace_regex', ConfigList())]
             for app_name, app_data in self.app.items()
         }
+        self.process_log_suppress_patterns = {
+            app_name: [re.compile(str_value(r)) for r in
+                       app_data.get('logger', ConfigDict()).get('suppress_regex', ConfigList())]
+            for app_name, app_data in self.process.items()
+        }
+        self.process_log_replace_patterns = {
+            app_name: [(re.compile(str_value(r['from'])), r['to']) for r in
+                       app_data.get('logger', ConfigDict()).get('replace_regex', ConfigList())]
+            for app_name, app_data in self.process.items()
+        }
         self.global_log_suppress_patterns = [
             re.compile(str_value(r))
             for r in self.logger.get('suppress_regex', default=ConfigList())

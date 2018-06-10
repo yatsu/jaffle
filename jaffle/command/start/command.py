@@ -32,11 +32,12 @@ import zmq
 from zmq.eventloop import zmqstream
 from ...app.base.config import AppConfig
 from ...config import JaffleConfig, ConfigDict
+from ...logging import JaffleCommandLogHandler
 from ...kernel_client import JaffleKernelClient
 from ...process import Process
 from ...session import JaffleSessionManager
 from ...status import JaffleStatus
-from ...utils import bool_value, str_value
+from ...utils import bool_value
 from ..base import BaseJaffleCommand
 
 
@@ -141,6 +142,8 @@ class JaffleStartCommand(BaseJaffleCommand):
 
         self.load_conf()
 
+        self.init_logger_handler()
+
         self.status = JaffleStatus(os.getpid(), self.raw_namespace, self.runtime_variables)
 
     def check_running(self):
@@ -173,6 +176,16 @@ class JaffleStartCommand(BaseJaffleCommand):
         else:
             signal.signal(signal.SIGINT, self._handle_sigint)
         signal.signal(signal.SIGTERM, self._signal_stop)
+
+    def init_logger_handler(self):
+        """
+        Initializes the log handler.
+        """
+        handler = JaffleCommandLogHandler(self.conf)
+        handler.setFormatter(self._log_formatter_cls(
+            fmt=self.log_format, datefmt=self.log_datefmt, enable_color=self.color
+        ))
+        self.log.handlers = [handler]
 
     def load_conf(self):
         """
@@ -214,7 +227,7 @@ class JaffleStartCommand(BaseJaffleCommand):
             self.log.info('Interrupted...')
 
         except Exception as e:
-            if self.log_evel == logging.DEBUG:
+            if self.log_level == logging.DEBUG:
                 self.log.exception(e)
             else:
                 self.log.error(e)
@@ -350,37 +363,10 @@ class JaffleStartCommand(BaseJaffleCommand):
             app_name = data['app_name']
             payload = data['payload']
             logger_name = payload.get('logger') or app_name
-            self._log(logger_name, payload['levelname'], payload.get('message', ''))
-
-    def _log(self, name, level_name, msg):
-        """
-        Emits the received log record in the main command.
-
-        Parameters
-        ----------
-        name : str
-            Logger name.
-        level_name : str
-            Log level name.
-        msg : str
-            Log message.
-        """
-        if any([r.search(msg) for r in
-                self.conf.app_log_suppress_patterns.get(name, [])
-                + self.conf.global_log_suppress_patterns]):
-            return
-
-        for pattern, replace in (self.conf.app_log_replace_patterns.get(name, [])
-                                 + self.conf.global_log_replace_patterns):
-            def subtract(match):
-                # Replace '\\1' in the interpolation by calling TemplateString.render()
-                rendered = str_value(replace, match=match)
-                # Replace '\\1' in the string itself
-                return pattern.sub(rendered, msg)
-
-            msg = pattern.sub(subtract, msg)
-
-        logging.getLogger(name).log(getattr(logging, level_name.upper()), msg)
+            logging.getLogger(logger_name).log(
+                getattr(logging, payload['levelname'].upper()),
+                payload.get('message', '')
+            )
 
     @gen.coroutine
     def _start_processes(self):
