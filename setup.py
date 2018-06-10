@@ -56,7 +56,7 @@ requirements = [
     "jsonschema>=2.0.0,<3",
     "mako>=1.0.0,<2",
     "notebook>=5.0.0,<6",
-    "prompt-toolkit",
+    "prompt-toolkit<2",
     "pygments",
     "pyyaml",
     "pyzmq",

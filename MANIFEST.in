@@ -1,7 +1,7 @@
 include README.md
 include LICENSE
 include requirements.txt
-inlcude jaffle/schema/config_schema.json
+include jaffle/schema/config_schema.json
 graft jaffle
 graft examples
 graft docs
