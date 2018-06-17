@@ -2,6 +2,11 @@
 Version History
 ===============
 
+0.2.4 (Jun 17, 2018)
+====================
+
+- Fix: Log filters still do not work for process loggers
+
 0.2.3 (Jun 10, 2018)
 ====================
 

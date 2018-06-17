@@ -189,6 +189,7 @@ class JaffleCommandLogHandler(logging.StreamHandler):
         """
         if any([r.search(record.msg) for r in
                 self.conf.app_log_suppress_patterns.get(record.name, [])
+                + self.conf.process_log_suppress_patterns.get(record.name, [])
                 + self.conf.global_log_suppress_patterns]):
             return
 
