@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from jaffle.utils import deep_merge, bool_value
+
+from jaffle.utils import bool_value, deep_merge
 
 
 def test_deep_merge():

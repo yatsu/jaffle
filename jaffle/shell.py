@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from distutils.version import StrictVersion
+
 import jupyter_console
 from jupyter_console.ptshell import ZMQTerminalInteractiveShell
 

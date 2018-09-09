@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from jaffle.config.value import ConfigValue, ConfigList, ConfigDict
+
+from jaffle.config.value import ConfigDict, ConfigList, ConfigValue
 
 
 def test_config_value():
@@ -88,11 +89,16 @@ def test_config_dct():
     assert value.namespace == {}
     assert len(value) == 0
 
-    value = ConfigDict({'hello': '${name}!', 'no': ['warries', 'problem']},
+    value = ConfigDict({
+        'hello': '${name}!',
+        'no': ['warries', 'problem']
+    },
                        namespace={'name': 'bar'})
     assert value.value != {'hello': '${name}!', 'no': ['warries', 'problem']}
-    assert value.value == {'hello': '${name}!',
-                           'no': ConfigList(['warries', 'problem'], namespace={'name': 'bar'})}
+    assert value.value == {
+        'hello': '${name}!',
+        'no': ConfigList(['warries', 'problem'], namespace={'name': 'bar'})
+    }
     assert value.namespace == {'name': 'bar'}
     assert len(value) == 2
     assert value.raw() == {'hello': '${name}!', 'no': ['warries', 'problem']}

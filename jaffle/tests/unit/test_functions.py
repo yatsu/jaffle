@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from unittest.mock import patch
+
 from jaffle.display import Color
 from jaffle.functions import (
-    _COLOR_MAP, env, exec, fg, bg, reset, jq_all, jq_first, jq, jqf, functions
+    _COLOR_MAP, bg, env, exec, fg, functions, jq, jq_all, jq_first, jqf, reset
 )
 
 
@@ -16,7 +17,7 @@ def test_evn():
 
 def test_exec():
     with patch('jaffle.functions.to_unicode') as to_unicode:
-        with patch('jaffle.functions.subprocess.check_output')as check_output:
+        with patch('jaffle.functions.subprocess.check_output') as check_output:
             result = exec('hello --world')
 
     assert result is to_unicode.return_value
@@ -88,6 +89,4 @@ def test_reset():
 
 
 def test_functions():
-    assert functions == [
-        env, exec, fg, bg, reset, jq_all, jq_first, jq, jqf
-    ]
+    assert functions == [env, exec, fg, bg, reset, jq_all, jq_first, jq, jqf]

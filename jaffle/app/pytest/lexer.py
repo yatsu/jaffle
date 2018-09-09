@@ -5,7 +5,6 @@ from pygments.token import Token
 
 
 class PyTestLexer(Lexer):
-
     def lex_document(self, cli, document):
         lines = document.lines
 
@@ -24,8 +23,10 @@ class PyTestLexer(Lexer):
         return get_line
 
     def _mod_tokens(self, path):
-        return [n for m in path.split('/')
-                for n in [(Token.Name.Namespace, m), (Token.Name.Other, '/')]][:-1]
+        return [
+            n for m in path.split('/')
+            for n in [(Token.Name.Namespace, m), (Token.Name.Other, '/')]
+        ][:-1]
 
     def _func_tokens(self, func):
         return [(Token.Name.Other, '::'), (Token.Name.Function, func)]

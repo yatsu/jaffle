@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from jaffle.display import Color, foreground_color, background_color, display_reset
+from jaffle.display import Color, background_color, display_reset, foreground_color
 
 
 def test_foreground_color():

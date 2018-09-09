@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from unittest.mock import Mock
+
 import pytest
 from tornado import gen
 from tornado.iostream import StreamClosedError
-from unittest.mock import Mock
 
 
 @pytest.fixture(scope='function')

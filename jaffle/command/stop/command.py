@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from notebook.utils import check_pid
 import os
-from pathlib import Path
 import signal
 import sys
 import time
+from pathlib import Path
+
+from notebook.utils import check_pid
+
 from ...status import JaffleStatus
 from ..base import BaseJaffleCommand
 
@@ -21,9 +23,7 @@ class JaffleStopCommand(BaseJaffleCommand):
 jaffle stop
     '''
 
-    aliases = {
-        'runtime-dir': 'BaseJaffleCommand.runtime_dir'
-    }
+    aliases = {'runtime-dir': 'BaseJaffleCommand.runtime_dir'}
     flags = {}
 
     def start(self):
@@ -36,7 +36,7 @@ jaffle stop
             os.kill(status.pid, signal.SIGTERM)
 
             for _ in range(50000):
-                if check_pid(status. pid):
+                if check_pid(status.pid):
                     print("PID {} has finished".format(status.pid))
                     self._cleanup_runtime_dir(status)
                     sys.exit(0)
@@ -45,7 +45,7 @@ jaffle stop
             os.kill(status.pid, signal.SIGKILL)
 
             for _ in range(50000):
-                if check_pid(status. pid):
+                if check_pid(status.pid):
                     print("PID {} has finished".format(status.pid))
                     self._cleanup_runtime_dir(status)
                     sys.exit(0)
@@ -54,8 +54,10 @@ jaffle stop
             print('Failed to stop Jaffle - PID: {}'.format(status.pid))
 
         except FileNotFoundError:
-            print('Jaffle is not running - runtime_dir: {}' .format(self.runtime_dir),
-                  file=sys.stderr)
+            print(
+                'Jaffle is not running - runtime_dir: {}'.format(self.runtime_dir),
+                file=sys.stderr
+            )
             self.exit(1)
 
         except ProcessLookupError:

@@ -44,8 +44,10 @@ class ConfigValue(object):
         other : object
             Another value.
         """
-        return (isinstance(other, ConfigValue) and
-                other.value == self.value and other.namespace == self.namespace)
+        return (
+            isinstance(other, ConfigValue) and other.value == self.value and
+            other.namespace == self.namespace
+        )
 
     @classmethod
     def create(self, value, namespace=None):
@@ -262,8 +264,10 @@ class ConfigDict(ConfigCollection):
         """
         super().__init__(namespace)
 
-        self.value = {k: ConfigValue.create(v, namespace=namespace)
-                      for k, v in (value or {}).items()}
+        self.value = {
+            k: ConfigValue.create(v, namespace=namespace)
+            for k, v in (value or {}).items()
+        }
 
     def __getattr__(self, attr):
         """
@@ -275,8 +279,9 @@ class ConfigDict(ConfigCollection):
             Dict key.
         """
         if attr not in self.value:
-            raise AttributeError('{!r} object has no attribute {!r}'
-                                 .format(type(self).__name__, attr))
+            raise AttributeError(
+                '{!r} object has no attribute {!r}'.format(type(self).__name__, attr)
+            )
         return self.value[attr]
 
     def __iter__(self):

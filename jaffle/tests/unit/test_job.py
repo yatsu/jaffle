@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from unittest.mock import Mock
+
 from jaffle.job import Job
 
 

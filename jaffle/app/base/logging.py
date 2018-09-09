@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from tornado import ioloop
+
 import zmq
+from tornado import ioloop
 from zmq.eventloop import zmqstream
 
 
@@ -11,6 +12,7 @@ class JaffleAppLogHandler(logging.StreamHandler):
     Log handler for Jaffle apps, which sends log records to the Jaffle server's
     ZeroMQ channel.
     """
+
     def __init__(self, app_name, jaffle_port, main_io_loop=None):
         """
         Initializes JaffleAppLogHandler.
@@ -43,6 +45,7 @@ class JaffleAppLogHandler(logging.StreamHandler):
         record : logging.LogRecord
             Log record.
         """
+
         def emit_log_record():
             self.stream.send_json({
                 'app_name': self.app_name,

@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import re
 from importlib import import_module
 from pathlib import Path
+
 import pkg_resources
 import pytest
-import re
 from setuptools import find_packages
+
 from ..base import BaseJaffleApp, capture_method_output, clear_module_cache_once
 from .collect import collect_test_items as _collect_test_items
 from .completer import PyTestCompleter
@@ -59,8 +61,10 @@ class PyTestRunnerApp(BaseJaffleApp):
         for glob in self.auto_test:
             regex = self.glob_to_regex(glob)
             match = re.match(regex, src_path)
-            self.log.debug('auto_test glob: %s regex: %s src_path: %s match: %s',
-                           glob, regex, src_path, match.groups() if match else None)
+            self.log.debug(
+                'auto_test glob: %s regex: %s src_path: %s match: %s', glob, regex, src_path,
+                match.groups() if match else None
+            )
             if match:
                 self.clear_module_cache(self.clear_cache)
                 self.test(src_path)
@@ -68,8 +72,10 @@ class PyTestRunnerApp(BaseJaffleApp):
         for glob, target in self.auto_test_map.items():
             regex = self.glob_to_regex(glob)
             match = re.match(regex, src_path)
-            self.log.debug('auto_test_map glob: %s regex: %s src_path: %s match: %s',
-                           glob, regex, src_path, match.groups() if match else None)
+            self.log.debug(
+                'auto_test_map glob: %s regex: %s src_path: %s match: %s', glob, regex, src_path,
+                match.groups() if match else None
+            )
             if match:
                 target_path = Path(target.format(*match.groups()).replace('//', '/'))
                 self.log.debug('match: %s target_path: %s', src_path, target_path)
@@ -110,8 +116,10 @@ class PyTestRunnerApp(BaseJaffleApp):
         """
         # The pattern '...(?!\?\))' assumes that '*' is not followed by '?)'
         # because '?' and parenthesies are not allowed in the glob syntax
-        return re.sub(r'/', r'\/', re.sub(r'(?<!\\)\*(?!\?\))', r'([^/]*?)',
-                                          re.sub(r'(?<!\\)\*\*\/?', r'(.*?)', glob)))
+        return re.sub(
+            r'/', r'\/',
+            re.sub(r'(?<!\\)\*(?!\?\))', r'([^/]*?)', re.sub(r'(?<!\\)\*\*\/?', r'(.*?)', glob))
+        )
 
     @capture_method_output
     def collect_test_items(self):

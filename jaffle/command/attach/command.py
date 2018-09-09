@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from jupyter_client.consoleapp import JupyterConsoleApp
-from pathlib import Path
 import signal
 import sys
+from pathlib import Path
+
+from jupyter_client.consoleapp import JupyterConsoleApp
 from traitlets.config import catch_config_error
+
 from ...status import JaffleStatus
 from ..base import BaseJaffleCommand
 from .shell import JaffleAppShell
@@ -47,9 +49,11 @@ jaffle attach pytest
         try:
             self.status = JaffleStatus.load(self.status_file_path)
         except FileNotFoundError:
-            print('Jaffle is not running - runtime_dir: {}'
-                  .format(Path(self.runtime_dir).relative_to(Path.cwd())),
-                  file=sys.stderr)
+            print(
+                'Jaffle is not running - runtime_dir: {}'
+                .format(Path(self.runtime_dir).relative_to(Path.cwd())),
+                file=sys.stderr
+            )
             self.exit(1)
 
         try:
@@ -87,8 +91,11 @@ jaffle attach pytest
 
         signal.signal(signal.SIGINT, self._handle_sigint)
         self.shell = JaffleAppShell.instance(
-            parent=self, manager=self.kernel_manager, client=self.kernel_client,
-            app_name=self.app.name, app_data=self.app
+            parent=self,
+            manager=self.kernel_manager,
+            client=self.kernel_client,
+            app_name=self.app.name,
+            app_data=self.app
         )
 
     def start(self):

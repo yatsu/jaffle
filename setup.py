@@ -2,9 +2,10 @@
 # flake8: noqa
 
 import os
-from setuptools import setup, find_packages
-from jaffle import __version__
 
+from setuptools import find_packages, setup
+
+from jaffle import __version__
 
 long_description = '''
 Jaffle is an automation tool for Python software development, which does:

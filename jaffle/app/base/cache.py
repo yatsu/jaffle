@@ -20,6 +20,7 @@ def clear_module_cache_once(method):
     method : function
         Wrapped method.
     """
+
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         cleared = False

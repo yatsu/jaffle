@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
+
 from tornado import gen
 from watchdog.events import PatternMatchingEventHandler
 
@@ -31,10 +32,22 @@ class WatchdogHandler(PatternMatchingEventHandler):
     Watchdog event handler for Jaffle.
     """
 
-    def __init__(self, ioloop, execute_code, execute_job, log,
-                 patterns=None, ignore_patterns=None, ignore_directories=False,
-                 case_sensitive=False, clear_module_cache=None,
-                 code_blocks=[], jobs=[], debounce=0.0, throttle=0.0):
+    def __init__(
+        self,
+        ioloop,
+        execute_code,
+        execute_job,
+        log,
+        patterns=None,
+        ignore_patterns=None,
+        ignore_directories=False,
+        case_sensitive=False,
+        clear_module_cache=None,
+        code_blocks=[],
+        jobs=[],
+        debounce=0.0,
+        throttle=0.0
+    ):
         """
         Initializes WatchdogHandler.
 
@@ -65,8 +78,12 @@ class WatchdogHandler(PatternMatchingEventHandler):
         throttle : float
             Throttle time in seconds. If it is 0.0, throttle is disabled.
         """
-        super().__init__(patterns=patterns, ignore_patterns=ignore_patterns,
-                         ignore_directories=ignore_directories, case_sensitive=case_sensitive)
+        super().__init__(
+            patterns=patterns,
+            ignore_patterns=ignore_patterns,
+            ignore_directories=ignore_directories,
+            case_sensitive=case_sensitive
+        )
 
         self.ioloop = ioloop
         self.execute_code = execute_code
@@ -91,6 +108,7 @@ class WatchdogHandler(PatternMatchingEventHandler):
         event : watchdog.events.FileSystemEvent
             Watchdog filesystem event.
         """
+
         def handle_event():
             if self.clear_module_cache:
                 self.clear_module_cache()

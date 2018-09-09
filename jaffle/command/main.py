@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from .base import BaseJaffleCommand
 from .attach import JaffleAttachCommand  # noqa
+from .base import BaseJaffleCommand
 from .console import JaffleConsoleCommand  # noqa
 from .start import JaffleStartCommand  # noqa
 from .stop import JaffleStopCommand  # noqa

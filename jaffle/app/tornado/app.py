@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from distutils.version import StrictVersion
 from importlib import import_module
+from unittest.mock import patch
+
 import jupyter_client
 from jupyter_client.threaded import IOLoopThread
-import logging
 from setuptools import find_packages
 from tornado import ioloop
-from unittest.mock import patch
-from ..base import BaseJaffleApp, capture_method_output
+
 from ...utils import bool_value
+from ..base import BaseJaffleApp, capture_method_output
 
 
 class TornadoBridgeApp(BaseJaffleApp):
@@ -98,8 +100,10 @@ class TornadoBridgeApp(BaseJaffleApp):
                     self.thread = IOLoopThread(io_loop)
                 else:
                     self.thread = IOLoopThread()
-                self.log.info('Starting %s %s %s',
-                              type(self.app).__name__, ' '.join(self.args), self.thread)
+                self.log.info(
+                    'Starting %s %s %s',
+                    type(self.app).__name__, ' '.join(self.args), self.thread
+                )
                 io_loop.make_current()
                 try:
                     with patch.object(io_loop, 'start'):
@@ -149,6 +153,7 @@ class TornadoBridgeApp(BaseJaffleApp):
                     self.app = None
 
                     if self.threaded:
+
                         def stop_thread():
                             self.thread.stop()
                             self.thread = None
@@ -169,6 +174,7 @@ class TornadoBridgeApp(BaseJaffleApp):
         """
         Restarts the tornado app.
         """
+
         def _restart():
             self.clear_module_cache(self.clear_cache)
             self.start()

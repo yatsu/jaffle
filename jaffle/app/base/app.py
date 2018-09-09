@@ -3,10 +3,12 @@
 import logging
 import shlex
 import sys
+
 from tornado import gen
 from tornado.escape import to_unicode
 from tornado.iostream import StreamClosedError
 from tornado.process import Subprocess
+
 from ...config import ConfigDict
 from ...job import Job
 from ...utils import str_value
@@ -221,6 +223,7 @@ class BaseJaffleApp(object):
         modules : str[list]
             List of module (dot separated module names).
         """
+
         def match(mod):
             return any([mod == m or mod.startswith('{}.'.format(m)) for m in modules])
 

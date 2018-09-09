@@ -32,6 +32,4 @@ class Job(object):
         repr : str
             String representation of Job.
         """
-        return '<%s {name: %s command: %s}>' % (
-            self.__class__.__name__, self.name, self.command
-        )
+        return '<%s {name: %s command: %s}>' % (self.__class__.__name__, self.name, self.command)

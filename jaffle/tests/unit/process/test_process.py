@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import pytest
 import signal
 from subprocess import TimeoutExpired
-from unittest.mock import call, patch, Mock
+from unittest.mock import Mock, call, patch
+
+import pytest
+
 from jaffle.process.process import Process
 
 
@@ -20,10 +22,19 @@ def test_init():
     assert proc.env == {}
     assert proc.color is True
 
-    proc = Process(log, 'bar', 'bar --help', tty=True, env={'DEBUG': 'true'},
-                   log_suppress_regex=['^test'],
-                   log_replace_regex=[{'from': 'Hello, (.*)', 'to': '\\1'}],
-                   color=False)
+    proc = Process(
+        log,
+        'bar',
+        'bar --help',
+        tty=True,
+        env={'DEBUG': 'true'},
+        log_suppress_regex=['^test'],
+        log_replace_regex=[{
+            'from': 'Hello, (.*)',
+            'to': '\\1'
+        }],
+        color=False
+    )
 
     assert proc.log is log
     assert proc.proc_name == 'bar'
@@ -42,14 +53,15 @@ def test_start(subprocess_mock):
             proc = Process(log, 'foo', 'foo --help', env={'BAR': 'bar'})
             yield proc.start()
 
-    subproc.assert_called_once_with(
-        ['foo', '--help'],
-        env={'PATH': '/bin', 'BAR': 'bar'},
-        stdin=None,
-        stdout=subproc.STREAM,
-        stderr=subproc.STREAM,
-        preexec_fn=os.setpgrp
-    )
+    subproc.assert_called_once_with(['foo', '--help'],
+                                    env={
+                                        'PATH': '/bin',
+                                        'BAR': 'bar'
+                                    },
+                                    stdin=None,
+                                    stdout=subproc.STREAM,
+                                    stderr=subproc.STREAM,
+                                    preexec_fn=os.setpgrp)
 
     log.info.assert_has_calls([
         call('Starting %s: %r', 'foo', 'foo --help'),
@@ -68,19 +80,19 @@ def test_start_tty(subprocess_mock):
     log = Mock(level=logging.INFO)
     with patch('jaffle.process.process.os') as os:
         os.environ = {'PATH': '/bin'}
-        with patch('jaffle.process.process.Subprocess',
-                   return_value=subprocess_mock) as subproc:
+        with patch('jaffle.process.process.Subprocess', return_value=subprocess_mock) as subproc:
             proc = Process(log, 'foo', 'foo --help', env={'BAR': 'bar'}, tty=True)
             yield proc.start()
 
-    subproc.assert_called_once_with(
-        ['jaffle', 'tty', 'foo --help'],
-        env={'PATH': '/bin', 'BAR': 'bar'},
-        stdin=None,
-        stdout=subproc.STREAM,
-        stderr=subproc.STREAM,
-        preexec_fn=os.setpgrp
-    )
+    subproc.assert_called_once_with(['jaffle', 'tty', 'foo --help'],
+                                    env={
+                                        'PATH': '/bin',
+                                        'BAR': 'bar'
+                                    },
+                                    stdin=None,
+                                    stdout=subproc.STREAM,
+                                    stderr=subproc.STREAM,
+                                    preexec_fn=os.setpgrp)
 
     log.info.assert_has_calls([
         call('Starting %s: %r', 'foo', 'foo --help'),
@@ -100,6 +112,7 @@ def test_start_error(subprocess_mock):
     with patch('jaffle.process.process.os') as os:
         os.environ = {'PATH': '/bin'}
         with patch('jaffle.process.process.Subprocess', return_value=subprocess_mock):
+
             def read_until(end):
                 raise IOError('Read error')
 
@@ -154,10 +167,7 @@ def test_stop_force(subprocess_mock):
             yield proc.start()
             yield proc.stop()
 
-    os.getpgid.assert_has_calls([
-        call(subprocess_mock.proc.pid),
-        call(subprocess_mock.proc.pid)
-    ])
+    os.getpgid.assert_has_calls([call(subprocess_mock.proc.pid), call(subprocess_mock.proc.pid)])
 
     os.killpg.assert_has_calls([
         call(os.getpgid.return_value, signal.SIGTERM),

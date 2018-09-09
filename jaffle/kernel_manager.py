@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from distutils.version import StrictVersion
+
 import jupyter_client
 from jupyter_client.ioloop.manager import IOLoopKernelManager
-from traitlets import default, Bool
+from traitlets import Bool, default
 
 
 class JaffleKernelManager(IOLoopKernelManager):

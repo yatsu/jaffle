@@ -10,8 +10,10 @@ class AppConfig(object):
     App configuration.
     """
 
-    def __init__(self, app_name, conf, raw_namespace, runtime_variables, variables_conf,
-                 jaffle_port, jobs_conf):
+    def __init__(
+        self, app_name, conf, raw_namespace, runtime_variables, variables_conf, jaffle_port,
+        jobs_conf
+    ):
         """
         Initializes AppConfig.
 
@@ -35,7 +37,8 @@ class AppConfig(object):
         namespace = dict(
             raw_namespace,
             var=VariablesNamespace(variables_conf, vars=runtime_variables),
-            **{f.__name__: f for f in functions}
+            **{f.__name__: f
+               for f in functions}
         )
 
         self.app_name = app_name

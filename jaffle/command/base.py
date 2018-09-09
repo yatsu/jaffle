@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from IPython.core import ultratb
 import logging
 import os
-from pathlib import Path
 import re
 import sys
-from traitlets.config.application import Application, catch_config_error
-from traitlets import Bool, Dict, List, Unicode, default
-from ..logging import LogFormatter
-from ..variables import get_runtime_variables, VAR_PATTERN
+from pathlib import Path
 
+from IPython.core import ultratb
+from traitlets import Bool, Dict, List, Unicode, default
+from traitlets.config.application import Application, catch_config_error
+
+from ..logging import LogFormatter
+from ..variables import VAR_PATTERN, get_runtime_variables
 
 aliases = {
     'log-level': 'Application.log_level',
@@ -20,18 +21,21 @@ aliases = {
 }
 
 flags = {
-    'debug': (
-        {'Application': {'log_level': logging.DEBUG}},
-        'set log level to logging.DEBUG (maximize logging output)'
-    ),
-    'y': (
-        {'BaseJaffleCommand': {'answer_yes': True}},
-        'Answer yes to any questions instead of prompting.'
-    ),
-    'disable-color': (
-        {'BaseJaffleCommand': {'color': False}},
-        'Disable color output.'
-    )
+    'debug': ({
+        'Application': {
+            'log_level': logging.DEBUG
+        }
+    }, 'set log level to logging.DEBUG (maximize logging output)'),
+    'y': ({
+        'BaseJaffleCommand': {
+            'answer_yes': True
+        }
+    }, 'Answer yes to any questions instead of prompting.'),
+    'disable-color': ({
+        'BaseJaffleCommand': {
+            'color': False
+        }
+    }, 'Disable color output.')
 }
 
 
@@ -55,9 +59,7 @@ class BaseJaffleCommand(Application):
         log.setLevel(self.log_level)
         log.propagate = False
         formatter = self._log_formatter_cls(
-            fmt=self.log_format,
-            datefmt=self.log_datefmt,
-            enable_color=self.color
+            fmt=self.log_format, datefmt=self.log_datefmt, enable_color=self.color
         )
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
@@ -114,8 +116,10 @@ class BaseJaffleCommand(Application):
 
         sys.excepthook = ultratb.ColorTB()
 
-        self.raw_namespace = {k: v for k, v in os.environ.items()
-                              if self._ENV_PATTERN.search(k)
-                              and not VAR_PATTERN.search(k)}
+        self.raw_namespace = {
+            k: v
+            for k, v in os.environ.items()
+            if self._ENV_PATTERN.search(k) and not VAR_PATTERN.search(k)
+        }
 
         self.runtime_variables = get_runtime_variables(self.variables)

@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 
 from importlib import import_module
-from prompt_toolkit.key_binding.manager import KeyBindingManager
+
 from prompt_toolkit.interface import CommandLineInterface
-from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_output
+from prompt_toolkit.key_binding.manager import KeyBindingManager
+from prompt_toolkit.shortcuts import create_eventloop, create_output, create_prompt_application
 from prompt_toolkit.styles import PygmentsStyle
 from pygments.styles import get_style_by_name
 from pygments.token import Token
-from traitlets import Instance, Unicode, Type
-from ...shell import JaffleInteractiveShell
+from traitlets import Instance, Type, Unicode
+
 from ...app.base import BaseJaffleApp
+from ...shell import JaffleInteractiveShell
 
 
 class JaffleAppShell(JaffleInteractiveShell):
@@ -73,8 +75,9 @@ class JaffleAppShell(JaffleInteractiveShell):
             Token.Name.Function: '#aadddd',
         }
         style_cls = get_style_by_name('default')
-        style = PygmentsStyle.from_defaults(pygments_style_cls=style_cls,
-                                            style_dict=style_overrides)
+        style = PygmentsStyle.from_defaults(
+            pygments_style_cls=style_cls, style_dict=style_overrides
+        )
         app = create_prompt_application(
             get_prompt_tokens=self.get_prompt_tokens,
             key_bindings_registry=kbmanager.registry,
@@ -103,9 +106,7 @@ class JaffleAppShell(JaffleInteractiveShell):
         -------
         tokens : list[(pygments.token.Token, str)]
         """
-        return [
-            (Token.Prompt, '>>> ')
-        ]
+        return [(Token.Prompt, '>>> ')]
 
     def get_out_prompt_tokens(self):
         """
@@ -115,9 +116,7 @@ class JaffleAppShell(JaffleInteractiveShell):
         -------
         tokens : list[(pygments.token.Token, str)]
         """
-        return [
-            (Token.OutPrompt, '<<< ')
-        ]
+        return [(Token.OutPrompt, '<<< ')]
 
     def run_cell(self, command, store_history=True):
         """

@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from contextlib import redirect_stdout
-from functools import wraps
 import io
 import logging
 import sys
+from contextlib import redirect_stdout
+from functools import wraps
 
 try:
     from contextlib import redirect_stderr
 except ImportError:
     # Python < 3.5
     class redirect_stderr:
-
         def __init__(self, new_target):
             self._new_target = new_target
             self._old_targets = []
@@ -30,6 +29,7 @@ class OutputLogger(io.StringIO):
     Output stream logger, which can be used as a replacement of ``sys.stdout``
     and ``sys.stderr``.
     """
+
     def __init__(self, log, log_level=logging.INFO, org_io=None):
         """
         Initializes OutputLogger.
@@ -85,6 +85,7 @@ def capture_method_output(method):
     method : function
         Method to be wrapped.
     """
+
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         # Prevent nested capture

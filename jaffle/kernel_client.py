@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from jupyter_client.channels import HBChannel
-from jupyter_client.threaded import ThreadedZMQSocketChannel, ThreadedKernelClient
 import logging
-from traitlets import Type
 
+from jupyter_client.channels import HBChannel
+from jupyter_client.threaded import ThreadedKernelClient, ThreadedZMQSocketChannel
+from traitlets import Type
 
 logger = logging.getLogger('jaffle')
 
@@ -13,6 +13,7 @@ class JaffleZMQSocketChannel(ThreadedZMQSocketChannel):
     """
     ThreadedZMQSocketChannel for Jaffle which calls callbacks in an ioloop.
     """
+
     def __init__(self, socket, session, loop):
         """
         Initializes JaffleZMQSocketChannel.

@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from jupyter_client.consoleapp import JupyterConsoleApp
-from jupyter_console.app import ZMQTerminalIPythonApp
-from pathlib import Path
 import signal
 import sys
-from ..base import BaseJaffleCommand
+from pathlib import Path
+
+from jupyter_client.consoleapp import JupyterConsoleApp
+from jupyter_console.app import ZMQTerminalIPythonApp
+
 from ...shell import JaffleInteractiveShell
 from ...status import JaffleStatus
+from ..base import BaseJaffleCommand
 
 
 class JaffleConsoleCommand(BaseJaffleCommand, ZMQTerminalIPythonApp):
@@ -46,9 +48,11 @@ jaffle console py_kernel
             status = JaffleStatus.load(self.status_file_path)
             print('status', status)
         except FileNotFoundError:
-            print('Jaffle is not running - runtime_dir: {}'
-                  .format(Path(self.runtime_dir).relative_to(Path.cwd())),
-                  file=sys.stderr)
+            print(
+                'Jaffle is not running - runtime_dir: {}'
+                .format(Path(self.runtime_dir).relative_to(Path.cwd())),
+                file=sys.stderr
+            )
             self.exit(1)
 
         try:

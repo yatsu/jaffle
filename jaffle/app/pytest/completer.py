@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from prompt_toolkit.completion import Completer, Completion
 import sys
+
+from prompt_toolkit.completion import Completer, Completion
 
 
 class PyTestCompleter(Completer):
-
     def __init__(self, app_name, app_conf, client):
         self.app_name = app_name
         self.client = client

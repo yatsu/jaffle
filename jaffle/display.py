@@ -2,7 +2,6 @@
 
 from enum import Enum
 
-
 _ESCSEQ_FMT = '\033[%dm'
 
 

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from pygments.lexer import RegexLexer, words, bygroups, include  # pragma: no cover
+from pygments.lexer import RegexLexer, bygroups, include, words  # pragma: no cover
 from pygments.token import (  # pragma: no cover
-    Text, Comment, Operator, Keyword, Name, String, Number, Punctuation
+    Comment, Keyword, Name, Number, Operator, Punctuation, String, Text
 )
 
 # JaffleHCLLexer inherits some code from ``pygments.lexers.configs``.
@@ -29,56 +29,51 @@ class JaffleHCLLexer(RegexLexer):  # pragma: no cover
 
     tokens = {
         'root': [
-             include('string'),
-             include('punctuation'),
-             include('curly'),
-             include('basic'),
-             include('whitespace'),
-             (r'[0-9]+', Number),
+            include('string'),
+            include('punctuation'),
+            include('curly'),
+            include('basic'),
+            include('whitespace'),
+            (r'[0-9]+', Number),
         ],
         'basic': [
-             (words(('true', 'false'), prefix=r'\b', suffix=r'\b'), Keyword.Type),
-             (r'\s*/\*', Comment.Multiline, 'comment'),
-             (r'\s*#.*\n', Comment.Single),
-             (r'(.*?)(\s+)(=)(\s+)', bygroups(Name.Attribute, Text, Operator, Text)),
-             (words(('logger', 'options', 'env', 'auto_test_map'),
-                    prefix=r'\b', suffix=r'\b'), Keyword.Reserved, 'function'),
-             (words(('kernel', 'app', 'process', 'job', 'variable'),
-                    prefix=r'\b', suffix=r'\b'), Keyword.Declaration),
-             ('\$\{', String.Interpol, 'var_builtin'),
+            (words(('true', 'false'), prefix=r'\b', suffix=r'\b'), Keyword.Type),
+            (r'\s*/\*', Comment.Multiline, 'comment'),
+            (r'\s*#.*\n', Comment.Single),
+            (r'(.*?)(\s+)(=)(\s+)', bygroups(Name.Attribute, Text, Operator, Text)),
+            (
+                words(('logger', 'options', 'env', 'auto_test_map'), prefix=r'\b', suffix=r'\b'),
+                Keyword.Reserved, 'function'
+            ),
+            (
+                words(('kernel', 'app', 'process', 'job', 'variable'), prefix=r'\b', suffix=r'\b'),
+                Keyword.Declaration
+            ),
+            ('\$\{', String.Interpol, 'var_builtin'),
         ],
         'function': [
-             (r'(\s+)(".*")(\s+)', bygroups(Text, String, Text)),
-             include('punctuation'),
-             include('curly'),
+            (r'(\s+)(".*")(\s+)', bygroups(Text, String, Text)),
+            include('punctuation'),
+            include('curly'),
         ],
         'var_builtin': [
             (r'\$\{', String.Interpol, '#push'),
-            (words(('exec', 'env'),
-                   prefix=r'\b', suffix=r'\b'), Name.Builtin),
+            (words(('exec', 'env'), prefix=r'\b', suffix=r'\b'), Name.Builtin),
             include('string'),
             include('punctuation'),
             (r'\s+', Text),
             (r'\}', String.Interpol, '#pop'),
         ],
-        'string': [
-            (r'(".*")', bygroups(String.Double)),
-        ],
-        'punctuation': [
-            (r'[\[\](),.]', Punctuation),
-        ],
+        'string': [(r'(".*")', bygroups(String.Double)), ],
+        'punctuation': [(r'[\[\](),.]', Punctuation), ],
         # Keep this seperate from punctuation - we sometimes want to use different
         # Tokens for { }
         'curly': [
             (r'\s*\{', Text.Punctuation),
             (r'\s*\}', Text.Punctuation),
         ],
-        'comment': [
-            (r'[^*/]', Comment.Multiline),
-            (r'/\*', Comment.Multiline, '#push'),
-            (r'\*/', Comment.Multiline, '#pop'),
-            (r'[*/]', Comment.Multiline)
-        ],
+        'comment': [(r'[^*/]', Comment.Multiline), (r'/\*', Comment.Multiline, '#push'),
+                    (r'\*/', Comment.Multiline, '#pop'), (r'[*/]', Comment.Multiline)],
         'whitespace': [
             (r'\n', Text),
             (r'\s+', Text),

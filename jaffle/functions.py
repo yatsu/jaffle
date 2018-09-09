@@ -2,13 +2,14 @@
 
 import json
 import os
-import pyjq
 import shlex
 import subprocess
-from tornado.escape import to_unicode
-import yaml
-from .display import Color, foreground_color, background_color, display_reset
 
+import pyjq
+import yaml
+from tornado.escape import to_unicode
+
+from .display import Color, background_color, display_reset, foreground_color
 
 _COLOR_MAP = {c.name.lower(): c for c in Color}
 
@@ -175,6 +176,5 @@ def jqf(query, data_str, *args, **kwargs):
 
 
 jqf.__doc__ = jq_first.__doc__
-
 
 functions = [env, exec, fg, bg, reset, jq_all, jq_first, jq, jqf]

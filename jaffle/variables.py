@@ -4,13 +4,11 @@ import json
 import os
 import re
 
-
 VAR_PATTERN = re.compile(r'^J_VAR_[A-Za-z0-9_]+')
 VAR_PREFIX = 'J_VAR_'
 
 
 class NotFound(object):
-
     def __repr__(self):
         return 'NOT_FOUND'
 
@@ -41,8 +39,7 @@ class VariablesNamespace(object):
         """
         self.var_defs = var_defs
         self._variables = {
-            name: self._get_hcl_value(
-                name, var_def, (vars or {}).get(name, self._NOT_FOUND))
+            name: self._get_hcl_value(name, var_def, (vars or {}).get(name, self._NOT_FOUND))
             for name, var_def in (var_defs or {}).items()
         }
         self._keep_undefined_vars = keep_undefined_vars
@@ -118,8 +115,7 @@ class VariablesNamespace(object):
                 return json.dumps(value)
 
         except Exception as e:
-            raise ValueError('Cannot convert {!r} to {} ({})'
-                             .format(value, var_type.__name__, e))
+            raise ValueError('Cannot convert {!r} to {} ({})'.format(value, var_type.__name__, e))
 
     def _get_python_type(self, name, type_str, default):
         """
@@ -212,10 +208,8 @@ class VariablesNamespace(object):
 
 def get_runtime_variables(command_line_variables):
     runtime_variables = {
-        k[len(VAR_PREFIX):]: v for k, v in os.environ.items()
-        if VAR_PATTERN.search(k)
+        k[len(VAR_PREFIX):]: v
+        for k, v in os.environ.items() if VAR_PATTERN.search(k)
     }
-    runtime_variables.update(
-        dict(tuple(v.split('=', 1)) for v in command_line_variables).items()
-    )
+    runtime_variables.update(dict(tuple(v.split('=', 1)) for v in command_line_variables).items())
     return runtime_variables

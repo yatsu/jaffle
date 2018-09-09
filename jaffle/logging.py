@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from .display import Color, foreground_color, background_color, display_reset
+
+from .display import Color, background_color, display_reset, foreground_color
 from .utils import str_value
 
 
@@ -29,14 +30,8 @@ class LogFormatter(logging.Formatter):
     ...  '%(level_color)s %(levelname)1.1s %(level_color_end)s %(message)s')
     """
 
-    _NAME_COLOR_PAIRS = [
-        (Color.CYAN, None),
-        (Color.MAGENTA, None),
-        (Color.YELLOW, None),
-        (Color.GREEN, None),
-        (Color.BLUE, None),
-        (Color.RED, None)
-    ]
+    _NAME_COLOR_PAIRS = [(Color.CYAN, None), (Color.MAGENTA, None), (Color.YELLOW, None),
+                         (Color.GREEN, None), (Color.BLUE, None), (Color.RED, None)]
 
     _LEVEL_COLOR_PAIRS = {
         logging.CRITICAL: (Color.BLACK, Color.RED),
@@ -96,9 +91,8 @@ class LogFormatter(logging.Formatter):
 
         name_color_pair = self.name_colors.get(rec.name)
         if name_color_pair is None:
-            name_color_pair = self._NAME_COLOR_PAIRS[
-                len(self.name_colors) % len(self._NAME_COLOR_PAIRS)
-            ]
+            name_color_pair = self._NAME_COLOR_PAIRS[len(self.name_colors) %
+                                                     len(self._NAME_COLOR_PAIRS)]
             self.name_colors[rec.name] = name_color_pair
         rec.name_color = self._color_start(*name_color_pair)
         rec.name_color_end = self._color_end()
@@ -187,17 +181,22 @@ class JaffleCommandLogHandler(logging.StreamHandler):
         record : logging.LogRecord
             Log record.
         """
-        if any([r.search(record.msg) for r in
-                self.conf.app_log_suppress_patterns.get(record.name, [])
-                + self.conf.process_log_suppress_patterns.get(record.name, [])
-                + self.conf.global_log_suppress_patterns]):
+        if any([
+            r.search(record.msg)
+            for r in self.conf.app_log_suppress_patterns.get(record.name, []) +
+            self.conf.process_log_suppress_patterns.get(record.name, []) +
+            self.conf.global_log_suppress_patterns
+        ]):
             return
 
         msg = record.msg
 
-        for pattern, replace in (self.conf.app_log_replace_patterns.get(record.name, [])
-                                 + self.conf.process_log_replace_patterns.get(record.name, [])
-                                 + self.conf.global_log_replace_patterns):
+        for pattern, replace in (
+            self.conf.app_log_replace_patterns.get(record.name, []) +
+            self.conf.process_log_replace_patterns.get(record.name,
+                                                       []) + self.conf.global_log_replace_patterns
+        ):
+
             def subtract(match):
                 # Replace '\\1' in the interpolation by calling TemplateString.render()
                 rendered = str_value(replace, match=match)

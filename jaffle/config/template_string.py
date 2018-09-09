@@ -2,7 +2,9 @@
 
 from collections import Iterable
 from functools import wraps
+
 from mako.template import Template
+
 from ..functions import functions
 
 
@@ -26,8 +28,7 @@ def _match_expand(func, match=None):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        return func(*(expand(a) for a in args),
-                    **{k: expand(v) for k, v in kwargs.items()})
+        return func(*(expand(a) for a in args), **{k: expand(v) for k, v in kwargs.items()})
 
     return wrapper
 
@@ -88,8 +89,8 @@ class TemplateString(str):
         """
         if match is not None:
             namespace = dict(
-                self.namespace,
-                **{f.__name__: _match_expand(f, match=match) for f in functions}
+                self.namespace, **{f.__name__: _match_expand(f, match=match)
+                                   for f in functions}
             )
         else:
             namespace = self.namespace

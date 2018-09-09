@@ -2,8 +2,10 @@
 
 from functools import partial
 from pathlib import Path
+
 from tornado import ioloop
 from watchdog.observers import Observer
+
 from ...utils import bool_value
 from ..base import BaseJaffleApp
 from .handler import WatchdogHandler
@@ -37,8 +39,9 @@ class WatchdogApp(BaseJaffleApp):
                 ignore_patterns=handler.get('ignore_patterns', []),
                 ignore_directories=bool_value(handler.get('ignore_directories', False)),
                 case_sensitive=bool_value(handler.get('case_sensitive', False)),
-                clear_module_cache=partial(self.clear_module_cache,
-                                           handler.get('clear_cache', [])),
+                clear_module_cache=partial(
+                    self.clear_module_cache, handler.get('clear_cache', [])
+                ),
                 code_blocks=handler.get('code_blocks', []),
                 jobs=handler.get('jobs', []),
                 debounce=handler.get('debounce', 0.0),

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from unittest.mock import Mock, call, patch
+
 from jupyter_client.channels import HBChannel
 from jupyter_client.threaded import ThreadedKernelClient
-from unittest.mock import call, patch, Mock
-from jaffle.kernel_client import JaffleZMQSocketChannel, JaffleIOPubChannel, JaffleKernelClient
+
+from jaffle.kernel_client import JaffleIOPubChannel, JaffleKernelClient, JaffleZMQSocketChannel
 
 
 def test_zmq_socket_channel():
@@ -54,10 +56,7 @@ def test_iopub_channel():
                 channel.call_handlers({
                     'msg_type': 'error',
                     'content': {
-                        'traceback': [
-                            'Bar',
-                            'Baz  '
-                        ]
+                        'traceback': ['Bar', 'Baz  ']
                     }
                 })
                 channel.call_handlers({
@@ -68,16 +67,11 @@ def test_iopub_channel():
                     }
                 })
 
-    logger.error.assert_has_calls([
-        call('Foo'),
-        call('Bar\nBaz')
-    ])
+    logger.error.assert_has_calls([call('Foo'), call('Bar\nBaz')])
 
     logger.warning.assert_called_once_with('Hello')
 
-    call_handlers.assert_has_calls([
-        call({'msg_type': 'unknown'})
-    ])
+    call_handlers.assert_has_calls([call({'msg_type': 'unknown'})])
 
 
 def test_kernel_client():

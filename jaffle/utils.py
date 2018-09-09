@@ -20,6 +20,7 @@ def deep_merge(*dicts, update=False):
     merged : dict
         Merged dict.
     """
+
     def merge_into(d1, d2):
         for key in d2:
             if key not in d1 or not isinstance(d1[key], dict):

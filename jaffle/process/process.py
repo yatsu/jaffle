@@ -4,6 +4,7 @@ import os
 import shlex
 import signal
 from subprocess import TimeoutExpired
+
 from tornado import gen
 from tornado.escape import to_unicode
 from tornado.iostream import StreamClosedError
@@ -15,8 +16,17 @@ class Process(object):
     Process handles starting and stopping an external process.
     """
 
-    def __init__(self, log, proc_name, command, tty=False, env=None, log_suppress_regex=None,
-                 log_replace_regex=None, color=True):
+    def __init__(
+        self,
+        log,
+        proc_name,
+        command,
+        tty=False,
+        env=None,
+        log_suppress_regex=None,
+        log_replace_regex=None,
+        color=True
+    ):
         """
         Initializes Process.
 
@@ -79,9 +89,14 @@ class Process(object):
             command = self.command
 
         # os.setpgrp() is required to prevent SIGINT propagation
-        self.proc = Subprocess(shlex.split(command), env=env, stdin=None,
-                               stdout=Subprocess.STREAM, stderr=Subprocess.STREAM,
-                               preexec_fn=os.setpgrp)
+        self.proc = Subprocess(
+            shlex.split(command),
+            env=env,
+            stdin=None,
+            stdout=Subprocess.STREAM,
+            stderr=Subprocess.STREAM,
+            preexec_fn=os.setpgrp
+        )
         self.log.debug('proc: %s', self.proc)
 
         try:

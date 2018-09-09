@@ -12,8 +12,9 @@ class JaffleSessionManager(SessionManager):
     """
 
     @gen.coroutine
-    def create_session(self, path=None, name=None, type=None, kernel_name=None, kernel_id=None,
-                       **kwargs):
+    def create_session(
+        self, path=None, name=None, type=None, kernel_name=None, kernel_id=None, **kwargs
+    ):
         """
         Creates a session and returns its model.
 

@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from jsonschema import ValidationError
-from pathlib import Path
-import pytest
 import re
+from pathlib import Path
 from textwrap import dedent
 from unittest.mock import call, patch
-from jaffle.config.value import ConfigDict
+
+import pytest
+from jsonschema import ValidationError
+
 from jaffle.config.jaffle_config import JaffleConfig
 from jaffle.config.template_string import TemplateString
+from jaffle.config.value import ConfigDict
 
 
 def test_jaffle_config():
@@ -19,41 +21,69 @@ def test_jaffle_config():
     conf = JaffleConfig(
         namespace,
         variable={'baz': 'BAZ'},
-        kernel={'my_kernel': {'kernel_name': 'python3'}},
-        app={'my_app': {'class': 'my.app.MyApp', 'logger': {
-            'suppress_regex': ['pat1 ${foo}', 'pat2'],
-            'replace_regex': [{'from': 'pat_from ${foo}', 'to': 'pat_to ${bar}'}]
-        }}},
-        process={'my_proc': {'command': 'my_proc'}},
-        job={'my_job': {'command': 'my_job'}},
+        kernel={'my_kernel': {
+            'kernel_name': 'python3'
+        }},
+        app={
+            'my_app': {
+                'class': 'my.app.MyApp',
+                'logger': {
+                    'suppress_regex': ['pat1 ${foo}', 'pat2'],
+                    'replace_regex': [{
+                        'from': 'pat_from ${foo}',
+                        'to': 'pat_to ${bar}'
+                    }]
+                }
+            }
+        },
+        process={'my_proc': {
+            'command': 'my_proc'
+        }},
+        job={'my_job': {
+            'command': 'my_job'
+        }},
         logger={
             'level': 'debug',
             'suppress_regex': ['global_pat1', 'global_pat2 ${foo}'],
-            'replace_regex': [{'from': 'global_pat_from ${bar}', 'to': 'global_pat_to ${foo}'}]
+            'replace_regex': [{
+                'from': 'global_pat_from ${bar}',
+                'to': 'global_pat_to ${foo}'
+            }]
         }
     )
 
     assert conf.namespace == namespace
     assert conf.variable == ConfigDict({'baz': 'BAZ'}, namespace)
     assert conf.kernel == ConfigDict({'my_kernel': {'kernel_name': 'python3'}}, namespace)
-    assert conf.app == ConfigDict({'my_app': {'class': 'my.app.MyApp', 'logger': {
-        'suppress_regex': ['pat1 ${foo}', 'pat2'],
-        'replace_regex': [{'from': 'pat_from ${foo}', 'to': 'pat_to ${bar}'}]
-    }}}, namespace)
+    assert conf.app == ConfigDict({
+        'my_app': {
+            'class': 'my.app.MyApp',
+            'logger': {
+                'suppress_regex': ['pat1 ${foo}', 'pat2'],
+                'replace_regex': [{
+                    'from': 'pat_from ${foo}',
+                    'to': 'pat_to ${bar}'
+                }]
+            }
+        }
+    }, namespace)
     assert conf.process == ConfigDict({'my_proc': {'command': 'my_proc'}}, namespace)
     assert conf.job == ConfigDict({'my_job': {'command': 'my_job'}}, namespace)
     assert conf.logger == ConfigDict({
         'level': 'debug',
         'suppress_regex': ['global_pat1', 'global_pat2 ${foo}'],
-        'replace_regex': [{'from': 'global_pat_from ${bar}', 'to': 'global_pat_to ${foo}'}]
+        'replace_regex': [{
+            'from': 'global_pat_from ${bar}',
+            'to': 'global_pat_to ${foo}'
+        }]
     }, namespace)
 
-    assert conf.app_log_suppress_patterns == {'my_app': [
-        re.compile('pat1 FOO'), re.compile('pat2')
-    ]}
-    assert conf.app_log_replace_patterns == {'my_app': [
-        (re.compile('pat_from FOO'), 'pat_to ${bar}')
-    ]}
+    assert conf.app_log_suppress_patterns == {
+        'my_app': [re.compile('pat1 FOO'), re.compile('pat2')]
+    }
+    assert conf.app_log_replace_patterns == {
+        'my_app': [(re.compile('pat_from FOO'), 'pat_to ${bar}')]
+    }
     pat_to = conf.app_log_replace_patterns['my_app'][0][1]
     assert isinstance(pat_to, TemplateString)
     assert pat_to.render() == 'pat_to BAR'
@@ -70,10 +100,7 @@ def test_jaffle_config():
 
 
 def test_load():
-    data1 = {'kernel': {'my_kernel': {
-        'kernel_name': 'python3',
-        'pass_env': []
-    }}}
+    data1 = {'kernel': {'my_kernel': {'kernel_name': 'python3', 'pass_env': []}}}
     ns = {'HOME': '/home/foo'}
     variables = {'name': 'foo'}
 
@@ -92,7 +119,9 @@ def test_load():
                 'pass_env': ['HOME']
             }
         },
-        'app': {'my_app': True}
+        'app': {
+            'my_app': True
+        }
     }
 
     with patch.object(JaffleConfig, '_load_file', side_effect=[data1, data2]) as load_file:
@@ -108,13 +137,12 @@ def test_load():
                 'pass_env': ['HOME']
             }
         },
-        'app': {'my_app': True}
+        'app': {
+            'my_app': True
+        }
     }, ns, variables)
 
-    data1 = {'kernel': {'my_kernel': {
-        'kernel_name': 'python3',
-        'invalid_param': True
-    }}}
+    data1 = {'kernel': {'my_kernel': {'kernel_name': 'python3', 'invalid_param': True}}}
 
     with patch.object(JaffleConfig, '_load_file', return_value=data1) as load_file:
         with patch.object(JaffleConfig, 'create') as create:
@@ -132,30 +160,33 @@ def test_create():
     with patch('jaffle.config.jaffle_config.functions', functions):
         with patch('jaffle.config.jaffle_config.VariablesNamespace') as vn:
             with patch.object(JaffleConfig, '__init__', return_value=None) as init:
-                JaffleConfig.create(
-                    {'kernel': {'my_kernel': {'kernel_name': 'python3'}}},
-                    {'HOME': '/home/foo'},
-                    {'foo': True}
-                )
+                JaffleConfig.create({
+                    'kernel': {
+                        'my_kernel': {
+                            'kernel_name': 'python3'
+                        }
+                    }
+                }, {'HOME': '/home/foo'}, {'foo': True})
 
-    init.assert_called_once_with(
-        {
-            'HOME': '/home/foo',
-            'var': vn.return_value,
-            'echo': echo,
-        },
-        kernel={'my_kernel': {'kernel_name': 'python3'}}
-    )
+    init.assert_called_once_with({
+        'HOME': '/home/foo',
+        'var': vn.return_value,
+        'echo': echo,
+    }, kernel={'my_kernel': {'kernel_name': 'python3'}})  # yapf: disable
 
 
 def test_load_file(tmpdir):
     tmp_file = Path(str(tmpdir)) / 'jaffle.hcl'
     with tmp_file.open('w') as f:
-        f.write(dedent('''
-            kernel "my_kernel" {
-              kernel_name = "python3"
-            }
-        ''').strip())
+        f.write(
+            dedent(
+                '''
+                kernel "my_kernel" {
+                  kernel_name = "python3"
+                }
+                '''
+            ).strip()  # yapf: disable
+        )
 
     data = JaffleConfig._load_file(tmp_file)
     assert data == {'kernel': {'my_kernel': {'kernel_name': 'python3'}}}

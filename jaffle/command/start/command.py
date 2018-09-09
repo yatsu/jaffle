@@ -12,28 +12,30 @@ try:
     from notebook.transutils import _  # noqa: required to import notebook classes
 except ImportError:
     pass
-from functools import partial
 import json
-from jupyter_client.kernelspec import KernelSpecManager
 import logging
-from notebook.services.contents.manager import ContentsManager
-from notebook.services.kernels.kernelmanager import MappingKernelManager
 import os
-from pathlib import Path
 import select
 import signal
 import sys
 import threading
+from functools import partial
+from pathlib import Path
+
+import zmq
+from jupyter_client.kernelspec import KernelSpecManager
+from notebook.services.contents.manager import ContentsManager
+from notebook.services.kernels.kernelmanager import MappingKernelManager
 from tornado import gen, ioloop
 from tornado.escape import to_unicode
-from traitlets import default, Dict, Instance, Int, List
+from traitlets import Dict, Instance, Int, List, default
 from traitlets.config.application import catch_config_error
-import zmq
 from zmq.eventloop import zmqstream
+
 from ...app.base.config import AppConfig
-from ...config import JaffleConfig, ConfigDict
-from ...logging import JaffleCommandLogHandler
+from ...config import ConfigDict, JaffleConfig
 from ...kernel_client import JaffleKernelClient
+from ...logging import JaffleCommandLogHandler
 from ...process import Process
 from ...session import JaffleSessionManager
 from ...status import JaffleStatus
@@ -48,14 +50,15 @@ class JaffleStartCommand(BaseJaffleCommand):
 
     description = __doc__
 
-    aliases = dict(BaseJaffleCommand.aliases,
-                   variables='BaseJaffleCommand.variables')
+    aliases = dict(BaseJaffleCommand.aliases, variables='BaseJaffleCommand.variables')
 
     @default('log_format')
     def _log_format_default(self):
-        return ('%(time_color)s%(asctime)s.%(msecs).03d%(time_color_end)s '
-                '%(name_color)s%(name)14s%(name_color_end)s '
-                '%(level_color)s %(levelname)1.1s %(level_color_end)s %(message)s')
+        return (
+            '%(time_color)s%(asctime)s.%(msecs).03d%(time_color_end)s '
+            '%(name_color)s%(name)14s%(name_color_end)s '
+            '%(level_color)s %(levelname)1.1s %(level_color_end)s %(message)s'
+        )
 
     conf_files = List(Instance(Path))
 
@@ -117,9 +120,7 @@ class JaffleStartCommand(BaseJaffleCommand):
 
         self.init_dir()
 
-        self.kernel_spec_manager = KernelSpecManager(
-            parent=self
-        )
+        self.kernel_spec_manager = KernelSpecManager(parent=self)
         self.kernel_manager = MappingKernelManager(
             parent=self,
             log=self.log,
@@ -127,10 +128,7 @@ class JaffleStartCommand(BaseJaffleCommand):
             kernel_spec_manager=self.kernel_spec_manager,
             kernel_manager_class='jaffle.kernel_manager.JaffleKernelManager'
         )
-        self.contents_manager = ContentsManager(
-            parent=self,
-            log=self.log
-        )
+        self.contents_manager = ContentsManager(parent=self, log=self.log)
         self.session_manager = JaffleSessionManager(
             parent=self,
             log=self.log,
@@ -151,9 +149,11 @@ class JaffleStartCommand(BaseJaffleCommand):
         Checks whether Jaffle is already running.
         """
         if self.status_file_path.exists():
-            print("Jaffle is already running in this directory.",
-                  "Execute 'jaffle stop' to force stop the running Jaffle.",
-                  file=sys.stderr)
+            print(
+                "Jaffle is already running in this directory.",
+                "Execute 'jaffle stop' to force stop the running Jaffle.",
+                file=sys.stderr
+            )
             sys.exit(1)
 
     def init_dir(self):
@@ -182,9 +182,11 @@ class JaffleStartCommand(BaseJaffleCommand):
         Initializes the log handler.
         """
         handler = JaffleCommandLogHandler(self.conf)
-        handler.setFormatter(self._log_formatter_cls(
-            fmt=self.log_format, datefmt=self.log_datefmt, enable_color=self.color
-        ))
+        handler.setFormatter(
+            self._log_formatter_cls(
+                fmt=self.log_format, datefmt=self.log_datefmt, enable_color=self.color
+            )
+        )
         self.log.handlers = [handler]
 
     def load_conf(self):
@@ -249,8 +251,7 @@ class JaffleStartCommand(BaseJaffleCommand):
             client.stop_channels()
 
         for jupyter_sess in self.session_manager.list_sessions():
-            self.log.info('Deleting jupyter_sess: %s %s',
-                          jupyter_sess['name'], jupyter_sess['id'])
+            self.log.info('Deleting jupyter_sess: %s %s', jupyter_sess['name'], jupyter_sess['id'])
             yield self.session_manager.delete_session(jupyter_sess['id'])
 
         for jaffle_sess in self.status.sessions.values():
@@ -297,18 +298,21 @@ class JaffleStartCommand(BaseJaffleCommand):
                 kernel_manager.client_factory = JaffleKernelClient
                 client = self.clients[session.name] = kernel_manager.client()
                 client.start_channels()
-                client.shell_channel.add_handler(partial(
-                    self._handle_shell_msg, session, kernel_manager
-                ))
+                client.shell_channel.add_handler(
+                    partial(self._handle_shell_msg, session, kernel_manager)
+                )
 
                 code_lines = []
 
-                env = {e: os.getenv(e, '') for e in
-                       self.conf.kernel.get(session.name, {}).get('pass_env', [])}
+                env = {
+                    e: os.getenv(e, '')
+                    for e in self.conf.kernel.get(session.name, {}).get('pass_env', [])
+                }
                 if len(env) > 0:
                     code_lines.append('import os')
-                    code_lines.append('\n'.join(['os.environ[{!r}] = {!r}'.format(k, v)
-                                                 for k, v in env.items()]))
+                    code_lines.append(
+                        '\n'.join(['os.environ[{!r}] = {!r}'.format(k, v) for k, v in env.items()])
+                    )
 
                 for app_name, app_data in apps.items():
                     if bool_value(app_data.get('disabled', False)):
@@ -322,9 +326,10 @@ class JaffleStartCommand(BaseJaffleCommand):
 
                     if 'class' in app_data:
                         mod, cls = app_data['class'].rsplit('.', 1)
-                        app_conf = AppConfig(app_name, app_data, self.raw_namespace,
-                                             self.runtime_variables, self.conf.variable,
-                                             self.port, self.conf.job.raw())
+                        app_conf = AppConfig(
+                            app_name, app_data, self.raw_namespace, self.runtime_variables,
+                            self.conf.variable, self.port, self.conf.job.raw()
+                        )
                         self.log.info('Initializing %s.%s on %s', mod, cls, session.name)
                         code_lines.append('from {} import {}'.format(mod, cls))
                         code_lines.append(
@@ -334,8 +339,10 @@ class JaffleStartCommand(BaseJaffleCommand):
                         if 'start' in app_data:
                             code_lines.append(app_data['start'])
 
-                    self.status.add_app(app_name, session_name, app_data['class'],
-                                        app_data.get('start'), app_data.get('options', {}))
+                    self.status.add_app(
+                        app_name, session_name, app_data['class'], app_data.get('start'),
+                        app_data.get('options', {})
+                    )
 
                 client.execute('\n'.join(code_lines), silent=True)
 
@@ -364,8 +371,7 @@ class JaffleStartCommand(BaseJaffleCommand):
             payload = data['payload']
             logger_name = payload.get('logger') or app_name
             logging.getLogger(logger_name).log(
-                getattr(logging, payload['levelname'].upper()),
-                payload.get('message', '')
+                getattr(logging, payload['levelname'].upper()), payload.get('message', '')
             )
 
     @gen.coroutine
@@ -387,12 +393,10 @@ class JaffleStartCommand(BaseJaffleCommand):
             logger_data = proc_data.get('logger', ConfigDict())
             logger.setLevel(getattr(logging, logger_data.get('level', 'info').upper()))
             proc = self.procs[proc_name] = Process(
-                logger, proc_name, proc_data.get('command'),
-                bool_value(proc_data.get('tty', False)),
-                proc_data.get('env', {}),
-                logger_data.get('suppress_regex', []),
-                logger_data.get('replace_regex', []),
-                self.color
+                logger, proc_name,
+                proc_data.get('command'), bool_value(proc_data.get('tty', False)),
+                proc_data.get('env', {}), logger_data.get('suppress_regex', []),
+                logger_data.get('replace_regex', []), self.color
             )
             processes.append(proc.start())
         yield processes
@@ -422,8 +426,10 @@ class JaffleStartCommand(BaseJaffleCommand):
         apps : dict{str: dict}
             App data.
         """
-        return {name: data for name, data in self.conf.app.raw().items()
-                if data.get('kernel') == session_name}
+        return {
+            name: data
+            for name, data in self.conf.app.raw().items() if data.get('kernel') == session_name
+        }
 
     def _handle_sigint(self, sig, frame):
         """

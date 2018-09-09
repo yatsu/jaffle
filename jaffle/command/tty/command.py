@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import io
-import pexpect
 import re
 import sys
+
+import pexpect
+
 from ..base import BaseJaffleCommand
 
 

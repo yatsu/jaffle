@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import json
-import filelock
 from pathlib import Path
+
+import filelock
 
 
 class JaffleStatus(object):
@@ -36,7 +37,8 @@ class JaffleStatus(object):
             String representation of JaffleStatus.
         """
         return '<%s {pid: %d #sessions: %d #apps: %d}>' % (
-            type(self).__name__, self.pid, len(self.sessions), len(self.apps))
+            type(self).__name__, self.pid, len(self.sessions), len(self.apps)
+        )
 
     @classmethod
     def from_dict(cls, status_dict):
@@ -57,8 +59,10 @@ class JaffleStatus(object):
             pid=status_dict.get('pid'),
             raw_namespace=status_dict.get('raw_namespace', {}),
             runtime_variables=status_dict.get('runtime_variables', {}),
-            sessions={n: JaffleSession.from_dict(s)
-                      for n, s in status_dict.get('sessions', {}).items()},
+            sessions={
+                n: JaffleSession.from_dict(s)
+                for n, s in status_dict.get('sessions', {}).items()
+            },
             apps={n: JaffleAppData.from_dict(a)
                   for n, a in status_dict.get('apps', {}).items()}
         )
@@ -112,8 +116,10 @@ class JaffleStatus(object):
             'pid': self.pid,
             'raw_namespace': self.raw_namespace,
             'runtime_variables': self.runtime_variables,
-            'sessions': {n: s.to_dict() for n, s in self.sessions.items()},
-            'apps': {n: a.to_dict() for n, a in self.apps.items()}
+            'sessions': {n: s.to_dict()
+                         for n, s in self.sessions.items()},
+            'apps': {n: a.to_dict()
+                     for n, a in self.apps.items()}
         }
 
     @classmethod
@@ -195,7 +201,8 @@ class JaffleSession(object):
             String representation of a JaffleSession.
         """
         return '<%s {id: %s name: %s kernel: %s}>' % (
-            self.__class__.__name__, self.id, self.name, self.kernel)
+            self.__class__.__name__, self.id, self.name, self.kernel
+        )
 
     @classmethod
     def from_dict(cls, data):
@@ -223,11 +230,7 @@ class JaffleSession(object):
         session : dict
             Dict representation of a JaffleSession.
         """
-        return {
-            'id': self.id,
-            'name': self.name,
-            'kernel': self.kernel.to_dict()
-        }
+        return {'id': self.id, 'name': self.name, 'kernel': self.kernel.to_dict()}
 
 
 class JaffleKernelData(object):
@@ -258,8 +261,7 @@ class JaffleKernelData(object):
         repr : str
             String representation of a JaffleKernelData.
         """
-        return '<%s {id: %s name: %s}>' % (
-            self.__class__.__name__, self.id, self.name)
+        return '<%s {id: %s name: %s}>' % (self.__class__.__name__, self.id, self.name)
 
     @classmethod
     def from_dict(cls, data):
@@ -287,10 +289,7 @@ class JaffleKernelData(object):
         kernel_data : dict
             Dict representation of a JaffleKernelData.
         """
-        return {
-            'id': self.id,
-            'name': self.name
-        }
+        return {'id': self.id, 'name': self.name}
 
 
 class JaffleAppData(object):
@@ -331,7 +330,8 @@ class JaffleAppData(object):
             String representation of a JaffleAppData.
         """
         return '<%s {name: %s session_name: %s class_name: %s start: %s}>' % (
-            type(self).__name__, self.name, self.session_name, self.class_name, self.start)
+            type(self).__name__, self.name, self.session_name, self.class_name, self.start
+        )
 
     @classmethod
     def from_dict(cls, data):
@@ -348,9 +348,10 @@ class JaffleAppData(object):
         app_data : JaffleAppData.
             App data.
         """
-        return cls(**{a: data.get(a) for a in [
-            'name', 'session_name', 'class_name', 'start', 'options'
-        ]})
+        return cls(
+            **{a: data.get(a)
+               for a in ['name', 'session_name', 'class_name', 'start', 'options']}
+        )
 
     def to_dict(self):
         """

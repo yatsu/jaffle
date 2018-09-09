@@ -7,6 +7,7 @@ class TestCollector(object):
     """
     pytest plugin to collect test items.
     """
+
     def __init__(self):
         """
         Initializes TestCollector.

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import patch, Mock
+
 from jaffle.variables import VariablesNamespace
 
 NOT_FOUND = VariablesNamespace._NOT_FOUND
@@ -191,7 +193,7 @@ def test_get_python_type_without_type_str():
     assert py_type is dict
 
     with pytest.raises(ValueError) as e:
-        vn._get_python_type('foo', NOT_FOUND, (0,))
+        vn._get_python_type('foo', NOT_FOUND, (0, ))
     assert "Invalid default value for 'foo': (0,)" in str(e)
 
 

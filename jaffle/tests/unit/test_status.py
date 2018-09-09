@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from unittest.mock import patch
-from jaffle.status import JaffleStatus, JaffleSession
+
+from jaffle.status import JaffleSession, JaffleStatus
 
 
 def test_status_init():
@@ -18,10 +19,22 @@ def test_status_from_dict():
         with patch('jaffle.status.JaffleAppData') as app:
             status = JaffleStatus.from_dict({
                 'pid': 1,
-                'raw_namespace': {'aaa': 'AAA'},
-                'runtime_variables': {'bbb': 'BBB'},
-                'sessions': {'foo': {'foo': 2}},
-                'apps': {'bar': {'bar': 3}}
+                'raw_namespace': {
+                    'aaa': 'AAA'
+                },
+                'runtime_variables': {
+                    'bbb': 'BBB'
+                },
+                'sessions': {
+                    'foo': {
+                        'foo': 2
+                    }
+                },
+                'apps': {
+                    'bar': {
+                        'bar': 3
+                    }
+                }
             })
     assert status.pid == 1
     assert status.raw_namespace == {'aaa': 'AAA'}
@@ -63,11 +76,7 @@ def test_session():
     kernel.from_dict.assert_called_once_with({'my_kernel': {}})
 
     with patch('jaffle.status.JaffleKernelData') as kernel:
-        session = JaffleSession.from_dict({
-            'id': '2',
-            'name': 'bar',
-            'kernel': {'python3': {}}
-        })
+        session = JaffleSession.from_dict({'id': '2', 'name': 'bar', 'kernel': {'python3': {}}})
 
     assert session.id == '2'
     assert session.name == 'bar'
