@@ -8,7 +8,6 @@ from tornado import gen
 from tornado.escape import to_unicode
 from tornado.iostream import StreamClosedError
 from tornado.process import Subprocess
-from .logger import ProcessLogger
 
 
 class Process(object):
@@ -40,7 +39,7 @@ class Process(object):
         color : bool
             Whether to enable color output.
         """
-        self.log = ProcessLogger(log, log_suppress_regex or [], log_replace_regex or [])
+        self.log = log
         self.proc_name = proc_name
         self.command = command
         self.tty = tty

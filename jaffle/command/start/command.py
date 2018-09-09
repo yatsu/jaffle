@@ -13,7 +13,6 @@ try:
 except ImportError:
     pass
 from functools import partial
-import json
 from jupyter_client.kernelspec import KernelSpecManager
 import logging
 from notebook.services.contents.manager import ContentsManager
@@ -22,7 +21,6 @@ import os
 from pathlib import Path
 import sys
 from tornado import gen, ioloop
-from tornado.escape import to_unicode
 from tornado.platform.asyncio import AsyncIOMainLoop
 from traitlets import default, Dict, Instance, Int, List
 from traitlets.config.application import catch_config_error
@@ -30,11 +28,12 @@ import zmq
 from zmq.eventloop import zmqstream
 from ...app.base.config import AppConfig
 from ...config import JaffleConfig, ConfigDict
+from ...logging import JaffleCommandLogHandler
 from ...kernel_client import JaffleKernelClient
 from ...process import Process
 from ...session import JaffleSessionManager
 from ...status import JaffleStatus
-from ...utils import bool_value, str_value
+from ...utils import bool_value
 from ..base import BaseJaffleCommand
 from .shell import JaffleMainShell
 
@@ -142,9 +141,11 @@ class JaffleStartCommand(BaseJaffleCommand):
 
         self.load_conf()
 
-        self.status = JaffleStatus(os.getpid(), self.raw_namespace, self.runtime_variables)
+        self.init_logger_handler()
 
         self.init_shell()
+
+        self.status = JaffleStatus(os.getpid(), self.raw_namespace, self.runtime_variables)
 
     def check_running(self):
         """
@@ -167,6 +168,22 @@ class JaffleStartCommand(BaseJaffleCommand):
         if not runtime_dir.exists():
             runtime_dir.mkdir()
 
+    def init_logger_handler(self):
+        """
+        Initializes the log handler.
+        """
+        handler = JaffleCommandLogHandler(self.conf)
+        handler.setFormatter(self._log_formatter_cls(
+            fmt=self.log_format, datefmt=self.log_datefmt, enable_color=self.color
+        ))
+        self.log.handlers = [handler]
+
+    def init_shell(self):
+        """
+        Initializes Jaffle shell.
+        """
+        self.shell = JaffleMainShell(parent=self, shutdown=self.shutdown)
+
     def load_conf(self):
         """
         Loads the configuration.
@@ -175,12 +192,9 @@ class JaffleStartCommand(BaseJaffleCommand):
             self.conf = JaffleConfig.load(
                 self.conf_files, self.raw_namespace, self.runtime_variables
             )
-        except ValueError as e:
+        except Exception as e:
             print('Configuration error: {}'.format(e), file=sys.stderr)
             sys.exit(1)
-
-    def init_shell(self):
-        self.shell = JaffleMainShell(parent=self, shutdown=self.shutdown)
 
     def start(self):
         """
@@ -191,20 +205,21 @@ class JaffleStartCommand(BaseJaffleCommand):
 
         try:
             self.io_loop = ioloop.IOLoop.current()
-            self.io_loop.add_callback(self._start_sessions)
-            self.io_loop.add_callback(self._start_processes)
 
             self._init_job_loggers()
 
             ctx = zmq.Context.instance()
             self.socket = ctx.socket(zmq.PULL)
             self.port = self.socket.bind_to_random_port('tcp://*', min_port=9000, max_port=9099)
-            self.log.info('Jaffle port: %s', self.port)
+            # self.log.info('Jaffle port: %s', self.port)
 
             stream = zmqstream.ZMQStream(self.socket, self.io_loop)
             stream.on_recv(self._on_recv_msg)
 
             self.io_loop.add_callback(self.shell.mainloop)
+
+            self.io_loop.add_callback(self._start_sessions)
+            self.io_loop.add_callback(self._start_processes)
 
             self.io_loop.start()
 
@@ -213,7 +228,7 @@ class JaffleStartCommand(BaseJaffleCommand):
             self.log.exception(e)
 
         except Exception as e:
-            if self.log_evel == logging.DEBUG:
+            if self.log_level == logging.DEBUG:
                 self.log.exception(e)
             else:
                 self.log.error(e)
@@ -343,43 +358,17 @@ class JaffleStartCommand(BaseJaffleCommand):
         msg : str
             JSON encoded message.
         """
-        data = json.loads(to_unicode(msg[0]))
-        self.log.debug('Receive message: %s', data)
-        if data['type'] == 'log':
-            app_name = data['app_name']
-            payload = data['payload']
-            logger_name = payload.get('logger') or app_name
-            self._log(logger_name, payload['levelname'], payload.get('message', ''))
-
-    def _log(self, name, level_name, msg):
-        """
-        Emits the received log record in the main command.
-
-        Parameters
-        ----------
-        name : str
-            Logger name.
-        level_name : str
-            Log level name.
-        msg : str
-            Log message.
-        """
-        if any([r.search(msg) for r in
-                self.conf.app_log_suppress_patterns.get(name, [])
-                + self.conf.global_log_suppress_patterns]):
-            return
-
-        for pattern, replace in (self.conf.app_log_replace_patterns.get(name, [])
-                                 + self.conf.global_log_replace_patterns):
-            def subtract(match):
-                # Replace '\\1' in the interpolation by calling TemplateString.render()
-                rendered = str_value(replace, match=match)
-                # Replace '\\1' in the string itself
-                return pattern.sub(rendered, msg)
-
-            msg = pattern.sub(subtract, msg)
-
-        logging.getLogger(name).log(getattr(logging, level_name.upper()), msg)
+        pass
+        # data = json.loads(to_unicode(msg[0]))
+        # self.log.debug('Receive message: %s', data)
+        # if data['type'] == 'log':
+        #     app_name = data['app_name']
+        #     payload = data['payload']
+        #     logger_name = payload.get('logger') or app_name
+        #     logging.getLogger(logger_name).log(
+        #         getattr(logging, payload['levelname'].upper()),
+        #         payload.get('message', '')
+        #     )
 
     @gen.coroutine
     def _start_processes(self):

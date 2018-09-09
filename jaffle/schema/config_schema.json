@@ -1,0 +1,172 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "title": "Jaffle Configuration File",
+    "description": "Jaffle Configuration File",
+    "type": "object",
+    "required": ["kernel"],
+    "additionalProperties": false,
+    "properties": {
+        "variable": {
+            "patternProperties": {
+                "^[a-zA-Z][a-zA-Z0-9_\\-]*": {
+                    "$ref": "#/definitions/variable"
+                }
+            },
+            "additionalProperties": false
+        },
+        "kernel": {
+            "patternProperties": {
+                "^[a-zA-Z][a-zA-Z0-9_\\-]*": {
+                    "$ref": "#/definitions/kernel"
+                }
+            },
+            "additionalProperties": false
+        },
+        "app": {
+            "patternProperties": {
+                "^[a-zA-Z][a-zA-Z0-9_\\-]*": {
+                    "$ref": "#/definitions/app"
+                }
+            },
+            "additionalProperties": false
+        },
+        "process": {
+            "patternProperties": {
+                "^[a-zA-Z][a-zA-Z0-9_\\-]*": {
+                    "$ref": "#/definitions/process"
+                }
+            },
+            "additionalProperties": false
+        },
+        "job": {
+            "patternProperties": {
+                "^[a-zA-Z][a-zA-Z0-9_\\-]*": {
+                    "$ref": "#/definitions/job"
+                }
+            },
+            "additionalProperties": false
+        },
+        "logger": {
+            "$ref": "#/definitions/logger"
+        }
+    },
+    "definitions": {
+        "variable": {
+            "type": "object",
+            "properties": {
+                "default": {
+                    "type": ["string", "number", "boolean", "null"]
+                }
+            },
+            "additionalProperties": false
+        },
+        "kernel": {
+            "type": "object",
+            "properties": {
+                "kernel_name": {
+                    "type": "string"
+                },
+                "pass_env": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "app": {
+            "required": ["class", "kernel"],
+            "properties": {
+                "class": {
+                    "type": "string"
+                },
+                "kernel": {
+                    "type": "string"
+                },
+                "start": {
+                    "type": "string"
+                },
+                "logger": {
+                    "$ref": "#/definitions/logger"
+                },
+                "options": {
+                    "patternProperties": {
+                        "^[a-zA-Z][a-zA-Z0-9_\\-]*": {}
+                    },
+                    "additionalProperties": false
+                },
+                "disabled": {
+                    "type": ["boolean", "string"]
+                }
+            },
+            "additionalProperties": false
+        },
+        "process": {
+            "properties": {
+                "command": {
+                    "type": "string"
+                },
+                "tty": {
+                    "type": ["boolean", "string"]
+                },
+                "env": {
+                    "type": "object",
+                    "patternProperties": {
+                        "^[a-zA-Z][a-zA-Z0-9_]*": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "logger": {
+                    "$ref": "#/definitions/logger"
+                },
+                "disabled": {
+                    "type": ["boolean", "string"]
+                }
+            },
+            "additionalProperties": false
+        },
+        "job": {
+            "properties": {
+                "command": {
+                    "type": "string"
+                },
+                "logger": {
+                    "$ref": "#/definitions/logger"
+                }
+            },
+            "additionalProperties": false
+        },
+        "logger": {
+            "properties": {
+                "level": {
+                    "type": "string"
+                },
+                "suppress_regex": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "replace_regex": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "from": {
+                                "type": "string"
+                            },
+                            "to": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}

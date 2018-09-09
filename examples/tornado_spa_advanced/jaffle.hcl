@@ -100,6 +100,22 @@ app "pytest" {
 
   logger {
     level = "${var.pytest_log_level}"
+
+    suppress_regex = [
+      "^platform ",
+      "^cachedir:",
+      "^rootdir:",
+      "^plugins:",
+      "collecting \\.\\.\\.",
+      "^collected ",
+    ]
+
+    replace_regex = [
+      {
+        from = "(.*)::(.*)"
+        to   = "${fg('cyan')}\\1${reset()}::${fg('magenta')}\\2${reset()}"
+      },
+    ]
   }
 
   options {
@@ -130,6 +146,13 @@ process "frontend" {
     suppress_regex = [
       "^\\s*$",   # ignore empty message
       "yarn run",
+    ]
+
+    replace_regex = [
+      {
+        from = "^(Compiling...)"
+        to   = "${fg('yellow')}\\1${reset()}"
+      },
     ]
   }
 }
